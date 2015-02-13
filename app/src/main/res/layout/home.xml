@@ -1,0 +1,113 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:custom="http://schemas.android.com/apk/res-auto"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    tools:context=".HomeActivity" >
+
+    <!-- TextView
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:text="@string/hello_world" /-->
+    <view
+        class="org.ricts.abstractmachine.ui.storage.RamView"
+        android:id="@+id/memory"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        custom:pinPosition = "right"
+        />
+
+    <Button
+        android:id="@+id/stepButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/memory"
+        android:text="Step forward"
+        />
+    <TextView
+        android:id="@+id/sysClockLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/stepButton"
+        android:layout_alignTop="@id/stepButton"
+        android:text="Time elapsed: "
+        />
+    <TextView
+        android:id="@+id/sysClockText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/sysClockLabel"
+        android:layout_alignTop="@id/sysClockLabel"
+        />
+
+    <RelativeLayout
+        android:id="@+id/cpuLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="fill_parent"
+        android:layout_toRightOf="@id/memory"
+        android:layout_alignTop="@id/memory"
+        android:layout_alignBottom="@id/memory"
+        android:background="@color/reg_data_unselected"
+        android:padding="10dp">
+
+        <TextView
+            android:id="@+id/pcLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="PC"
+            android:typeface="monospace"
+            android:textColor="@android:color/white"
+            />
+        <view
+            class="org.ricts.abstractmachine.ui.storage.RegDataView"
+            android:id="@+id/pcRegTextView"
+            android:layout_width="70dp"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@id/pcLabel"
+            android:layout_alignTop="@id/pcLabel"
+            android:background="@color/test_color"
+            android:textColor="@android:color/white"/>
+
+        <TextView
+            android:id="@+id/irLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/pcLabel"
+            android:layout_alignLeft="@id/pcLabel"
+            android:text="IR"
+            android:textColor="@android:color/white"
+            android:typeface="monospace"
+            />
+
+        <view
+            class="org.ricts.abstractmachine.ui.storage.RegDataView"
+            android:id="@+id/irRegTextView"
+            android:layout_width="70dp"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@id/irLabel"
+            android:layout_alignTop="@id/irLabel"
+            android:background="@color/test_color"
+            android:textColor="@android:color/white"/>
+
+        <TextView
+            android:id="@+id/stateLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/irLabel"
+            android:text="State:"
+            android:textColor="@android:color/white"
+            />
+        <TextView
+            android:id="@+id/stateTextView"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@id/stateLabel"
+            android:layout_alignTop="@id/stateLabel"
+            android:layout_alignRight="@id/irRegTextView"
+            android:background="@color/test_color2"
+            android:textColor="@android:color/white"
+            />
+    </RelativeLayout>
+
+
+</RelativeLayout>

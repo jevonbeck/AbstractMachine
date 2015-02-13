@@ -1,0 +1,16 @@
+<resources>
+    <color name="reg_address_unselected">#000099</color>
+    <color name="reg_address_selected">#6666FF</color>
+    <color name="reg_data_unselected">#006600</color>
+    <color name="reg_data_selected">#00FF00</color>
+
+    <color name="test_color">#CC0066</color>
+    <color name="test_color2">#9A2EFE</color>
+    <color name="pin_sig_color">#FFBF00</color>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <!-- Customize your theme here. -->
+    </style>
+
+</resources>

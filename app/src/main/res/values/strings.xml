@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">AbstractMachine</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+
+    <string name="test_string1">test</string>
+    <string name="mem_tut_read_button">Read</string>
+    <string name="mem_tut_write_button">Write</string>
+    <string name="address_string">Address: </string>
+    <string name="data_string">Data: </string>
+    <string name="title_activity_von_neumann">VonNeumannActivity</string>
+    <string name="title_activity_test">TestActivity</string>
+
+    <item type="id" name="romview_romdata" />
+    <item type="id" name="romview_pindata" />
+    <item type="id" name="vonneumanncpuview_pclabel" />
+    <!--item type="id" name="vonneumanncpuview_pcview" /-->
+    <item type="id" name="vonneumanncpuview_irlabel" />
+    <item type="id" name="vonneumanncpuview_irview" />
+    <item type="id" name="vonneumanncpuview_statelabel" />
+    <!--item type="id" name="vonneumanncpuview_stateview" /-->
+
+    <integer name="pin_sig_trans_time">2000</integer>
+    <integer name="pin_sig_sync_delay">20</integer>
+</resources>

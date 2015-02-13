@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:custom="http://schemas.android.com/apk/res-auto"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent">
+    
+    <view 
+        class="org.ricts.abstractmachine.ui.storage.RamView"
+        android:id="@+id/memory"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop = "true" 
+        android:layout_centerHorizontal = "true"
+        custom:pinPosition = "top"
+        />
+        
+    <RelativeLayout
+        android:id = "@+id/inputContainer"
+        android:layout_width="fill_parent"
+    		android:layout_height="wrap_content"
+    		android:layout_below = "@+id/memory"
+    		android:layout_alignParentLeft = "true"
+    		android:layout_alignParentRight = "true">
+    		
+        <TextView 
+            android:id = "@+id/addressLabel"
+       		 	android:layout_width="wrap_content"
+    				android:layout_height="wrap_content"
+    				android:layout_alignParentTop = "true"
+    				android:layout_alignParentLeft = "true"
+    				android:text= "@string/address_string"
+            />
+        
+        <EditText 
+            android:id = "@+id/addressEdit"
+       		 	android:layout_width="fill_parent"
+    				android:layout_height="wrap_content"
+    				android:layout_alignParentTop = "true"
+    				android:layout_toRightOf = "@+id/addressLabel"
+    				android:inputType = "number"
+            />
+        
+        <TextView 
+            android:id = "@+id/dataLabel"
+       		 	android:layout_width="wrap_content"
+    				android:layout_height="wrap_content"
+    				android:layout_alignTop = "@+id/dataEdit"
+    				android:layout_alignParentLeft = "true"
+    				android:text= "@string/data_string"
+            />
+        
+        <EditText 
+            android:id = "@+id/dataEdit"
+       		 	android:layout_width="fill_parent"
+    				android:layout_height="wrap_content"
+    				android:layout_below = "@+id/addressEdit"
+    				android:layout_toRightOf = "@+id/dataLabel"
+    				android:inputType = "number"
+            />
+    </RelativeLayout>
+    
+    <LinearLayout
+        android:id = "@+id/buttonContainer"
+        android:layout_width="fill_parent"
+    		android:layout_height="fill_parent"
+    		android:layout_below = "@+id/inputContainer"
+    		android:layout_alignParentLeft = "true"
+    		android:layout_alignParentRight = "true">
+        
+        <Button
+            android:id = "@+id/readButton"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:text="@string/mem_tut_read_button"/>
+        <Button
+            android:id = "@+id/writeButton"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:text="@string/mem_tut_write_button"/>
+    </LinearLayout>
+</RelativeLayout>
