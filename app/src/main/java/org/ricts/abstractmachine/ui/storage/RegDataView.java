@@ -33,8 +33,13 @@ public class RegDataView extends TextView implements RegisterPort, AnimationResp
 	
 	public void setDataWidth(int dataWidth){
 		dataReg = new Register(dataWidth);
-		setText(Device.formatNumberInHex(0, dataWidth));
+        updateTextView();
 	}
+
+    public void setRegister(Register r){
+        dataReg = r;
+        updateTextView();
+    }
 	
 	@Override
 	public int read() {
@@ -46,16 +51,20 @@ public class RegDataView extends TextView implements RegisterPort, AnimationResp
 		dataReg.write(data);
 		
 		if(!isDelayed){
-			setText(Device.formatNumberInHex(data, dataReg.dataWidth()));
+            updateTextView();
 		}
 	}
 
 	@Override
 	public void onAnimationFinished() {
-		setText(Device.formatNumberInHex(dataReg.read(), dataReg.dataWidth()));
+        updateTextView();
 	}
 	
 	public void setDelayEnable(boolean enable){
 		isDelayed = enable;
 	}
+
+    private void updateTextView(){
+        setText(Device.formatNumberInHex(dataReg.read(), dataReg.dataWidth()));
+    }
 }

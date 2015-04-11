@@ -373,68 +373,6 @@ public class BasicScalarEnums {
         }
     }
 
-    //Enum for instructions with 2 data registers (high, low) and 1 data address register
-    public enum DataAddrConvert {
-        LOADA, STOREA;
-
-        private static DataAddrConvert[] opcodeArr;
-        private static String enumName = "DataAddrConvert";
-        private static String[] mneumonicArr;
-
-        public static DataAddrConvert decode(int opcode) {
-            if (opcodeArr == null) {
-                opcodeArr = DataAddrConvert.values();
-            }
-            return opcodeArr[opcode];
-        }
-
-        public static String[] mneumonicArr() {
-            if (mneumonicArr == null) {
-                DataAddrConvert[] temp = DataAddrConvert.values();
-                mneumonicArr = new String[temp.length];
-                for(int x=0; x!= temp.length; ++x){
-                    mneumonicArr[x] = temp[x].name();
-                }
-            }
-            return mneumonicArr;
-        }
-
-        public static String enumName(){
-            return enumName;
-        }
-    }
-
-    //Enum for instructions with 2 data registers (high, low) and 1 instruction address register
-    public enum InstrAddrConvert2 {
-        LOADI, STOREI;
-
-        private static InstrAddrConvert2[] opcodeArr;
-        private static String enumName = "InstrAddrConvert2";
-        private static String[] mneumonicArr;
-
-        public static InstrAddrConvert2 decode(int opcode) {
-            if (opcodeArr == null) {
-                opcodeArr = InstrAddrConvert2.values();
-            }
-            return opcodeArr[opcode];
-        }
-
-        public static String[] mneumonicArr() {
-            if (mneumonicArr == null) {
-                InstrAddrConvert2[] temp = InstrAddrConvert2.values();
-                mneumonicArr = new String[temp.length];
-                for(int x=0; x!= temp.length; ++x){
-                    mneumonicArr[x] = temp[x].name();
-                }
-            }
-            return mneumonicArr;
-        }
-
-        public static String enumName(){
-            return enumName;
-        }
-    }
-
     // Enum for instructions with 3 data registers (result, A, B)
     public enum AluOps {
         ADD, ADDWC, SUB, SUBWB, AND, OR, XOR;

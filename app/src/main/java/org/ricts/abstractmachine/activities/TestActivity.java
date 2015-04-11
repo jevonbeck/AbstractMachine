@@ -11,7 +11,7 @@ import android.widget.Toast;
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.devices.compute.core.BasicScalar;
 import org.ricts.abstractmachine.devices.compute.core.BasicScalarEnums;
-import org.ricts.abstractmachine.ui.compute.VonNeumannCpuView;
+import org.ricts.abstractmachine.ui.compute.CpuCoreView;
 import org.ricts.abstractmachine.ui.storage.RamView;
 
 import java.util.ArrayList;
@@ -19,7 +19,7 @@ import java.util.ArrayList;
 public class TestActivity extends Activity {
     private static final String TAG = "TestActivity";
 
-    private VonNeumannCpuView cpu;
+    private CpuCoreView cpu;
 
     private TextView sysClockTextView;
 
@@ -45,7 +45,7 @@ public class TestActivity extends Activity {
 
         RamView memory = (RamView) findViewById(R.id.memory);
 
-        cpu = (VonNeumannCpuView) findViewById(R.id.cpuView);
+        cpu = (CpuCoreView) findViewById(R.id.cpuView);
 
         sysClockTextView = (TextView) findViewById(R.id.sysClockText);
 
@@ -83,12 +83,6 @@ public class TestActivity extends Activity {
         memData.add(core.encodeInstruction(BasicScalarEnums.DataAssignLit.enumName(),
                 BasicScalarEnums.DataAssignLit.LOAD.name(), operands));
 
-        // STOREA R3, A0
-        operands[0] = 3;
-        operands[1] = 0;
-        memData.add(core.encodeInstruction(BasicScalarEnums.DataMemOps.enumName(),
-                BasicScalarEnums.DataMemOps.STOREA.name(), operands));
-
         // ADD R5, R3, R4
         operands = new int[3];
         operands[0] = 5;
@@ -97,8 +91,14 @@ public class TestActivity extends Activity {
         memData.add(core.encodeInstruction(BasicScalarEnums.AluOps.enumName(),
                 BasicScalarEnums.AluOps.ADD.name(), operands));
 
-        // STOREM R5, A0
+        // STOREA R3, A0
         operands = new int[2];
+        operands[0] = 3;
+        operands[1] = 0;
+        memData.add(core.encodeInstruction(BasicScalarEnums.DataMemOps.enumName(),
+                BasicScalarEnums.DataMemOps.STOREA.name(), operands));
+
+        // STOREM R5, A0
         operands[0] = 5;
         operands[1] = 0;
         memData.add(core.encodeInstruction(BasicScalarEnums.DataMemOps.enumName(),

@@ -25,6 +25,11 @@ public class ControlUnitExecuteState extends ControlUnitState {
     }
 
     @Override
+    public String name() {
+        return "execute";
+    }
+
+    @Override
     public int actionDuration(){
         return core.instrExecTime(IR.read(), dataMemory);
     }

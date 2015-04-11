@@ -41,7 +41,7 @@
         />
 
     <view
-        class="org.ricts.abstractmachine.ui.compute.VonNeumannCpuView"
+        class="org.ricts.abstractmachine.ui.compute.CpuCoreView"
         android:id="@+id/cpuView"
         android:layout_width="wrap_content"
         android:layout_height="fill_parent"

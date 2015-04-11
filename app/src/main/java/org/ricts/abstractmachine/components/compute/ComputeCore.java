@@ -35,8 +35,10 @@ public abstract class ComputeCore extends Device implements ComputeDevice {
 	protected abstract void updateProgramCounter(String groupName, int enumOrdinal, int[] operands, RegisterPort PC);
   
 	protected abstract int executionTime(String groupName, int enumOrdinal, MemoryPort dataMemory);
-  
-	public ComputeCore(int clockFreq){
+
+    protected abstract String insToString(String groupName, int enumOrdinal, int[] operands);
+
+    public ComputeCore(int clockFreq){
 		super();
 		clockFrequency = clockFreq;
 	}
@@ -86,7 +88,27 @@ public abstract class ComputeCore extends Device implements ComputeDevice {
 			updateProgramCounter(groupName, enumOrdinal, operands, PC);
 		}
 	}
-	
+
+    public String instrString(int instruction) {
+        int instruct = instruction & instrBitMask;
+        if(instrDecoder.isValidInstruction(instruct)){
+            // decode instruction
+            int decoderIndex = instrDecoder.getDecoderIndex(instruct);
+
+            String groupName = instrDecoder.groupName(decoderIndex);
+            int enumOrdinal = instrDecoder.decode(instruct, decoderIndex);
+
+            int[] operands = new int [instrDecoder.operandCount(decoderIndex)];
+            for(int x=0; x != operands.length; ++x){
+                operands[x] = instrDecoder.getOperand(x, instruct, decoderIndex);
+            }
+
+           // print string version of instruction
+           return  insToString(groupName, enumOrdinal, operands);
+        }
+        return null;
+    }
+
 	public int instrExecTime(int instruction, MemoryPort dataMemory) {
 		int instruct = instruction & instrBitMask;
 		if(instrDecoder.isValidInstruction(instruct)){

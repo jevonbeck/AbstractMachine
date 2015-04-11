@@ -6,16 +6,15 @@ import org.ricts.abstractmachine.components.interfaces.ReadPort;
 import org.ricts.abstractmachine.components.interfaces.RegisterPort;
 
 public class ControlUnit {
-    private RegisterPort pc; // Program Counter
     private RegisterPort ir; // Instruction Register
   
     private FiniteStateMachine fsm;
     private ControlUnitFetchState fetch;
     private ControlUnitExecuteState execute;
 
-    public ControlUnit(RegisterPort instrAddr, RegisterPort instruction, ComputeCore core,
+    public ControlUnit(RegisterPort pc, RegisterPort instruction, ComputeCore core,
                        ReadPort instructionCache, MemoryPort dataMemory){
-        pc = instrAddr;
+        // pc = Program Counter
         ir = instruction;
         fsm = new FiniteStateMachine();
 
@@ -27,6 +26,10 @@ public class ControlUnit {
         execute.setNextState(fetch);
 
         setToFetchState();
+    }
+
+    public State getCurrentState(){
+        return fsm.currentState();
     }
 
     public void setToFetchState(){
@@ -54,12 +57,7 @@ public class ControlUnit {
 
     public int nextActionDuration(){ // in clock cycles
         if(!terminatingCondition()){
-            if(fsm.currentState() == fetch){
-                return fetch.actionDuration();
-            }
-            else{
-                return execute.actionDuration();
-            }
+            return ((ControlUnitState) fsm.currentState()).actionDuration();
         }
         else{
             return 1;

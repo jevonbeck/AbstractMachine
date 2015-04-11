@@ -13,7 +13,7 @@ import android.widget.RelativeLayout;
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.Device;
 import org.ricts.abstractmachine.components.interfaces.ReadPort;
-import org.ricts.abstractmachine.components.storage.RAM;
+import org.ricts.abstractmachine.components.storage.ROM;
 import org.ricts.abstractmachine.ui.CustomDimenRecyclerView;
 import org.ricts.abstractmachine.ui.storage.DevicePin.PinDirection;
 
@@ -28,7 +28,6 @@ public class RomView extends RelativeLayout implements ReadPort {
 	
 	protected int dataWidth;
 	protected int addressWidth;
-	protected int access;
 	private int pinPosition;
 	
 	protected PinDirection inDirection, outDirection;
@@ -36,7 +35,7 @@ public class RomView extends RelativeLayout implements ReadPort {
 	protected DevicePin [] pinArray;
 	
 	protected MemoryDataAdapter dataAdapter;
-	protected RAM memory;
+	protected ROM rom;
 	
 	private CustomDimenRecyclerView ramView;
 	private int ramItemLayout;
@@ -77,7 +76,7 @@ public class RomView extends RelativeLayout implements ReadPort {
 	
 	private void init(Context context) {
         /*** create children ***/
-        CustomDimenRecyclerView pinView = null;
+        CustomDimenRecyclerView pinView;
 
         /*** determine children layouts and positions based on attributes ***/
         LayoutParams lpRamView = new LayoutParams(
@@ -86,8 +85,7 @@ public class RomView extends RelativeLayout implements ReadPort {
         LayoutParams lpPinView = new LayoutParams(
                 LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
 
-        int pinItemLayout = 0;
-        ramItemLayout = 0;
+        int pinItemLayout;
 
         switch (pinPosition) {
             case 2: // top
@@ -100,11 +98,9 @@ public class RomView extends RelativeLayout implements ReadPort {
                 pinView = new HorizontalPinDataView(context);
                 pinView.setId(R.id.romview_pindata);
 
-                lpPinView.addRule(RelativeLayout.ALIGN_PARENT_TOP);
                 lpPinView.addRule(RelativeLayout.CENTER_HORIZONTAL);
                 addView(pinView, lpPinView);
 
-                lpRamView.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
                 lpRamView.addRule(RelativeLayout.BELOW, pinView.getId());
                 addView(ramView, lpRamView);
 
@@ -121,8 +117,6 @@ public class RomView extends RelativeLayout implements ReadPort {
                 pinView = new HorizontalPinDataView(context);
                 pinView.setId(R.id.romview_pindata);
 
-                lpRamView.addRule(RelativeLayout.ALIGN_PARENT_TOP);
-                lpRamView.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
                 addView(ramView, lpRamView);
 
                 lpPinView.addRule(RelativeLayout.BELOW, ramView.getId());
@@ -142,11 +136,9 @@ public class RomView extends RelativeLayout implements ReadPort {
                 pinView = new VerticalPinDataView(context);
                 pinView.setId(R.id.romview_pindata);
 
-                lpPinView.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
                 lpPinView.addRule(RelativeLayout.CENTER_VERTICAL);
                 addView(pinView, lpPinView);
 
-                lpRamView.addRule(RelativeLayout.ALIGN_PARENT_TOP);
                 lpRamView.addRule(RelativeLayout.RIGHT_OF, pinView.getId());
                 addView(ramView, lpRamView);
 
@@ -164,8 +156,6 @@ public class RomView extends RelativeLayout implements ReadPort {
                 pinView = new VerticalPinDataView(context);
                 pinView.setId(R.id.romview_pindata);
 
-                lpRamView.addRule(RelativeLayout.ALIGN_PARENT_TOP);
-                lpRamView.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
                 addView(ramView, lpRamView);
 
                 lpPinView.addRule(RelativeLayout.RIGHT_OF, ramView.getId());
@@ -206,28 +196,39 @@ public class RomView extends RelativeLayout implements ReadPort {
 		dataWidth = dWidth;
 		addressWidth = aWidth;
 		
-		/*** create memory data ***/
-		// initialise memory (ramView data)
-		memory = new RAM(dataWidth, addressWidth, accessTime);
+		// initialise rom (ramView data)
+		rom = new ROM(dataWidth, addressWidth, accessTime);
 		
-		// update pin data (pinView data)		
-		pinArray[PinNames.ADDRESS.ordinal()].dataWidth = addressWidth;
-		pinArray[PinNames.DATA.ordinal()].dataWidth = dataWidth;
-		
-		/*** bind memoryView to their data ***/
-		try {
-			dataAdapter = new MemoryDataAdapter(getContext(), ramItemLayout,
-						R.id.data, memory.dataArray());
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		
-		dataAdapter.setMemoryParams(dataWidth, addressWidth);
-		ramView.setAdapter(dataAdapter);
+		init();
 	}
-	
+
+    public void setDataSource(ROM r){
+        rom = r;
+        dataWidth = rom.dataWidth();
+        addressWidth = rom.addressWidth();
+
+        init();
+    }
+
+    protected void init(){
+        // update pin data (pinView data)
+        pinArray[PinNames.ADDRESS.ordinal()].dataWidth = addressWidth;
+        pinArray[PinNames.DATA.ordinal()].dataWidth = dataWidth;
+
+        /*** bind memoryView to their data ***/
+        try {
+            dataAdapter = new MemoryDataAdapter(getContext(), ramItemLayout,
+                    R.id.data, rom.dataArray());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        dataAdapter.setMemoryParams(dataWidth, addressWidth);
+        ramView.setAdapter(dataAdapter);
+    }
+
 	public void setMemoryData(List<Integer> data, int addrOffset){
-		memory.setData(data, addrOffset);
+		rom.setData(data, addrOffset);
 	}
 	
 	public void setAnimationResponder(AnimationResponder responder){
@@ -236,7 +237,7 @@ public class RomView extends RelativeLayout implements ReadPort {
 	
 	@Override
 	public int read(int address) {
-		int data = memory.read(address);
+		int data = rom.read(address);
 		
 		// Setup correct data in pin UI
 		DevicePin pin = pinArray[PinNames.COMMAND.ordinal()];
@@ -283,11 +284,6 @@ public class RomView extends RelativeLayout implements ReadPort {
 
 	@Override
 	public int accessTime() {
-		return memory.accessTime();
-	}
-
-	@Override
-	public Integer[] dataArray() {
-		return memory.dataArray();
+		return rom.accessTime();
 	}
 }

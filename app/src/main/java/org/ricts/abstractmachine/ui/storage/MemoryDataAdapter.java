@@ -17,11 +17,11 @@ public class MemoryDataAdapter extends RecyclerView.Adapter<MemoryDataAdapter.Vi
     private int mViewType; // resourceId
     private int textViewID;
 
-    private Integer [] memoryArray;
+    private int[] memoryArray;
     private int addressWidth;
     private int dataWidth;
 
-    public MemoryDataAdapter(Context c, int resource, int textViewResourceId, Integer[] data) throws Exception{
+    public MemoryDataAdapter(Context c, int resource, int textViewResourceId, int[] data) throws Exception{
         View testView = View.inflate(c, resource, null);
         TextView index = (TextView) testView.findViewById(R.id.address);
         TextView value = (TextView) testView.findViewById(textViewResourceId);

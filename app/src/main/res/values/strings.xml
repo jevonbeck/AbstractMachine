@@ -20,6 +20,7 @@
     <item type="id" name="vonneumanncpuview_irlabel" />
     <item type="id" name="vonneumanncpuview_irview" />
     <item type="id" name="vonneumanncpuview_statelabel" />
+    <item type="id" name="vonneumanncpuview_instuctionlabel" />
     <!--item type="id" name="vonneumanncpuview_stateview" /-->
 
     <integer name="pin_sig_trans_time">2000</integer>

@@ -13,13 +13,11 @@ public class OpDecoder extends Device implements DataDevice{
 	}
 	
 	public int getOpFrom(int instruction){
-		return (instruction & dataBitMask) >> offset;
-		//return getWordFrom(instruction, dataWidth, offset);
+		return (instruction & dataBitMask) >>> offset;
 	}
 		
 	public int putOpIn(int instruction, int op){
-		return (instruction & ~dataBitMask) | ((op << offset) & dataBitMask) ;
-		// return setWordIn(instruction, op, dataWidth, offset);
+		return (instruction & ~dataBitMask) | ((op << offset) & dataBitMask);
 	}
 	
 	public int dataWidth(){

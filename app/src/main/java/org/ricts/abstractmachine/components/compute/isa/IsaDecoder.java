@@ -50,7 +50,7 @@ public class IsaDecoder extends Device {
 				extra = availableRange - remainder;	
 			}
 		}
-		opcodeMaxIndex = (opcodeNextIndex - 1) >> (maxWidths[0] - maxWidths[maxWidths.length-1]);
+		opcodeMaxIndex = (opcodeNextIndex - 1) >>> (maxWidths[0] - maxWidths[maxWidths.length-1]);
 		// opcodeMaxIndex = (opcodeNextIndex - 1) / Math.pow(2,(maxWidths[0] - maxWidths[maxWidths.length-1]))
 		
 		opcodeWidth = bitWidth(opcodeMaxIndex);

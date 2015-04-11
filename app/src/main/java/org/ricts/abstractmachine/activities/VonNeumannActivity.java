@@ -11,7 +11,7 @@ import android.widget.Toast;
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.devices.compute.core.BasicScalar;
 import org.ricts.abstractmachine.devices.compute.core.BasicScalarEnums;
-import org.ricts.abstractmachine.ui.compute.VonNeumannCpuView;
+import org.ricts.abstractmachine.ui.compute.CpuCoreView;
 import org.ricts.abstractmachine.ui.storage.RamView;
 
 import java.util.ArrayList;
@@ -20,7 +20,7 @@ public class VonNeumannActivity extends ActionBarActivity {
 
     private static final String TAG = "TestActivity";
 
-    private VonNeumannCpuView cpu;
+    private CpuCoreView cpu;
 
     private TextView sysClockTextView;
 
@@ -46,7 +46,7 @@ public class VonNeumannActivity extends ActionBarActivity {
 
         RamView memory = (RamView) findViewById(R.id.memory);
 
-        cpu = (VonNeumannCpuView) findViewById(R.id.cpuView);
+        cpu = (CpuCoreView) findViewById(R.id.cpuView);
 
         sysClockTextView = (TextView) findViewById(R.id.sysClockText);
 

@@ -15,7 +15,7 @@ import org.ricts.abstractmachine.devices.compute.alu.BasicALU.BasicAluDecoder;
 
 public class BasicScalar extends ComputeCore {
     public enum StatusFlags {
-        CARRY, OVERFLOW, ZERO, SIGN;
+        CARRY, OVERFLOW, ZERO, SIGN
     /*
       CARRY - CarryIn/BorrowIn
       OVERFLOW - CarryOut/ActiveLowBorrowOut
@@ -25,7 +25,7 @@ public class BasicScalar extends ComputeCore {
     }
 
     public enum InterruptFlags {
-        STACKOFLOW, STACKUFLOW;
+        STACKOFLOW, STACKUFLOW
     }
 
 
@@ -58,23 +58,24 @@ public class BasicScalar extends ComputeCore {
         dataWidth = dWidth;
         dataBitMask = bitMaskOfWidth(dataWidth);
 		
-    /* dynamic array testing
-     * 
-    // Java
-    int [][] test = new int[2][];
-    test[0] = new int[1];
-    test[1] = new int[3];
-    
-    int [][][] blah = new int [3][][];
-    
-    // C++ equivalent
-    int **test = new int*[2];
-    test[0] = new int[1];
-    test[1] = new int[3];
-    
-    int ***blah = new int **[3];
-    */
-    /* Initialise core units */
+        /* dynamic array testing
+         *
+        // Java
+        int [][] test = new int[2][];
+        test[0] = new int[1];
+        test[1] = new int[3];
+
+        int [][][] blah = new int [3][][];
+
+        // C++ equivalent
+        int **test = new int*[2];
+        test[0] = new int[1];
+        test[1] = new int[3];
+
+        int ***blah = new int **[3];
+        */
+
+        /* Initialise core units */
         alu = new BasicALU(dataWidth);
 
         RAM stackRam = new RAM(dataWidth, stkAdWidth, 0);
@@ -190,22 +191,6 @@ public class BasicScalar extends ComputeCore {
         array[2] = bitWidth(dWidth - 1); // bit-shift amount
         instructionSet.add(new InstructionGroup(
                 array, BasicScalarEnums.ShiftReg.mneumonicArr(), BasicScalarEnums.ShiftReg.enumName()));
-
-        // Instructions with 2 data registers (high, low) and 1 data address register
-        array = new int[3];
-        array[0] = dRegAdWidth; // data register (high)
-        array[1] = dRegAdWidth; // data register (low)
-        array[2] = dAdrRegAdWidth; // data address register
-        instructionSet.add(new InstructionGroup(
-                array, BasicScalarEnums.DataAddrConvert.mneumonicArr(), BasicScalarEnums.DataAddrConvert.enumName()));
-
-        // Instructions with 2 data registers (high, low) and 1 instruction address register
-        array = new int[3];
-        array[0] = dRegAdWidth; // data register (high)
-        array[1] = dRegAdWidth; // data register (low)
-        array[2] = iAdrRegAdWidth; // instruction address register
-        instructionSet.add(new InstructionGroup(
-                array, BasicScalarEnums.InstrAddrConvert2.mneumonicArr(), BasicScalarEnums.InstrAddrConvert2.enumName()));
 
         // Instructions with 3 data registers (result, A, B)
         array = new int[3];
@@ -348,23 +333,6 @@ public class BasicScalar extends ComputeCore {
                     break;
                 case SHIFTR: // DESTINATION <-- (SOURCE >> SHIFTAMOUNT)
                     dataRegs[destRegAddr].write(alu.result(BasicAluDecoder.SHIFTR, dataRegs[sourceRegAddr].read(), shiftAmount));
-                    break;
-            }
-        } else if (groupName.equals(BasicScalarEnums.DataAddrConvert.enumName())) {
-            // Instructions with 2 data registers (high, low) and 1 data address register
-            int dRegHAddr = operands[0];
-            int dRegLAddr = operands[1];
-            int dAddrRegAddr = operands[2];
-
-            int dRegResult = (dataAddrRegs[dRegHAddr].read() << dataWidth) | dataAddrRegs[dRegLAddr].read();
-
-            switch (BasicScalarEnums.DataAddrConvert.decode(enumOrdinal)) {
-                case LOADA: // DREGH:DREGL <-- (int) DADREG (dereference pointer and assign value to variable)
-                    dataRegs[dRegLAddr].write(dataAddrRegs[dAddrRegAddr].read() & dataBitMask);
-                    dataRegs[dRegHAddr].write((dataAddrRegs[dAddrRegAddr].read() >> dataWidth) & dataBitMask);
-                    break;
-                case STOREA: // DADREG <-- (data address) DREGH:DREGL (pointer assignment) [OS level operation / result of call to 'new']
-                    dataAddrRegs[dAddrRegAddr].write(dRegResult & dAddrBitMask);
                     break;
             }
         } else if (groupName.equals(BasicScalarEnums.RegByteManip.enumName())) {
@@ -541,23 +509,6 @@ public class BasicScalar extends ComputeCore {
                     }
                     break;
             }
-        } else if (groupName.equals(BasicScalarEnums.InstrAddrConvert2.enumName())) {
-            // Instructions with 2 data registers (high, low) and 1 instruction address register
-            int dRegHAddr = operands[0];
-            int dRegLAddr = operands[1];
-            int iAddrRegAddr = operands[2];
-
-            int dRegResult = (instrAddrRegs[dRegHAddr].read() << dataWidth) | instrAddrRegs[dRegLAddr].read();
-
-            switch (BasicScalarEnums.InstrAddrConvert2.decode(enumOrdinal)) {
-                case LOADI: // DREGH:DREGL <-- (int) IADREG (dereference pointer and assign value to variable)
-                    dataRegs[dRegLAddr].write(instrAddrRegs[iAddrRegAddr].read() & dataBitMask);
-                    dataRegs[dRegHAddr].write((instrAddrRegs[iAddrRegAddr].read() >> dataWidth) & dataBitMask);
-                    break;
-                case STOREI: // DADREG <-- (instruction address) DREGH:DREGL [OS level operation / load start address of new program]
-                    instrAddrRegs[iAddrRegAddr].write(dRegResult & iAddrBitMask);
-                    break;
-            }
         }
     }
 
@@ -575,6 +526,117 @@ public class BasicScalar extends ComputeCore {
         }
 
         return 1;
+    }
+
+    @Override
+    protected String insToString(String groupName, int enumOrdinal, int[] operands) {
+        if (groupName.equals(BasicScalarEnums.RegBitManip.enumName())) {
+            // Instructions with 1 data register and 1 bit-index
+            int regAddr = operands[0];
+            int bitIndex = operands[1];
+
+            return BasicScalarEnums.RegBitManip.decode(enumOrdinal).name() +
+                    " R" + regAddr + ", " + bitIndex;
+        } else if (groupName.equals(BasicScalarEnums.DataAssignLit.enumName())) {
+            // Instructions with 1 data register and 1 data literal
+            int regAddr = operands[0];
+            int data = operands[1];
+
+            return BasicScalarEnums.DataAssignLit.decode(enumOrdinal).name() +
+                    " R" + regAddr + ", " + formatNumberInHex(data, dataWidth);
+        } else if (groupName.equals(BasicScalarEnums.DataMemOps.enumName())) {
+            // Instructions with 1 data register and 1 data address register
+            int dRegAddr = operands[0];
+            int dAddrRegAddr = operands[1];
+
+            return BasicScalarEnums.DataMemOps.decode(enumOrdinal).name() +
+                    " R" + dRegAddr + ", A" + dAddrRegAddr;
+        } else if (groupName.equals(BasicScalarEnums.ByteLoad.enumName())) {
+            // Instructions with 1 data register, 1 byte-index and 1 byte literal
+            int regAddr = operands[0];
+            int byteIndex = operands[1];
+            int byteLiteral = operands[2];
+
+            return BasicScalarEnums.ByteLoad.decode(enumOrdinal).name() +
+                    " R" + regAddr + ", " + byteIndex + ", " + formatNumberInHex(byteLiteral, 3);
+        } else if (groupName.equals(BasicScalarEnums.TwoRegOps.enumName())) {
+            // Instructions with 2 data registers (destination, source)
+            int destRegAddr = operands[0];
+            int sourceRegAddr = operands[1];
+
+            return BasicScalarEnums.TwoRegOps.decode(enumOrdinal).name() +
+                    " R" + destRegAddr + ", R" + sourceRegAddr;
+        } else if (groupName.equals(BasicScalarEnums.ShiftReg.enumName())) {
+            // Instructions with 2 data registers (destination, source) and 1 bit-shift amount (source)
+            int destRegAddr = operands[0];
+            int sourceRegAddr = operands[1];
+            int shiftAmount = operands[2];
+
+            return BasicScalarEnums.ShiftReg.decode(enumOrdinal).name() +
+                    " R" + destRegAddr + ", R" + sourceRegAddr + ", " + shiftAmount;
+        } else if (groupName.equals(BasicScalarEnums.RegByteManip.enumName())) {
+            // Instructions with 2 data registers (destination, source) and 2 byte-indices (destination, source)
+            int destRegAddr = operands[0];
+            int destByteIndex = operands[1];
+            int sourceRegAddr = operands[2];
+            int sourceByteIndex = operands[3];
+
+            return BasicScalarEnums.RegByteManip.decode(enumOrdinal).name() +
+                    " R" + destRegAddr + ", " + destByteIndex + ", R" + sourceRegAddr + ", " + sourceByteIndex;
+        } else if (groupName.equals(BasicScalarEnums.AluOps.enumName())) {
+            // Instructions with 3 data registers (result, A, B)
+            int destRegAddr = operands[0];
+            int aRegAddr = operands[1];
+            int bRegAddr = operands[2];
+
+            return BasicScalarEnums.AluOps.decode(enumOrdinal).name() +
+                    " R" + destRegAddr + ", R" + aRegAddr + ", R" + bRegAddr;
+        } else if (groupName.equals(BasicScalarEnums.MultiWidthAluOps.enumName())) {
+            // Instructions with 3 data registers (result, A, B) and 1 byte multiplier literal
+            int resultRegAddr = operands[0];
+            int A = operands[1];
+            int B = operands[2];
+            int byteMultiplier = operands[3];
+
+            return BasicScalarEnums.MultiWidthAluOps.decode(enumOrdinal).name() +
+                    " R" + resultRegAddr + ", R" + A + ", R" + B + ", " + byteMultiplier;
+        } else if (groupName.equals(BasicScalarEnums.NoOperands.enumName())) {
+            // Instructions with 0 operands
+            return BasicScalarEnums.NoOperands.decode(enumOrdinal).name();
+        } else if (groupName.equals(BasicScalarEnums.InstrAddressLiteral.enumName())) {
+            // Instructions with 1 instruction address literal
+            return BasicScalarEnums.InstrAddressLiteral.decode(enumOrdinal).name() +
+                    " " + formatNumberInHex(operands[0], iAddrWidth);
+        } else if (groupName.equals(BasicScalarEnums.InstrAddressReg.enumName())) {
+            // Instructions with 1 instruction address register
+            return BasicScalarEnums.InstrAddressReg.decode(enumOrdinal).name() +
+                    " I" + operands[0];
+        } else if (groupName.equals(BasicScalarEnums.InstrAddrConvert.enumName())) {
+            // Instructions with 1 data register and 1 instruction address register
+            int dRegAddr = operands[0];
+            int iAddrRegAddr = operands[1];
+
+            return BasicScalarEnums.InstrAddrConvert.decode(enumOrdinal).name() +
+                    " R" + dRegAddr + ", I" + iAddrRegAddr;
+        } else if (groupName.equals(BasicScalarEnums.ConditionalBranchLiteral.enumName())) {
+            // Instructions with 1 data register, 1 bit-index and 1 instruction address literal
+            int dRegAddr = operands[0];
+            int bitIndex = operands[1];
+            int iAddrLiteral = operands[2];
+
+            return BasicScalarEnums.ConditionalBranchLiteral.decode(enumOrdinal).name() +
+                    " R" + dRegAddr + ", " + bitIndex + ", " + formatNumberInHex(iAddrLiteral, iAddrWidth);
+        } else if (groupName.equals(BasicScalarEnums.ConditionalBranch.enumName())) {
+            // Instructions with 1 data register, 1 bit-index and 1 instruction address register
+            int dRegAddr = operands[0];
+            int bitIndex = operands[1];
+            int iAddrRegAddr = operands[2];
+
+            return BasicScalarEnums.ConditionalBranch.decode(enumOrdinal).name() +
+                    " R" + dRegAddr + ", " + bitIndex + ", I" + iAddrRegAddr;
+        }
+
+        return "";
     }
 
     private void updateAluCarry() {

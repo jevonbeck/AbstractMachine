@@ -6,7 +6,7 @@ import org.ricts.abstractmachine.components.*;
 import org.ricts.abstractmachine.components.interfaces.ReadPort;
 
 public class ROM extends Device implements AddressDevice, DataDevice, ReadPort {
-    protected Integer[] dataArray;
+    protected int[] dataArray;
     protected int addressBitMask;
     protected int dataBitMask;
     private int addressWidth;
@@ -23,32 +23,31 @@ public class ROM extends Device implements AddressDevice, DataDevice, ReadPort {
         addressWidth = aWidth;
         addressBitMask = bitMaskOfWidth(aWidth);
 
-        dataArray = new Integer[(int) Math.pow(2, addressWidth)];
-
-        Integer zeroRef = Integer.valueOf(0);
-        for (int x = 0; x != dataArray.length; ++x) {
-            dataArray[x] = zeroRef;
-        }
+        dataArray = new int[(int) Math.pow(2, addressWidth)];
     }
 
-    public Integer[] dataArray() {
-        return dataArray;
-    }
-
+    @Override
     public int addressWidth() {
         return addressWidth;
     }
 
+    @Override
     public int dataWidth() {
         return dataWidth;
     }
 
+    @Override
     public int read(int address) {
-        return dataArray[address & addressBitMask].intValue();
+        return dataArray[address & addressBitMask];
     }
 
+    @Override
     public int accessTime() {
         return accessTime;
+    }
+
+    public int[] dataArray() {
+        return dataArray;
     }
 
     public void setData(List<Integer> data, int addrOffset) {
@@ -56,9 +55,8 @@ public class ROM extends Device implements AddressDevice, DataDevice, ReadPort {
         int offset = addrOffset & addressBitMask;
         int addrLimit = Math.min((int) Math.pow(2, addressWidth), offset + dataSize);
 
-        //for(int index = 0, address = offset; index < dataSize && address < addrLimit; ++index, ++address){
         for (int index = 0, address = offset; address < addrLimit; ++index, ++address) {
-            dataArray[address] = Integer.valueOf(data.get(index).intValue() & dataBitMask);
+            dataArray[address] = data.get(index) & dataBitMask;
         }
     }
 }

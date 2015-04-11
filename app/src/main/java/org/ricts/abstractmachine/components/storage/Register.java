@@ -4,25 +4,25 @@ import org.ricts.abstractmachine.components.*;
 import org.ricts.abstractmachine.components.interfaces.RegisterPort;
 
 public class Register extends Device implements DataDevice, RegisterPort{
-  private int dataWord;
-  private int dataBitMask;
-  private int dataWidth;
-  
-  public Register(int dWidth){
-    super();
-    dataWidth = dWidth;
-    dataBitMask = bitMaskOfWidth(dWidth);
-  }  
+    private int dataWord;
+    private int dataBitMask;
+    private int dataWidth;
 
-  public int read(){
-    return dataWord;
-  }
+    public Register(int dWidth){
+        super();
+        dataWidth = dWidth;
+        dataBitMask = bitMaskOfWidth(dWidth);
+    }
 
-  public void write(int data){
-    dataWord = data & dataBitMask;
-  }
+    public int read(){
+        return dataWord;
+    }
 
-  public int dataWidth(){
-    return dataWidth;
-  }     
+    public void write(int data){
+        dataWord = data & dataBitMask;
+    }
+
+    public int dataWidth(){
+        return dataWidth;
+    }
 }

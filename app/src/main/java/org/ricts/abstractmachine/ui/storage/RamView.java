@@ -7,8 +7,10 @@ import android.view.animation.Animation.AnimationListener;
 
 import org.ricts.abstractmachine.components.Device;
 import org.ricts.abstractmachine.components.interfaces.MemoryPort;
+import org.ricts.abstractmachine.components.storage.RAM;
 
 public class RamView extends RomView implements MemoryPort {
+    private RAM ram;
 
 	public RamView(Context context) {
 		super(context);
@@ -21,7 +23,32 @@ public class RamView extends RomView implements MemoryPort {
 	public RamView(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
 	}
-	
+
+    public void setDataSource(RAM r){
+        ram = r;
+
+        dataWidth = ram.dataWidth();
+        addressWidth = ram.addressWidth();
+
+        init();
+    }
+
+    @Override
+    public void initMemory(int dWidth, int aWidth, int accessTime){
+        dataWidth = dWidth;
+        addressWidth = aWidth;
+
+        ram = new RAM(dataWidth, addressWidth, accessTime);
+
+        init();
+    }
+
+    @Override
+    protected void init(){
+        rom = ram;
+        super.init();
+    }
+
 	@Override
 	public void write(int address, int data) {
 		// Setup correct data in pin UI
@@ -47,9 +74,9 @@ public class RamView extends RomView implements MemoryPort {
 		pin.animListener = new AnimationListener(){
 			@Override
 			public void onAnimationEnd(Animation animation){
-				memory.write(a,d);
+				ram.write(a,d);
 				//scrollToPosition(a); // ensure that address is visible
-				dataAdapter.notifyDataSetChanged(); // Animate memory UI
+				dataAdapter.notifyDataSetChanged(); // Animate rom UI
 			}
 
 			@Override

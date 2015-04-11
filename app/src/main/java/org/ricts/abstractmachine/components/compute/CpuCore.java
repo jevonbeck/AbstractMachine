@@ -8,12 +8,11 @@ import org.ricts.abstractmachine.components.storage.Register;
 
 public class CpuCore implements ThreadProcessingUnit{
     private Register pc; // Program Counter
-    private Register ir; // Instruction Register
     private ControlUnit cu; // Control Unit
 
     public CpuCore(ComputeCore core, ReadPort instructionCache, MemoryPort dataMemory){
         pc = new Register(core.iAddrWidth());
-        ir = new Register(core.instrWidth());
+        Register ir = new Register(core.instrWidth()); // Instruction Register
         cu = new ControlUnit(pc, ir, core, instructionCache, dataMemory);
 
         setStartExecFrom(0);
