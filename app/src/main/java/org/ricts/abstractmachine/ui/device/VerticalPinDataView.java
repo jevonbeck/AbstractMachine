@@ -1,4 +1,4 @@
-package org.ricts.abstractmachine.ui.storage;
+package org.ricts.abstractmachine.ui.device;
 
 import android.content.Context;
 import android.graphics.Rect;

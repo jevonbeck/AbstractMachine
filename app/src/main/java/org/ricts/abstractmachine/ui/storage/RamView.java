@@ -8,6 +8,7 @@ import android.view.animation.Animation.AnimationListener;
 import org.ricts.abstractmachine.components.Device;
 import org.ricts.abstractmachine.components.interfaces.MemoryPort;
 import org.ricts.abstractmachine.components.storage.RAM;
+import org.ricts.abstractmachine.ui.device.DevicePin;
 
 public class RamView extends RomView implements MemoryPort {
     private RAM ram;

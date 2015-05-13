@@ -17,13 +17,10 @@ import org.ricts.abstractmachine.ui.storage.RamView;
 import java.util.ArrayList;
 
 public class VonNeumannActivity extends ActionBarActivity {
-
-    private static final String TAG = "TestActivity";
+    private static final String TAG = "VonNeumannActivity";
 
     private CpuCoreView cpu;
-
     private TextView sysClockTextView;
-
     private int sysClock; // system clock
 
     @Override

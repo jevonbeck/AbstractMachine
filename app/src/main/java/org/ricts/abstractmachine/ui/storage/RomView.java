@@ -15,7 +15,11 @@ import org.ricts.abstractmachine.components.Device;
 import org.ricts.abstractmachine.components.interfaces.ReadPort;
 import org.ricts.abstractmachine.components.storage.ROM;
 import org.ricts.abstractmachine.ui.CustomDimenRecyclerView;
-import org.ricts.abstractmachine.ui.storage.DevicePin.PinDirection;
+import org.ricts.abstractmachine.ui.device.DevicePin;
+import org.ricts.abstractmachine.ui.device.DevicePin.PinDirection;
+import org.ricts.abstractmachine.ui.device.HorizontalPinDataView;
+import org.ricts.abstractmachine.ui.device.PinDataAdapter;
+import org.ricts.abstractmachine.ui.device.VerticalPinDataView;
 
 public class RomView extends RelativeLayout implements ReadPort {
 	private static final String TAG = "RomView";
@@ -32,7 +36,7 @@ public class RomView extends RelativeLayout implements ReadPort {
 	
 	protected PinDirection inDirection, outDirection;
 	protected PinDataAdapter pinAdapter;
-	protected DevicePin [] pinArray;
+	protected DevicePin[] pinArray;
 	
 	protected MemoryDataAdapter dataAdapter;
 	protected ROM rom;
@@ -68,7 +72,7 @@ public class RomView extends RelativeLayout implements ReadPort {
 	private void init(Context context, AttributeSet attrs){
 		/*** extract XML attributes ***/
 		TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.RomView);
-		pinPosition = a.getInt(R.styleable.RomView_pinPosition, 1);
+		pinPosition = a.getInt(R.styleable.RomView_pinPosition, R.integer.RomView_pinPosition_right);
 		a.recycle();
 		
 		init(context);
@@ -88,7 +92,7 @@ public class RomView extends RelativeLayout implements ReadPort {
         int pinItemLayout;
 
         switch (pinPosition) {
-            case 2: // top
+            case R.integer.RomView_pinPosition_top: // top
                 pinItemLayout = R.layout.device_pin_vertical;
                 ramItemLayout = R.layout.mem_data_vertical;
 
@@ -107,7 +111,7 @@ public class RomView extends RelativeLayout implements ReadPort {
                 inDirection = PinDirection.DOWN;
                 outDirection = PinDirection.UP;
                 break;
-            case 3: // bottom
+            case R.integer.RomView_pinPosition_bottom: // bottom
                 pinItemLayout = R.layout.device_pin_vertical;
                 ramItemLayout = R.layout.mem_data_vertical;
 
@@ -126,7 +130,7 @@ public class RomView extends RelativeLayout implements ReadPort {
                 inDirection = PinDirection.UP;
                 outDirection = PinDirection.DOWN;
                 break;
-            case 0: // left
+            case R.integer.RomView_pinPosition_left: // left
                 pinItemLayout = R.layout.device_pin_horizontal;
                 ramItemLayout = R.layout.mem_data_horizontal;
 
@@ -145,7 +149,7 @@ public class RomView extends RelativeLayout implements ReadPort {
                 inDirection = PinDirection.LEFT;
                 outDirection = PinDirection.RIGHT;
                 break;
-            case 1: // right
+            case R.integer.RomView_pinPosition_right: // right
             default:
                 pinItemLayout = R.layout.device_pin_horizontal;
                 ramItemLayout = R.layout.mem_data_horizontal;

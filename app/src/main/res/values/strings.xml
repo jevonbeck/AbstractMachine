@@ -15,14 +15,22 @@
 
     <item type="id" name="romview_romdata" />
     <item type="id" name="romview_pindata" />
-    <item type="id" name="vonneumanncpuview_pclabel" />
-    <!--item type="id" name="vonneumanncpuview_pcview" /-->
-    <item type="id" name="vonneumanncpuview_irlabel" />
-    <item type="id" name="vonneumanncpuview_irview" />
-    <item type="id" name="vonneumanncpuview_statelabel" />
-    <item type="id" name="vonneumanncpuview_instuctionlabel" />
-    <!--item type="id" name="vonneumanncpuview_stateview" /-->
-
+    <item type="id" name="cpucoreview_pclabel" />
+    <item type="id" name="cpucoreview_irlabel" />
+    <item type="id" name="cpucoreview_irview" />
+    <item type="id" name="cpucoreview_statelabel" />
+    <item type="id" name="cpucoreview_instuctionlabel" />
+    
     <integer name="pin_sig_trans_time">2000</integer>
     <integer name="pin_sig_sync_delay">20</integer>
+
+    <integer name="RomView_pinPosition_left">0</integer>
+    <integer name="RomView_pinPosition_right">1</integer>
+    <integer name="RomView_pinPosition_top">2</integer>
+    <integer name="RomView_pinPosition_bottom">3</integer>
+
+    <integer name="RightAngleTriangleView_diagonal_topLeftToBottomRight">0</integer>
+    <integer name="RightAngleTriangleView_diagonal_topRightToBottomLeft">1</integer>
+    <integer name="RightAngleTriangleView_solidFill_left">0</integer>
+    <integer name="RightAngleTriangleView_solidFill_right">1</integer>
 </resources>

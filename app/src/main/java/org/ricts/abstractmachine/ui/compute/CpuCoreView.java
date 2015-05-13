@@ -56,24 +56,24 @@ public class CpuCoreView extends RelativeLayout implements ThreadProcessingUnit 
         pc.setTextColor(context.getResources().getColor(android.R.color.white));
 
         ir = new RegDataView(context);
-        ir.setId(R.id.vonneumanncpuview_irview);
+        ir.setId(R.id.cpucoreview_irview);
         ir.setBackgroundColor(context.getResources().getColor(R.color.test_color));
         ir.setTextColor(context.getResources().getColor(android.R.color.white));
 
         TextView pcLabel = new TextView(context);
-        pcLabel.setId(R.id.vonneumanncpuview_pclabel);
+        pcLabel.setId(R.id.cpucoreview_pclabel);
         pcLabel.setTypeface(Typeface.MONOSPACE);
         pcLabel.setTextColor(context.getResources().getColor(android.R.color.white));
         pcLabel.setText("PC");
 
         TextView irLabel = new TextView(context);
-        irLabel.setId(R.id.vonneumanncpuview_irlabel);
+        irLabel.setId(R.id.cpucoreview_irlabel);
         irLabel.setTypeface(Typeface.MONOSPACE);
         irLabel.setTextColor(context.getResources().getColor(android.R.color.white));
         irLabel.setText("IR");
 
         TextView stateLabel = new TextView(context);
-        stateLabel.setId(R.id.vonneumanncpuview_statelabel);
+        stateLabel.setId(R.id.cpucoreview_statelabel);
         stateLabel.setTextColor(context.getResources().getColor(android.R.color.white));
         stateLabel.setText("State:");
 
@@ -82,7 +82,7 @@ public class CpuCoreView extends RelativeLayout implements ThreadProcessingUnit 
         stateView.setBackgroundColor(context.getResources().getColor(R.color.test_color2));
 
         TextView instructionLabel = new TextView(context);
-        instructionLabel.setId(R.id.vonneumanncpuview_instuctionlabel);
+        instructionLabel.setId(R.id.cpucoreview_instuctionlabel);
         instructionLabel.setTextColor(context.getResources().getColor(android.R.color.white));
         instructionLabel.setText("Ins:");
 
@@ -91,7 +91,7 @@ public class CpuCoreView extends RelativeLayout implements ThreadProcessingUnit 
         instructionView.setBackgroundColor(context.getResources().getColor(R.color.test_color2));
 
 
-        /*** determine children layouts and positions based on attributes ***/
+        /*** determine children layouts and positions ***/
         int viewWidth = (int) (110 * scaleFactor);
 
         LayoutParams lpPcLabel = new LayoutParams(

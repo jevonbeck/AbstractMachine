@@ -16,4 +16,18 @@
     <declare-styleable name="VerticalTextView">
         <attr name="topDown" format="boolean"/>
     </declare-styleable>
+
+    <declare-styleable name="RightAngleTriangleView">
+        <attr name="diagonal" format="enum">
+            <enum name="topLeftToBottomRight" value="0" />
+            <enum name="topRightToBottomLeft" value="1" />
+        </attr>
+
+        <attr name="solidFill" format="enum">
+            <enum name="left" value="0" />
+            <enum name="right" value="1" />
+        </attr>
+
+        <attr name="fillColour" format="color"/>
+    </declare-styleable>
 </resources>

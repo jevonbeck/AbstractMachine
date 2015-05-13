@@ -1,4 +1,4 @@
-package org.ricts.abstractmachine.ui.storage;
+package org.ricts.abstractmachine.ui.device;
 
 import android.view.animation.Animation.AnimationListener;
 

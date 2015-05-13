@@ -1,4 +1,4 @@
-package org.ricts.abstractmachine.ui.storage;
+package org.ricts.abstractmachine.ui.device;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
@@ -20,7 +20,11 @@ public class PinDataAdapter extends RecyclerView.Adapter<PinDataAdapter.ViewHold
     private int pinPosition;
     private DevicePin [] pinArray;
 
+    private Animation moveLeft, moveRight, moveUp, moveDown;
+
     public PinDataAdapter(Context c, int resource, DevicePin[] data, int position) throws Exception{
+        super();
+
         View testView = View.inflate(c, resource, null);
         TextView pin = (TextView) testView.findViewById(R.id.pinName);
         TextView signal = (TextView) testView.findViewById(R.id.signalText);
@@ -35,6 +39,12 @@ public class PinDataAdapter extends RecyclerView.Adapter<PinDataAdapter.ViewHold
         }
 
         pinPosition = position;
+
+        // load animations from resources
+        moveLeft = AnimationUtils.loadAnimation(c, R.anim.pin_transition_left);
+        moveRight = AnimationUtils.loadAnimation(c, R.anim.pin_transition_right);
+        moveUp = AnimationUtils.loadAnimation(c, R.anim.pin_transition_up);
+        moveDown = AnimationUtils.loadAnimation(c, R.anim.pin_transition_down);
     }
 
     @Override
@@ -46,6 +56,7 @@ public class PinDataAdapter extends RecyclerView.Adapter<PinDataAdapter.ViewHold
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View mainLayout = LayoutInflater.from(parent.getContext()).inflate(viewType, parent, false);
 
+        // align pin name according to pin position on device
         TextView pin = (TextView) mainLayout.findViewById(R.id.pinName);
         RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) pin.getLayoutParams();
         switch(pinPosition){
@@ -83,17 +94,17 @@ public class PinDataAdapter extends RecyclerView.Adapter<PinDataAdapter.ViewHold
         switch (pinItem.direction){
             case LEFT:
             case LEFTRIGHT:
-                anim = AnimationUtils.loadAnimation(convertView.getContext(), R.anim.pin_transition_left);
+                anim = moveLeft;
                 break;
             case RIGHT:
-                anim = AnimationUtils.loadAnimation(convertView.getContext(), R.anim.pin_transition_right);
+                anim = moveRight;
                 break;
             case UP:
             case UPDOWN:
-                anim = AnimationUtils.loadAnimation(convertView.getContext(), R.anim.pin_transition_up);
+                anim = moveUp;
                 break;
             case DOWN:
-                anim = AnimationUtils.loadAnimation(convertView.getContext(), R.anim.pin_transition_down);
+                anim = moveDown;
                 break;
         }
 
