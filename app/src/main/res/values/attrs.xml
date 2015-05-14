@@ -28,6 +28,12 @@
             <enum name="right" value="1" />
         </attr>
 
+        <attr name="pinOrientation" format="enum">
+            <enum name="none" value="0" />
+            <enum name="horizontal" value="1" />
+            <enum name="vertical" value="2" />
+        </attr>
+
         <attr name="fillColour" format="color"/>
     </declare-styleable>
 </resources>

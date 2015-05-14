@@ -15,9 +15,10 @@
         android:id="@+id/memory"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        custom:diagonal="topRightToBottomLeft"
-        custom:fillPosition="right"
+        custom:diagonal="topLeftToBottomRight"
+        custom:fillPosition="left"
         custom:fillColour="@color/test_color3"
+        custom:pinOrientation="horizontal"
         />
 
 </RelativeLayout>

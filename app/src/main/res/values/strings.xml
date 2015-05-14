@@ -33,4 +33,7 @@
     <integer name="RightAngleTriangleView_diagonal_topRightToBottomLeft">1</integer>
     <integer name="RightAngleTriangleView_fillPosition_left">0</integer>
     <integer name="RightAngleTriangleView_fillPosition_right">1</integer>
+    <integer name="RightAngleTriangleView_pinOrientation_none">0</integer>
+    <integer name="RightAngleTriangleView_pinOrientation_horizontal">1</integer>
+    <integer name="RightAngleTriangleView_pinOrientation_vertical">2</integer>
 </resources>
