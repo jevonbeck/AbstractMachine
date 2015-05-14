@@ -16,11 +16,11 @@ import org.ricts.abstractmachine.R;
  * Created by Jevon on 08/11/14.
  */
 public class PinDataAdapter extends RecyclerView.Adapter<PinDataAdapter.ViewHolder>{
+    private static final String TAG = "PinDataAdapter";
+
     private int mViewType; // resourceId
     private int pinPosition;
     private DevicePin [] pinArray;
-
-    private Animation moveLeft, moveRight, moveUp, moveDown;
 
     public PinDataAdapter(Context c, int resource, DevicePin[] data, int position) throws Exception{
         super();
@@ -39,12 +39,6 @@ public class PinDataAdapter extends RecyclerView.Adapter<PinDataAdapter.ViewHold
         }
 
         pinPosition = position;
-
-        // load animations from resources
-        moveLeft = AnimationUtils.loadAnimation(c, R.anim.pin_transition_left);
-        moveRight = AnimationUtils.loadAnimation(c, R.anim.pin_transition_right);
-        moveUp = AnimationUtils.loadAnimation(c, R.anim.pin_transition_up);
-        moveDown = AnimationUtils.loadAnimation(c, R.anim.pin_transition_down);
     }
 
     @Override
@@ -90,21 +84,20 @@ public class PinDataAdapter extends RecyclerView.Adapter<PinDataAdapter.ViewHold
         TextView signal = (TextView) convertView.findViewById(R.id.signalText);
         signal.setText(pinItem.data);
 
+        // always create new animation, otherwise it will need to be reset
         Animation anim = null;
         switch (pinItem.direction){
             case LEFT:
-            case LEFTRIGHT:
-                anim = moveLeft;
+                anim = AnimationUtils.loadAnimation(convertView.getContext(), R.anim.pin_transition_left);
                 break;
             case RIGHT:
-                anim = moveRight;
+                anim = AnimationUtils.loadAnimation(convertView.getContext(), R.anim.pin_transition_right);
                 break;
             case UP:
-            case UPDOWN:
-                anim = moveUp;
+                anim = AnimationUtils.loadAnimation(convertView.getContext(), R.anim.pin_transition_up);
                 break;
             case DOWN:
-                anim = moveDown;
+                anim = AnimationUtils.loadAnimation(convertView.getContext(), R.anim.pin_transition_down);
                 break;
         }
 

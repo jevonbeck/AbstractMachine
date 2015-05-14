@@ -72,7 +72,7 @@ public class RomView extends RelativeLayout implements ReadPort {
 	private void init(Context context, AttributeSet attrs){
 		/*** extract XML attributes ***/
 		TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.RomView);
-		pinPosition = a.getInt(R.styleable.RomView_pinPosition, R.integer.RomView_pinPosition_right);
+		pinPosition = a.getInt(R.styleable.RomView_pinPosition, 1);
 		a.recycle();
 		
 		init(context);
@@ -92,7 +92,7 @@ public class RomView extends RelativeLayout implements ReadPort {
         int pinItemLayout;
 
         switch (pinPosition) {
-            case R.integer.RomView_pinPosition_top: // top
+            case 2: // top
                 pinItemLayout = R.layout.device_pin_vertical;
                 ramItemLayout = R.layout.mem_data_vertical;
 
@@ -111,7 +111,7 @@ public class RomView extends RelativeLayout implements ReadPort {
                 inDirection = PinDirection.DOWN;
                 outDirection = PinDirection.UP;
                 break;
-            case R.integer.RomView_pinPosition_bottom: // bottom
+            case 3: // bottom
                 pinItemLayout = R.layout.device_pin_vertical;
                 ramItemLayout = R.layout.mem_data_vertical;
 
@@ -130,7 +130,7 @@ public class RomView extends RelativeLayout implements ReadPort {
                 inDirection = PinDirection.UP;
                 outDirection = PinDirection.DOWN;
                 break;
-            case R.integer.RomView_pinPosition_left: // left
+            case 0: // left
                 pinItemLayout = R.layout.device_pin_horizontal;
                 ramItemLayout = R.layout.mem_data_horizontal;
 
@@ -149,7 +149,7 @@ public class RomView extends RelativeLayout implements ReadPort {
                 inDirection = PinDirection.LEFT;
                 outDirection = PinDirection.RIGHT;
                 break;
-            case R.integer.RomView_pinPosition_right: // right
+            case 1: // right
             default:
                 pinItemLayout = R.layout.device_pin_horizontal;
                 ramItemLayout = R.layout.mem_data_horizontal;

@@ -23,7 +23,7 @@
             <enum name="topRightToBottomLeft" value="1" />
         </attr>
 
-        <attr name="solidFill" format="enum">
+        <attr name="fillPosition" format="enum">
             <enum name="left" value="0" />
             <enum name="right" value="1" />
         </attr>

@@ -6,6 +6,7 @@
 
     <color name="test_color">#CC0066</color>
     <color name="test_color2">#9A2EFE</color>
+    <color name="test_color3">#FF00F0</color>
     <color name="pin_sig_color">#FFBF00</color>
 
     <!-- Base application theme. -->

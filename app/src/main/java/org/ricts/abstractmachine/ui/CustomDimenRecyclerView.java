@@ -10,13 +10,11 @@ import android.view.View;
  */
 public class CustomDimenRecyclerView extends RecyclerView {
     public CustomDimenRecyclerView(Context context) {
-        super(context);
-        init();
+        this(context, null);
     }
 
     public CustomDimenRecyclerView(Context context, AttributeSet attrs) {
-        super(context, attrs);
-        init();
+        this(context, attrs, 0);
     }
 
     public CustomDimenRecyclerView(Context context, AttributeSet attrs, int defStyle) {

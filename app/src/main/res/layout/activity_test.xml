@@ -3,6 +3,7 @@
     xmlns:custom="http://schemas.android.com/apk/res-auto"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
+    android:background="@color/pin_sig_color"
     tools:context=".HomeActivity" >
 
     <!-- TextView
@@ -10,43 +11,13 @@
         android:layout_height="fill_parent"
         android:text="@string/hello_world" /-->
     <view
-        class="org.ricts.abstractmachine.ui.storage.RamView"
+        class="org.ricts.abstractmachine.ui.RightAngleTriangleView"
         android:id="@+id/memory"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        custom:pinPosition = "right"
-        />
-
-    <Button
-        android:id="@+id/stepButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/memory"
-        android:text="Step forward"
-        />
-    <TextView
-        android:id="@+id/sysClockLabel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_toRightOf="@id/stepButton"
-        android:layout_alignTop="@id/stepButton"
-        android:text="Time elapsed: "
-        />
-    <TextView
-        android:id="@+id/sysClockText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_toRightOf="@id/sysClockLabel"
-        android:layout_alignTop="@id/sysClockLabel"
-        />
-
-    <view
-        class="org.ricts.abstractmachine.ui.compute.CpuCoreView"
-        android:id="@+id/cpuView"
-        android:layout_width="wrap_content"
+        android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:layout_toRightOf="@id/memory"
-        android:layout_alignTop="@id/memory"
-        android:layout_alignBottom="@id/memory"
+        custom:diagonal="topRightToBottomLeft"
+        custom:fillPosition="right"
+        custom:fillColour="@color/test_color3"
         />
+
 </RelativeLayout>

@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Path;
+import android.graphics.PointF;
 import android.util.AttributeSet;
 import android.view.View;
 
@@ -13,8 +15,11 @@ import org.ricts.abstractmachine.R;
  * Created by Jevon on 09/05/2015.
  */
 public class RightAngleTriangleView extends View {
-    private int solidFill, fillColour, diagonal;
-    private Paint mPaint;
+    private int fillPosition, diagonal;
+    private Paint trianglePaint;
+
+    private Path trianglePath;
+    private PointF start, middle, end;
 
     public RightAngleTriangleView(Context context) {
         this(context, null);
@@ -29,38 +34,69 @@ public class RightAngleTriangleView extends View {
 
         /*** extract XML attributes ***/
         TypedArray a = getContext().obtainStyledAttributes(attrs, R.styleable.RightAngleTriangleView);
-        solidFill = a.getInt(R.styleable.RightAngleTriangleView_solidFill,
-                R.integer.RightAngleTriangleView_solidFill_left);
-        fillColour = a.getColor(R.styleable.RightAngleTriangleView_fillColour,
-                android.R.color.darker_gray);
+        int fillColour = a.getColor(R.styleable.RightAngleTriangleView_fillColour,
+                context.getResources().getColor(android.R.color.darker_gray));
+        fillPosition = a.getInt(R.styleable.RightAngleTriangleView_fillPosition,
+                context.getResources().getInteger(
+                        R.integer.RightAngleTriangleView_fillPosition_left));
         diagonal = a.getInt(R.styleable.RightAngleTriangleView_diagonal,
-                R.integer.RightAngleTriangleView_diagonal_topLeftToBottomRight);
+                context.getResources().getInteger(
+                        R.integer.RightAngleTriangleView_diagonal_topLeftToBottomRight));
 
         a.recycle();
 
-        /*** setup Paint ***/
+        /*** setup Paint and related variables ***/
+        trianglePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        trianglePaint.setAntiAlias(true);
+        trianglePaint.setStyle(Paint.Style.FILL_AND_STROKE);
+        trianglePaint.setColor(fillColour);
+
+        trianglePath = new Path();
+        trianglePath.setFillType(Path.FillType.EVEN_ODD);
+
+        start = new PointF();
+        middle = new PointF();
+        end = new PointF();
     }
 
     @Override
     protected void onDraw(Canvas canvas){
-        float startX, startY, endX, endY;
-        switch (diagonal){
-            case R.integer.RightAngleTriangleView_diagonal_topRightToBottomLeft:
-                startX = getWidth();
-                startY = 0;
-                endX = 0;
-                endY = getHeight();
-                break;
-            case R.integer.RightAngleTriangleView_diagonal_topLeftToBottomRight:
-            default:
-                startX = 0;
-                startY = 0;
-                endX = getWidth();
-                endY = getHeight();
-                break;
+        if(diagonal == getContext().getResources().getInteger(
+                R.integer.RightAngleTriangleView_diagonal_topRightToBottomLeft)){
+            // draw diagonal
+            start.set(getWidth(), 0);
+            middle.set(0, getHeight());
+
+            // determine triangle end based on fill position
+            if(fillPosition == getContext().getResources().getInteger(
+                    R.integer.RightAngleTriangleView_fillPosition_right)){
+                end.set(getWidth(), getHeight());
+            }
+            else{
+                end.set(0, 0);
+            }
+        }
+        else{
+            // draw diagonal
+            start.set(0, 0);
+            middle.set(getWidth(), getHeight());
+
+            // determine triangle end based on fill position
+            if(fillPosition == getContext().getResources().getInteger(
+                    R.integer.RightAngleTriangleView_fillPosition_right)){
+                end.set(getWidth(), 0);
+            }
+            else{
+                end.set(0, getHeight());
+            }
         }
 
-        canvas.drawLine(startX, startY, endX, endY, mPaint);
+        trianglePath.reset(); // remove any previously drawn paths
+        trianglePath.moveTo(start.x, start.y);
+        trianglePath.lineTo(middle.x, middle.y);
+        trianglePath.lineTo(end.x, end.y);
+        trianglePath.close(); // automatically draw third side
 
+        canvas.drawPath(trianglePath, trianglePaint);
     }
 }
