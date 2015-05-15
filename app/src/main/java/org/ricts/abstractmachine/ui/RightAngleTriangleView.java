@@ -21,6 +21,8 @@ public class RightAngleTriangleView extends View {
     private Path trianglePath, pinPath;
     private PointF triStart, triMiddle, triEnd;
 
+    private float pinLengthDiff, pinThickness = 10;
+
     public RightAngleTriangleView(Context context) {
         this(context, null);
     }
@@ -68,23 +70,102 @@ public class RightAngleTriangleView extends View {
     }
 
     @Override
-    protected void onDraw(Canvas canvas){
-        float pinLengthDiff = 0, pinWidth = 10;
+    protected void onLayout (boolean changed, int left, int top, int right, int bottom){
+        super.onLayout(changed, left, top, right, bottom);
 
-        // setup for pin drawing if applicable
         if(pinOrientation != getContext().getResources().getInteger(
                 R.integer.RightAngleTriangleView_pinOrientation_none)){
-
+            // blah
             if(pinOrientation == getContext().getResources().getInteger(
                     R.integer.RightAngleTriangleView_pinOrientation_horizontal)){
-                pinLengthDiff = (pinWidth * getWidth()) / getHeight();
+                pinLengthDiff = (pinThickness * getWidth()) / getHeight();
             }
             else{
-                pinLengthDiff = (pinWidth * getHeight()) / getWidth();
+                pinLengthDiff = (pinThickness * getHeight()) / getWidth();
             }
 
+            // create child views
+
+            // place child views
+            if(diagonal == getContext().getResources().getInteger(
+                    R.integer.RightAngleTriangleView_diagonal_topRightToBottomLeft)){
+                if(fillPosition == getContext().getResources().getInteger(
+                        R.integer.RightAngleTriangleView_fillPosition_right)){
+                    if(pinOrientation == getContext().getResources().getInteger(
+                                R.integer.RightAngleTriangleView_pinOrientation_horizontal)){
+                        //drawHorizontalPinLeft_DiagonalTR2BL(pinLengthDiff, pinThickness);
+                        // TODO: pin on bottom, name on top
+                    }
+                    else{
+                        //drawVerticalPinUp_DiagonalTR2BL(pinLengthDiff, pinThickness);
+                        // TODO: pin on right, name on left
+                    }
+                }
+                else{
+                    if(pinOrientation == getContext().getResources().getInteger(
+                                R.integer.RightAngleTriangleView_pinOrientation_horizontal)){
+                        //drawHorizontalPinRight_DiagonalTR2BL(pinLengthDiff, pinThickness);
+                        // TODO: pin on top, name on bottom
+                    }
+                    else{
+                        //drawVerticalPinDown_DiagonalTR2BL(pinLengthDiff, pinThickness);
+                        // TODO: pin on left, name on right
+                    }
+                }
+            }
+            else{
+                if(fillPosition == getContext().getResources().getInteger(
+                        R.integer.RightAngleTriangleView_fillPosition_right)){
+                    if(pinOrientation == getContext().getResources().getInteger(
+                                R.integer.RightAngleTriangleView_pinOrientation_horizontal)){
+                        //drawHorizontalPinLeft_DiagonalTL2BR(pinLengthDiff, pinThickness);
+                        // TODO: pin on top, name on bottom
+                    }
+                    else{
+                        //drawVerticalPinDown_DiagonalTL2BR(pinLengthDiff, pinThickness);
+                        // TODO: pin on right, name on left
+                    }
+                }
+                else{
+                    if(pinOrientation == getContext().getResources().getInteger(
+                                R.integer.RightAngleTriangleView_pinOrientation_horizontal)){
+                        //drawHorizontalPinRight_DiagonalTL2BR(pinLengthDiff, pinThickness);
+                        // TODO: pin on bottom, name on top
+                    }
+                    else{
+                        //drawVerticalPinUp_DiagonalTL2BR(pinLengthDiff, pinThickness);
+                        // TODO: pin on left, name on right
+                    }
+                }
+            }
+        }
+    }
+
+    @Override
+    protected void onDraw(Canvas canvas){
+        // draw pin 'edge' if applicable
+        if(pinOrientation != getContext().getResources().getInteger(
+                R.integer.RightAngleTriangleView_pinOrientation_none)){
+            //float pinLengthDiff, pinThickness = 10;
+
             pinPath.reset(); // remove any previously drawn paths
-            pinPath.moveTo(getWidth() / 2, getHeight() / 2);
+            if(pinOrientation == getContext().getResources().getInteger(
+                    R.integer.RightAngleTriangleView_pinOrientation_horizontal)){
+                //pinLengthDiff = (pinThickness * getWidth()) / getHeight();
+
+                pinPath.addRect((getWidth() - pinLengthDiff) / 2, (getHeight() - pinThickness) / 2,
+                        (getWidth() + pinLengthDiff) / 2, (getHeight() + pinThickness) / 2,
+                        Path.Direction.CW);
+            }
+            else{
+                //pinLengthDiff = (pinThickness * getHeight()) / getWidth();
+
+                pinPath.addRect((getWidth() - pinThickness) / 2, (getHeight() - pinLengthDiff) / 2,
+                        (getWidth() + pinThickness) / 2, (getHeight() + pinLengthDiff) / 2,
+                        Path.Direction.CW);
+            }
+
+            canvas.drawPath(pinPath, pinPaint);
         }
 
 
@@ -95,37 +176,12 @@ public class RightAngleTriangleView extends View {
             triMiddle.set(0, getHeight());
 
             // determine triEnd based on fill position
-            // draw pin if shown
             if(fillPosition == getContext().getResources().getInteger(
                     R.integer.RightAngleTriangleView_fillPosition_right)){
                 triEnd.set(getWidth(), getHeight());
-
-                if(pinLengthDiff != 0){
-                    if(pinOrientation == getContext().getResources().getInteger(
-                            R.integer.RightAngleTriangleView_pinOrientation_horizontal)){
-                        drawHorizontalPinLeft_DiagonalTR2BL(pinLengthDiff, pinWidth);
-                    }
-                    else{
-                        drawVerticalPinUp_DiagonalTR2BL(pinLengthDiff, pinWidth);
-                    }
-                    pinPath.close();
-                    canvas.drawPath(pinPath, pinPaint);
-                }
             }
             else{
                 triEnd.set(0, 0);
-
-                if(pinLengthDiff != 0){
-                    if(pinOrientation == getContext().getResources().getInteger(
-                            R.integer.RightAngleTriangleView_pinOrientation_horizontal)){
-                        drawHorizontalPinRight_DiagonalTR2BL(pinLengthDiff, pinWidth);
-                    }
-                    else{
-                        drawVerticalPinDown_DiagonalTR2BL(pinLengthDiff, pinWidth);
-                    }
-                    pinPath.close();
-                    canvas.drawPath(pinPath, pinPaint);
-                }
             }
         }
         else{
@@ -134,37 +190,12 @@ public class RightAngleTriangleView extends View {
             triMiddle.set(getWidth(), getHeight());
 
             // determine triEnd based on fill position
-            // draw pin if shown
             if(fillPosition == getContext().getResources().getInteger(
                     R.integer.RightAngleTriangleView_fillPosition_right)){
                 triEnd.set(getWidth(), 0);
-
-                if(pinLengthDiff != 0){
-                    if(pinOrientation == getContext().getResources().getInteger(
-                            R.integer.RightAngleTriangleView_pinOrientation_horizontal)){
-                        drawHorizontalPinLeft_DiagonalTL2BR(pinLengthDiff, pinWidth);
-                    }
-                    else{
-                        drawVerticalPinDown_DiagonalTL2BR(pinLengthDiff, pinWidth);
-                    }
-                    pinPath.close();
-                    canvas.drawPath(pinPath, pinPaint);
-                }
             }
             else{
                 triEnd.set(0, getHeight());
-
-                if(pinLengthDiff != 0){
-                    if(pinOrientation == getContext().getResources().getInteger(
-                            R.integer.RightAngleTriangleView_pinOrientation_horizontal)){
-                        drawHorizontalPinRight_DiagonalTL2BR(pinLengthDiff, pinWidth);
-                    }
-                    else{
-                        drawVerticalPinUp_DiagonalTL2BR(pinLengthDiff, pinWidth);
-                    }
-                    pinPath.close();
-                    canvas.drawPath(pinPath, pinPaint);
-                }
             }
         }
 
