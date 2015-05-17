@@ -67,6 +67,8 @@ public class RightAngleTriangleView extends View {
 
         pinPath = new Path();
         pinPath.setFillType(Path.FillType.EVEN_ODD);
+
+        // create child view (if necessary)
     }
 
     @Override
@@ -84,8 +86,6 @@ public class RightAngleTriangleView extends View {
                 pinLengthDiff = (pinThickness * getHeight()) / getWidth();
             }
 
-            // create child views
-
             // place child views
             if(diagonal == getContext().getResources().getInteger(
                     R.integer.RightAngleTriangleView_diagonal_topRightToBottomLeft)){
@@ -95,6 +95,7 @@ public class RightAngleTriangleView extends View {
                                 R.integer.RightAngleTriangleView_pinOrientation_horizontal)){
                         //drawHorizontalPinLeft_DiagonalTR2BL(pinLengthDiff, pinThickness);
                         // TODO: pin on bottom, name on top
+                        // left = 0, top = (getHeight() + pinThickness)/2 - child.getMeasuredHeight()
                     }
                     else{
                         //drawVerticalPinUp_DiagonalTR2BL(pinLengthDiff, pinThickness);
