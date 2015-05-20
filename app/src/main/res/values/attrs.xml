@@ -17,6 +17,20 @@
         <attr name="topDown" format="boolean"/>
     </declare-styleable>
 
+    <declare-styleable name="PinView">
+        <attr name="orientation" format="enum">
+            <enum name="horizontal" value="0" />
+            <enum name="vertical" value="1" />
+        </attr>
+
+        <attr name="position" format="enum">
+            <enum name="left" value="0" />
+            <enum name="right" value="1" />
+            <enum name="top" value="2" />
+            <enum name="bottom" value="3" />
+        </attr>
+    </declare-styleable>
+
     <declare-styleable name="RightAngleTriangleView">
         <attr name="diagonal" format="enum">
             <enum name="topLeftToBottomRight" value="0" />

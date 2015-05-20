@@ -20,6 +20,9 @@
     <item type="id" name="cpucoreview_irview" />
     <item type="id" name="cpucoreview_statelabel" />
     <item type="id" name="cpucoreview_instuctionlabel" />
+    <item type="id" name="pinview_backgroundlayout" />
+    <item type="id" name="pinview_pinname" />
+    <item type="id" name="pinview_signaltext" />
     
     <integer name="pin_sig_trans_time">2000</integer>
     <integer name="pin_sig_sync_delay">20</integer>
