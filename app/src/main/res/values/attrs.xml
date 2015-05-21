@@ -18,6 +18,8 @@
     </declare-styleable>
 
     <declare-styleable name="PinView">
+        <attr name="nameBelow" format="boolean"/>
+
         <attr name="orientation" format="enum">
             <enum name="horizontal" value="0" />
             <enum name="vertical" value="1" />

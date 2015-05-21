@@ -3,7 +3,6 @@
     xmlns:custom="http://schemas.android.com/apk/res-auto"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:background="@color/pin_sig_color"
     tools:context=".HomeActivity" >
 
     <!-- TextView
@@ -11,14 +10,12 @@
         android:layout_height="fill_parent"
         android:text="@string/hello_world" /-->
     <view
-        class="org.ricts.abstractmachine.ui.RightAngleTriangleView"
-        android:id="@+id/memory"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        custom:diagonal="topLeftToBottomRight"
-        custom:fillPosition="left"
-        custom:fillColour="@color/test_color3"
-        custom:pinOrientation="horizontal"
+        class="org.ricts.abstractmachine.ui.device.PinView"
+        android:id="@+id/pin"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        custom:position="bottom"
+        custom:orientation="vertical"
         />
 
 </RelativeLayout>

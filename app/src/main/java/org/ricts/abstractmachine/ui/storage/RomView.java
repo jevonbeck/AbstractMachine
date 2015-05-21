@@ -89,11 +89,9 @@ public class RomView extends RelativeLayout implements ReadPort {
         LayoutParams lpPinView = new LayoutParams(
                 LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
 
-        int pinItemLayout;
 
         switch (pinPosition) {
             case 2: // top
-                pinItemLayout = R.layout.device_pin_vertical;
                 ramItemLayout = R.layout.mem_data_vertical;
 
                 ramView = new HorizontalRamDataView(context);
@@ -112,7 +110,6 @@ public class RomView extends RelativeLayout implements ReadPort {
                 outDirection = PinDirection.UP;
                 break;
             case 3: // bottom
-                pinItemLayout = R.layout.device_pin_vertical;
                 ramItemLayout = R.layout.mem_data_vertical;
 
                 ramView = new HorizontalRamDataView(context);
@@ -131,7 +128,6 @@ public class RomView extends RelativeLayout implements ReadPort {
                 outDirection = PinDirection.DOWN;
                 break;
             case 0: // left
-                pinItemLayout = R.layout.device_pin_horizontal;
                 ramItemLayout = R.layout.mem_data_horizontal;
 
                 ramView = new VerticalRamDataView(context);
@@ -151,7 +147,6 @@ public class RomView extends RelativeLayout implements ReadPort {
                 break;
             case 1: // right
             default:
-                pinItemLayout = R.layout.device_pin_horizontal;
                 ramItemLayout = R.layout.mem_data_horizontal;
 
                 ramView = new VerticalRamDataView(context);
@@ -189,7 +184,7 @@ public class RomView extends RelativeLayout implements ReadPort {
 
         /*** bind pin child to its data ***/
         try {
-            pinAdapter = new PinDataAdapter(context, pinItemLayout, pinArray, pinPosition);
+            pinAdapter = new PinDataAdapter(pinArray, pinPosition);
         } catch (Exception e) {
             e.printStackTrace();
         }

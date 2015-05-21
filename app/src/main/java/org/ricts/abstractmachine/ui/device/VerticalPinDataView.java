@@ -51,8 +51,8 @@ public class VerticalPinDataView extends CustomDimenRecyclerView {
 
                 View item = holder.itemView;
 
-				TextView pin = (TextView) item.findViewById(R.id.pinName);
-                TextView signal = (TextView) item.findViewById(R.id.signalText);
+				TextView pin = (TextView) item.findViewById(R.id.pinview_pinname);
+                TextView signal = (TextView) item.findViewById(R.id.pinview_signaltext);
 				DevicePin pinData = adapter.getItem(x);
 				
 				// Measure the text
@@ -83,7 +83,7 @@ public class VerticalPinDataView extends CustomDimenRecyclerView {
                 adapter.bindViewHolder(holder, 0);
 
                 View item = holder.itemView;
-                TextView pin = (TextView) item.findViewById(R.id.pinName);
+                TextView pin = (TextView) item.findViewById(R.id.pinview_pinname);
 
                 // Measure the text
                 Rect pinBounds = new Rect();

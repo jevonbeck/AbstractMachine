@@ -18,6 +18,7 @@ import org.ricts.abstractmachine.ui.VerticalTextView;
 public class PinView extends RelativeLayout {
     private TextView pinNameView, signalTextView;
 
+    private boolean isHorizontal;
     /** Standard Constructors **/
     public PinView(Context context) {
         this(context, null);
@@ -32,9 +33,10 @@ public class PinView extends RelativeLayout {
 
         /*** extract XML attributes ***/
         TypedArray a = getContext().obtainStyledAttributes(attrs, R.styleable.PinView);
+        boolean nameBelow = a.getBoolean(R.styleable.PinView_nameBelow, false);
         int orientation = a.getInt(R.styleable.PinView_orientation, 0);
         int position = a.getInt(R.styleable.PinView_position, -1);
-        boolean isHorizontal = orientation == 0;
+        isHorizontal = orientation == 0;
         a.recycle();
 
         /*** create children ***/
@@ -59,11 +61,6 @@ public class PinView extends RelativeLayout {
         signalTextView.setBackgroundColor(context.getResources().getColor(R.color.pin_sig_color));
 
         /*** determine children layouts and positions ***/
-        LayoutParams lpPinName = new LayoutParams(
-                LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
-        addView(pinNameView, lpPinName);
-        setPosition(position);
-
         LayoutParams lpSigText = new LayoutParams(
                 LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
         backgroundLayout.addView(signalTextView, lpSigText); // add signalView to backgroundLayout, NOT this view
@@ -72,14 +69,40 @@ public class PinView extends RelativeLayout {
         if(isHorizontal){
             lpBackgroundLayout = new LayoutParams(
                     LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
-            lpBackgroundLayout.addRule(RelativeLayout.BELOW, pinNameView.getId());
         }
         else{
             lpBackgroundLayout = new LayoutParams(
                     LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT);
-            lpBackgroundLayout.addRule(RelativeLayout.RIGHT_OF, pinNameView.getId());
         }
-        addView(backgroundLayout, lpBackgroundLayout);
+
+        LayoutParams lpPinName = new LayoutParams(
+                LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+
+        // place pin name accordingly
+        if(nameBelow){
+            addView(backgroundLayout, lpBackgroundLayout);
+
+            if(isHorizontal){
+                lpPinName.addRule(RelativeLayout.BELOW, backgroundLayout.getId());
+            }
+            else{
+                lpPinName.addRule(RelativeLayout.RIGHT_OF, backgroundLayout.getId());
+            }
+            addView(pinNameView, lpPinName);
+            setPosition(position);
+        }
+        else{
+            addView(pinNameView, lpPinName);
+            setPosition(position);
+
+            if(isHorizontal){
+                lpBackgroundLayout.addRule(RelativeLayout.BELOW, pinNameView.getId());
+            }
+            else{
+                lpBackgroundLayout.addRule(RelativeLayout.RIGHT_OF, pinNameView.getId());
+            }
+            addView(backgroundLayout, lpBackgroundLayout);
+        }
     }
 
     public void setPosition(int position){
@@ -144,5 +167,9 @@ public class PinView extends RelativeLayout {
         if(anim != null){
             signalTextView.setAnimation(anim);
         }
+    }
+
+    public boolean isHorizontal(){
+        return isHorizontal;
     }
 }

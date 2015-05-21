@@ -16,7 +16,7 @@ public class DevicePin {
 	}
 	
 	public String data = "";
-	public String name;
+	public String name = "";
 	public int dataWidth;
 	public PinDirection direction = PinDirection.LEFT;
 	public PinAction action = PinAction.STATIONARY;
