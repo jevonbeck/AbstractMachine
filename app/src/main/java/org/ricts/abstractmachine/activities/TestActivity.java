@@ -26,15 +26,17 @@ public class TestActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_test);
 
+        /*
         PinView pin = (PinView) findViewById(R.id.pin);
         DevicePin pinData = new DevicePin();
 
         pinData.name = "test";
         pinData.data = "data";
-        pinData.direction = DevicePin.PinDirection.DOWN;
+        pinData.direction = DevicePin.PinDirection.RIGHT;
         pinData.action = DevicePin.PinAction.MOVING;
 
         pin.setPinData(pinData);
+        */
     }
 
 }

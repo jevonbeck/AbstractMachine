@@ -9,13 +9,22 @@
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:text="@string/hello_world" /-->
-    <view
+    <!--view
         class="org.ricts.abstractmachine.ui.device.PinView"
         android:id="@+id/pin"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        custom:position="bottom"
-        custom:orientation="vertical"
-        />
+        custom:position="right"
+        custom:orientation="horizontal"
+        /-->
 
+    <view
+        class="org.ricts.abstractmachine.ui.RightAngleTriangleView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        custom:pinOrientation="vertical"
+        custom:fillPosition="right"
+        custom:diagonal="topRightToBottomLeft"
+        custom:fillColour="@color/test_color2"
+        />
 </RelativeLayout>
