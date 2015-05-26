@@ -20,6 +20,7 @@
 
     <view
         class="org.ricts.abstractmachine.ui.RightAngleTriangleView"
+        android:id="@+id/device_edge"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         custom:pinOrientation="vertical"

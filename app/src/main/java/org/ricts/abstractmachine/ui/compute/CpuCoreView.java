@@ -26,24 +26,16 @@ public class CpuCoreView extends RelativeLayout implements ThreadProcessingUnit 
 
     /** Standard Constructors **/
     public CpuCoreView(Context context) {
-        super(context);
-
-        init(context);
+        this(context, null);
     }
 
     public CpuCoreView(Context context, AttributeSet attrs) {
-        super(context, attrs);
-
-        init(context);
+        this(context, attrs, 0);
     }
 
     public CpuCoreView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
 
-        init(context);
-    }
-
-    private void init(Context context) {
         float scaleFactor = context.getResources().getDisplayMetrics().density;
         /*** init properties ***/
         setBackgroundColor(context.getResources().getColor(R.color.reg_data_unselected));

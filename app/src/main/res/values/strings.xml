@@ -27,10 +27,10 @@
     <integer name="pin_sig_trans_time">2000</integer>
     <integer name="pin_sig_sync_delay">20</integer>
 
-    <!--integer name="RomView_pinPosition_left">0</integer>
-    <integer name="RomView_pinPosition_right">1</integer>
-    <integer name="RomView_pinPosition_top">2</integer>
-    <integer name="RomView_pinPosition_bottom">3</integer-->
+    <integer name="PinView_position_left">0</integer>
+    <integer name="PinView_position_right">1</integer>
+    <integer name="PinView_position_top">2</integer>
+    <integer name="PinView_position_bottom">3</integer>
 
     <integer name="RightAngleTriangleView_diagonal_topLeftToBottomRight">0</integer>
     <integer name="RightAngleTriangleView_diagonal_topRightToBottomLeft">1</integer>

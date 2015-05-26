@@ -32,8 +32,7 @@ public class RomView extends RelativeLayout implements ReadPort {
 	
 	protected int dataWidth;
 	protected int addressWidth;
-	private int pinPosition;
-	
+
 	protected PinDirection inDirection, outDirection;
 	protected PinDataAdapter pinAdapter;
 	protected DevicePin[] pinArray;
@@ -50,46 +49,29 @@ public class RomView extends RelativeLayout implements ReadPort {
 	
 	/** Standard Constructors **/
 	public RomView(Context context) {
-		super(context);
-		
-		pinPosition = 1; // right (attrs.xml)
-		
-		init(context);
+		this(context, null);
 	}
 	
 	public RomView(Context context, AttributeSet attrs) {
-		super(context, attrs);
-		
-		init(context, attrs);
+		this(context, attrs, 0);
 	}
 	
 	public RomView(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
-		
-		init(context, attrs);
-	}	
-	
-	private void init(Context context, AttributeSet attrs){
-		/*** extract XML attributes ***/
-		TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.RomView);
-		pinPosition = a.getInt(R.styleable.RomView_pinPosition, 1);
-		a.recycle();
-		
-		init(context);
-	}
-	
-	private void init(Context context) {
-        /*** create children ***/
-        CustomDimenRecyclerView pinView;
 
-        /*** determine children layouts and positions based on attributes ***/
+        /*** extract XML attributes ***/
+        TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.RomView);
+        int pinPosition = a.getInt(R.styleable.RomView_pinPosition, 1);
+        a.recycle();
+
+        /*** create children and determine layouts & positions based on attributes ***/
         LayoutParams lpRamView = new LayoutParams(
                 LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
 
         LayoutParams lpPinView = new LayoutParams(
                 LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
 
-
+        CustomDimenRecyclerView pinView;
         switch (pinPosition) {
             case 2: // top
                 ramItemLayout = R.layout.mem_data_vertical;
@@ -189,7 +171,7 @@ public class RomView extends RelativeLayout implements ReadPort {
             e.printStackTrace();
         }
         pinView.setAdapter(pinAdapter);
-    }
+	}	
 
 	public void initMemory(int dWidth, int aWidth, int accessTime){
 		dataWidth = dWidth;
@@ -275,7 +257,6 @@ public class RomView extends RelativeLayout implements ReadPort {
 			}
 		};
 		
-		//scrollToPosition(address); // ensure that address is visible
 		pinAdapter.notifyDataSetChanged(); // Animate pin UI
 		
 		return data; // return actual data to underlying requester

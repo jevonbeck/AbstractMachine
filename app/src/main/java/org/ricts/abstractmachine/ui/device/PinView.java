@@ -42,7 +42,7 @@ public class PinView extends RelativeLayout {
         /*** create children ***/
         LinearLayout backgroundLayout = new LinearLayout(context);
         backgroundLayout.setId(R.id.pinview_backgroundlayout);
-        backgroundLayout.setBackgroundColor(context.getResources().getColor(android.R.color.darker_gray));
+        backgroundLayout.setBackgroundColor(context.getResources().getColor(R.color.pin_color));
 
         if(isHorizontal){
             pinNameView = new TextView(context);
@@ -126,7 +126,7 @@ public class PinView extends RelativeLayout {
         }
     }
 
-    public void setPinData(DevicePin pin){
+    public void setData(DevicePin pin){
         pinNameView.setText(pin.name);
         signalTextView.setText(pin.data);
 

@@ -11,6 +11,7 @@ import android.widget.Toast;
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.devices.compute.core.BasicScalar;
 import org.ricts.abstractmachine.devices.compute.core.BasicScalarEnums;
+import org.ricts.abstractmachine.ui.RightAngleTriangleView;
 import org.ricts.abstractmachine.ui.compute.CpuCoreView;
 import org.ricts.abstractmachine.ui.device.DevicePin;
 import org.ricts.abstractmachine.ui.device.PinView;
@@ -26,17 +27,16 @@ public class TestActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_test);
 
-        /*
-        PinView pin = (PinView) findViewById(R.id.pin);
-        DevicePin pinData = new DevicePin();
+        RightAngleTriangleView pin = (RightAngleTriangleView) findViewById(R.id.device_edge);
 
+        DevicePin pinData = new DevicePin();
         pinData.name = "test";
         pinData.data = "data";
-        pinData.direction = DevicePin.PinDirection.RIGHT;
+        pinData.direction = DevicePin.PinDirection.UP;
         pinData.action = DevicePin.PinAction.MOVING;
 
         pin.setPinData(pinData);
-        */
+
     }
 
 }

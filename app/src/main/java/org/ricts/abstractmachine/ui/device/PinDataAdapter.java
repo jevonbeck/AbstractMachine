@@ -46,7 +46,7 @@ public class PinDataAdapter extends RecyclerView.Adapter<PinDataAdapter.ViewHold
 
     @Override
     public void onBindViewHolder(ViewHolder viewHolder, int position) {
-        ((PinView) viewHolder.itemView).setPinData(pinArray[position]);
+        ((PinView) viewHolder.itemView).setData(pinArray[position]);
     }
 
     @Override
