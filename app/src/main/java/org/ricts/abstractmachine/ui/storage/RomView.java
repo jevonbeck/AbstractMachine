@@ -142,8 +142,8 @@ public class RomView extends RelativeLayout implements ReadPort {
                 lpRamView.addRule(RelativeLayout.RIGHT_OF, pinView.getId());
                 addView(ramView, lpRamView);
 
-                inDirection = PinDirection.LEFT;
-                outDirection = PinDirection.RIGHT;
+                inDirection = PinDirection.RIGHT;
+                outDirection = PinDirection.LEFT;
                 break;
             case 1: // right
             default:
@@ -161,8 +161,8 @@ public class RomView extends RelativeLayout implements ReadPort {
                 lpPinView.addRule(RelativeLayout.CENTER_VERTICAL);
                 addView(pinView, lpPinView);
 
-                inDirection = PinDirection.RIGHT;
-                outDirection = PinDirection.LEFT;
+                inDirection = PinDirection.LEFT;
+                outDirection = PinDirection.RIGHT;
                 break;
         }
 
