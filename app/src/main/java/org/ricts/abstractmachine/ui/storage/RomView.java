@@ -171,7 +171,7 @@ public class RomView extends RelativeLayout implements ReadPort {
             e.printStackTrace();
         }
         pinView.setAdapter(pinAdapter);
-	}	
+	}
 
 	public void initMemory(int dWidth, int aWidth, int accessTime){
 		dataWidth = dWidth;
