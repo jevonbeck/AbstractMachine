@@ -7,6 +7,7 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PointF;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.util.Xml;
 import android.view.ViewGroup;
 
@@ -22,6 +23,8 @@ import java.io.IOException;
  * Created by Jevon on 09/05/2015.
  */
 public class RightAngleTriangleView extends ViewGroup {
+    private static final String TAG = "RightAngleTriangleView";
+
     private int pinOrientation;
     private boolean isRightFilled, diagonalIsTopRightBottomLeft;
     private Paint trianglePaint, pinPaint;
@@ -88,27 +91,7 @@ public class RightAngleTriangleView extends ViewGroup {
         // create pinView (if present)
         if(pinOrientation != context.getResources().getInteger(
                 R.integer.RightAngleTriangleView_pinOrientation_none)){
-            XmlPullParser parser = context.getResources().getXml(getResourceId());
-
-            // align parser with desired element (with attributes) before creating AttributeSet
-            int eventType;
-            try {
-                eventType = parser.getEventType();
-                while (eventType != XmlPullParser.END_DOCUMENT) {
-                    if(eventType == XmlPullParser.START_TAG) {
-                        // XML resource has one main element, no need to parse further
-                        break;
-                    }
-                    eventType = parser.next();
-                }
-            } catch (XmlPullParserException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            AttributeSet attributes = Xml.asAttributeSet(parser);
-            pinView = new PinView(context, attributes);
+            pinView = new PinView(context, makeAttributeSet(getResourceId()));
             addView(pinView);
         }
     }
@@ -118,6 +101,7 @@ public class RightAngleTriangleView extends ViewGroup {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 
         if(pinView != null){
+            // measure child to obtain 'wrapped' valid dimension
             measureChild(pinView, widthMeasureSpec, heightMeasureSpec);
         }
     }
@@ -125,6 +109,7 @@ public class RightAngleTriangleView extends ViewGroup {
     @Override
     protected void onLayout (boolean changed, int left, int top, int right, int bottom){
         if(pinView != null){
+            // use 'wrapped' valid dimension as pinThickness
             if(pinView.isHorizontal()) {
                 pinThickness = pinView.getMeasuredHeight() / 2;
                 pinLengthDiff = (pinThickness * getWidth()) / getHeight();
@@ -199,6 +184,119 @@ public class RightAngleTriangleView extends ViewGroup {
         }
     }
 
+    private void placePinView(int left, int top, int right, int bottom){
+        int l, t, r, b, pinPosition;
+
+        int trbl = diagonalIsTopRightBottomLeft ? 1<<2 : 0;
+        int rightFilled = isRightFilled ? 1<<1 : 0;
+        int horizontal = pinView.isHorizontal() ? 1 : 0;
+        int result = trbl + rightFilled + horizontal;
+        // determine pin size and position
+        switch (result){
+            case 0: // diagonal = top-left to bottom-right, left-filled, pin vertical
+                t = top;
+                b = t + (int) (getHeight() - pinLengthDiff) / 2;
+                l = left + (int) (getWidth() - pinThickness)/2;
+                r = l + pinView.getMeasuredWidth();
+                pinPosition = getContext().getResources().getInteger(
+                        R.integer.PinView_position_top);
+                break;
+            case 1: // diagonal = top-left to bottom-right, left-filled, pin horizontal
+                l = left + (int) (getWidth() + pinLengthDiff)/2;
+                r = right;
+                b = top + (int) (getHeight() + pinThickness)/ 2;
+                t = b - pinView.getMeasuredHeight();
+                pinPosition = getContext().getResources().getInteger(
+                        R.integer.PinView_position_right);
+                break;
+            case 2: // diagonal = top-left to bottom-right, right-filled, pin vertical
+                t = top + (int) (getHeight() + pinLengthDiff) / 2;
+                b = bottom;
+                r = left + (int) (getWidth() + pinThickness)/2;
+                l = r - pinView.getMeasuredWidth();
+                pinPosition = getContext().getResources().getInteger(
+                        R.integer.PinView_position_bottom);
+                break;
+            case 3: // diagonal = top-left to bottom-right, right-filled, pin horizontal
+                l = left;
+                t = top + (int) (getHeight() - pinThickness)/ 2;
+                r = l + (int) (getWidth() - pinLengthDiff) / 2;
+                b = t + pinView.getMeasuredHeight();
+                pinPosition = getContext().getResources().getInteger(
+                        R.integer.PinView_position_left);
+                break;
+            case 4: // diagonal = top-right to bottom-left, left-filled, pin vertical
+                t = top + (int) (getHeight() + pinLengthDiff) / 2;
+                b = bottom;
+                l = left + (int) (getWidth() - pinThickness)/2;
+                r = l + pinView.getMeasuredWidth();
+                pinPosition = getContext().getResources().getInteger(
+                        R.integer.PinView_position_bottom);
+                break;
+            case 5: // diagonal = top-right to bottom-left, left-filled, pin horizontal
+                l = left + (int) (getWidth() + pinLengthDiff)/2;
+                t = top + (int) (getHeight() - pinThickness)/ 2;
+                r = right;
+                b = t + pinView.getMeasuredHeight();
+                pinPosition = getContext().getResources().getInteger(
+                        R.integer.PinView_position_right);
+                break;
+            case 6: // diagonal = top-right to bottom-left, right-filled, pin vertical
+                t = top;
+                b = t + (int) (getHeight() - pinLengthDiff) / 2;
+                r = left + (int) (getWidth() + pinThickness)/2;
+                l = r - pinView.getMeasuredWidth();
+                pinPosition = getContext().getResources().getInteger(
+                        R.integer.PinView_position_top);
+                break;
+            case 7: // diagonal = top-right to bottom-left, right-filled, pin horizontal
+                l = left;
+                r = l + (int) (getWidth() - pinLengthDiff) / 2;
+                b = top + (int) (getHeight() + pinThickness)/2;
+                t = b - pinView.getMeasuredHeight();
+                pinPosition = getContext().getResources().getInteger(
+                        R.integer.PinView_position_left);
+                break;
+            default:
+                l = left;
+                t = top;
+                r = right;
+                b = bottom;
+                pinPosition = -1;
+                break;
+        }
+
+        // remeasure / resize pinView accounting for correct unspecified dimension
+        measureChild(pinView, MeasureSpec.makeMeasureSpec(r - l, MeasureSpec.EXACTLY),
+                MeasureSpec.makeMeasureSpec(b - t, MeasureSpec.EXACTLY));
+
+        pinView.layout(l, t, r, b); // position pinView
+        pinView.setPosition(pinPosition); // ensure that pinName is in correct position
+    }
+
+    private AttributeSet makeAttributeSet(int resourceId){
+        XmlPullParser parser = getContext().getResources().getXml(resourceId);
+
+        // align parser with desired element (with attributes) before creating AttributeSet
+        int eventType;
+        try {
+            eventType = parser.getEventType();
+            while (eventType != XmlPullParser.END_DOCUMENT) {
+                if(eventType == XmlPullParser.START_TAG) {
+                    // XML resource has one main element, no need to parse further
+                    break;
+                }
+                eventType = parser.next();
+            }
+        } catch (XmlPullParserException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return Xml.asAttributeSet(parser);
+    }
+
     private int getResourceId(){
         int trbl = diagonalIsTopRightBottomLeft ? 1<<2 : 0;
         int rightFilled = isRightFilled ? 1<<1 : 0;
@@ -206,6 +304,7 @@ public class RightAngleTriangleView extends ViewGroup {
                 R.integer.RightAngleTriangleView_pinOrientation_horizontal) ? 1 : 0;
 
         int result = trbl + rightFilled + horizontal;
+        Log.d(TAG, "getResourceId(): result = " + result);
         switch (result){
             case 0: // diagonal = top-left to bottom-right, left-filled, pin vertical
                 return R.xml.pinview_vertical_namebelow;
@@ -226,87 +325,5 @@ public class RightAngleTriangleView extends ViewGroup {
             default:
                 return -1;
         }
-    }
-
-    private void placePinView(int left, int top, int right, int bottom){
-        int l, t, r, b;
-
-        int trbl = diagonalIsTopRightBottomLeft ? 1<<2 : 0;
-        int rightFilled = isRightFilled ? 1<<1 : 0;
-        int horizontal = pinView.isHorizontal() ? 1 : 0;
-        int result = trbl + rightFilled + horizontal;
-        switch (result){
-            case 0: // diagonal = top-left to bottom-right, left-filled, pin vertical
-                t = top;
-                b = t + (int) (getHeight() - pinLengthDiff) / 2;
-                l = left + (int) (getWidth() - pinThickness)/2;
-                r = l + pinView.getMeasuredWidth();
-                pinView.setPosition(getContext().getResources().getInteger(
-                        R.integer.PinView_position_top));
-                break;
-            case 1: // diagonal = top-left to bottom-right, left-filled, pin horizontal
-                l = left + (int) (getWidth() + pinLengthDiff)/2;
-                r = right;
-                b = top + (int) (getHeight() + pinThickness)/ 2;
-                t = b - pinView.getMeasuredHeight();
-                pinView.setPosition(getContext().getResources().getInteger(
-                        R.integer.PinView_position_right));
-                break;
-            case 2: // diagonal = top-left to bottom-right, right-filled, pin vertical
-                t = top + (int) (getHeight() + pinLengthDiff) / 2;
-                b = bottom;
-                r = left + (int) (getWidth() + pinThickness)/2;
-                l = r - pinView.getMeasuredWidth();
-                pinView.setPosition(getContext().getResources().getInteger(
-                        R.integer.PinView_position_bottom));
-                break;
-            case 3: // diagonal = top-left to bottom-right, right-filled, pin horizontal
-                l = left;
-                t = top + (int) (getHeight() - pinThickness)/ 2;
-                r = l + (int) (getWidth() - pinLengthDiff) / 2;
-                b = t + pinView.getMeasuredHeight();
-                pinView.setPosition(getContext().getResources().getInteger(
-                        R.integer.PinView_position_left));
-                break;
-            case 4: // diagonal = top-right to bottom-left, left-filled, pin vertical
-                t = top + (int) (getHeight() + pinLengthDiff) / 2;
-                b = bottom;
-                l = left + (int) (getWidth() - pinThickness)/2;
-                r = l + pinView.getMeasuredWidth();
-                pinView.setPosition(getContext().getResources().getInteger(
-                        R.integer.PinView_position_bottom));
-                break;
-            case 5: // diagonal = top-right to bottom-left, left-filled, pin horizontal
-                l = left + (int) (getWidth() + pinLengthDiff)/2;
-                t = top + (int) (getHeight() - pinThickness)/ 2;
-                r = right;
-                b = t + pinView.getMeasuredHeight();
-                pinView.setPosition(getContext().getResources().getInteger(
-                        R.integer.PinView_position_right));
-                break;
-            case 6: // diagonal = top-right to bottom-left, right-filled, pin vertical
-                t = top;
-                b = t + (int) (getHeight() - pinLengthDiff) / 2;
-                r = left + (int) (getWidth() + pinThickness)/2;
-                l = r - pinView.getMeasuredWidth();
-                pinView.setPosition(getContext().getResources().getInteger(
-                        R.integer.PinView_position_top));
-                break;
-            case 7: // diagonal = top-right to bottom-left, right-filled, pin horizontal
-                l = left;
-                r = l + (int) (getWidth() - pinLengthDiff) / 2;
-                b = top + (int) (getHeight() + pinThickness)/2;
-                t = b - pinView.getMeasuredHeight();
-                pinView.setPosition(getContext().getResources().getInteger(
-                        R.integer.PinView_position_left));
-                break;
-            default:
-                l = left;
-                t = top;
-                r = right;
-                b = bottom;
-                break;
-        }
-        pinView.layout(l, t, r, b);
     }
 }
