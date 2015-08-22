@@ -118,7 +118,7 @@ public class MainActivity extends Activity {
 
         pc.setDataWidth(core.iAddrWidth());
         ir.setDataWidth(core.instrWidth());
-        memory.setAnimationResponder(ir);
+        memory.setReadResponder(ir);
         ir.setDelayEnable(true);
 
         cu = new ControlUnit(pc, ir, core, memory, memory);

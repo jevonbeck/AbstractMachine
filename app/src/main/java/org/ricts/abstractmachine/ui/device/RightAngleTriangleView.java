@@ -1,4 +1,4 @@
-package org.ricts.abstractmachine.ui;
+package org.ricts.abstractmachine.ui.device;
 
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -8,16 +8,12 @@ import android.graphics.Path;
 import android.graphics.PointF;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.util.Xml;
 import android.view.ViewGroup;
 
 import org.ricts.abstractmachine.R;
+import org.ricts.abstractmachine.ui.UiUtils;
 import org.ricts.abstractmachine.ui.device.DevicePin;
 import org.ricts.abstractmachine.ui.device.PinView;
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-
-import java.io.IOException;
 
 /**
  * Created by Jevon on 09/05/2015.
@@ -91,7 +87,7 @@ public class RightAngleTriangleView extends ViewGroup {
         // create pinView (if present)
         if(pinOrientation != context.getResources().getInteger(
                 R.integer.RightAngleTriangleView_pinOrientation_none)){
-            pinView = new PinView(context, makeAttributeSet(getResourceId()));
+            pinView = new PinView(context, UiUtils.makeAttributeSet(context, getResourceId()));
             addView(pinView);
         }
     }
@@ -100,7 +96,7 @@ public class RightAngleTriangleView extends ViewGroup {
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec){
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 
-        if(pinView != null){
+        if(hasPin()){
             // measure child to obtain 'wrapped' valid dimension
             measureChild(pinView, widthMeasureSpec, heightMeasureSpec);
         }
@@ -108,7 +104,7 @@ public class RightAngleTriangleView extends ViewGroup {
 
     @Override
     protected void onLayout (boolean changed, int left, int top, int right, int bottom){
-        if(pinView != null){
+        if(hasPin()){
             // use 'wrapped' valid dimension as pinThickness
             if(pinView.isHorizontal()) {
                 pinThickness = pinView.getMeasuredHeight() / 2;
@@ -125,7 +121,7 @@ public class RightAngleTriangleView extends ViewGroup {
     @Override
     protected void onDraw(Canvas canvas){
         // draw pin 'edge' if applicable
-        if(pinView != null){
+        if(hasPin()){
             pinPath.reset(); // remove any previously drawn paths
             if(pinView.isHorizontal()){
                 pinPath.addRect((getWidth() - pinLengthDiff) / 2, (getHeight() - pinThickness) / 2,
@@ -179,9 +175,13 @@ public class RightAngleTriangleView extends ViewGroup {
     }
 
     public void setPinData(DevicePin pinData){
-        if(pinView != null) {
+        if(hasPin()) {
             pinView.setData(pinData);
         }
+    }
+
+    public boolean hasPin(){
+        return pinView != null;
     }
 
     private void placePinView(int left, int top, int right, int bottom){
@@ -272,29 +272,6 @@ public class RightAngleTriangleView extends ViewGroup {
 
         pinView.layout(l, t, r, b); // position pinView
         pinView.setPosition(pinPosition); // ensure that pinName is in correct position
-    }
-
-    private AttributeSet makeAttributeSet(int resourceId){
-        XmlPullParser parser = getContext().getResources().getXml(resourceId);
-
-        // align parser with desired element (with attributes) before creating AttributeSet
-        int eventType;
-        try {
-            eventType = parser.getEventType();
-            while (eventType != XmlPullParser.END_DOCUMENT) {
-                if(eventType == XmlPullParser.START_TAG) {
-                    // XML resource has one main element, no need to parse further
-                    break;
-                }
-                eventType = parser.next();
-            }
-        } catch (XmlPullParserException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return Xml.asAttributeSet(parser);
     }
 
     private int getResourceId(){

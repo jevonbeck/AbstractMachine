@@ -138,7 +138,7 @@ public class CpuCoreView extends RelativeLayout implements ThreadProcessingUnit 
 
         pc.setDataWidth(mainCore.iAddrWidth());
         ir.setDataWidth(mainCore.instrWidth());
-        mainMemory.setAnimationResponder(ir);
+        mainMemory.setReadResponder(ir);
         ir.setDelayEnable(true);
 
         cu = new ControlUnit(pc, ir, mainCore, mainMemory, mainMemory);

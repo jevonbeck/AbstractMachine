@@ -1,8 +1,12 @@
 package org.ricts.abstractmachine.ui.device;
 
+import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
+
+import org.ricts.abstractmachine.R;
+import org.ricts.abstractmachine.ui.UiUtils;
 
 
 /**
@@ -21,24 +25,22 @@ public class PinDataAdapter extends RecyclerView.Adapter<PinDataAdapter.ViewHold
     }
 
     @Override
-    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        PinView mainLayout = new PinView(parent.getContext());
-
-        ViewGroup.LayoutParams lpMainlayout;
+    public int getItemViewType(int position) {
         switch(pinPosition) {
             case 2: // top
             case 3: // bottom
-                lpMainlayout = new ViewGroup.LayoutParams(
-                        ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT);
-                break;
+                return R.xml.pinview_vertical;
             case 0: // left
             case 1: // right
             default:
-                lpMainlayout = new ViewGroup.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                break;
+                return R.xml.pinview_horizontal;
         }
-        mainLayout.setLayoutParams(lpMainlayout);
+    }
+
+    @Override
+    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        Context context = parent.getContext();
+        PinView mainLayout = new PinView(context, UiUtils.makeAttributeSet(context, viewType));
         mainLayout.setPosition(pinPosition);
 
         return new ViewHolder(mainLayout);

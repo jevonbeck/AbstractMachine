@@ -481,12 +481,12 @@ public class BasicScalar extends ComputeCore {
 
             switch (BasicScalarEnums.ConditionalBranchLiteral.decode(enumOrdinal)) {
                 case JUMPIFBC: // IF (!DREG[BITINDEX]) PC <-- IADLITERAL ('for'/'while'/'if-else' sourceReg[bitIndex])
-                    if (!bitAtIndex(bitIndex, dataRegs[dRegAddr].read())) {
+                    if (!getBitAtIndex(bitIndex, dataRegs[dRegAddr].read())) {
                         PC.write(iAddrLiteral);
                     }
                     break;
                 case JUMPIFBS: // IF (DREG[BITINDEX]) PC <-- IADLITERAL ('do-while' sourceReg[bitIndex])
-                    if (bitAtIndex(bitIndex, dataRegs[dRegAddr].read())) {
+                    if (getBitAtIndex(bitIndex, dataRegs[dRegAddr].read())) {
                         PC.write(iAddrLiteral);
                     }
                     break;
@@ -499,12 +499,12 @@ public class BasicScalar extends ComputeCore {
 
             switch (BasicScalarEnums.ConditionalBranch.decode(enumOrdinal)) {
                 case JUMPIFBC: // IF (!DREG[BITINDEX]) PC <-- IADREG ('for'/'while'/'if-else' sourceReg[bitIndex])
-                    if (!bitAtIndex(bitIndex, dataRegs[dRegAddr].read())) {
+                    if (!getBitAtIndex(bitIndex, dataRegs[dRegAddr].read())) {
                         PC.write(iAddrRegValue);
                     }
                     break;
                 case JUMPIFBS: // IF (DREG[BITINDEX]) PC <-- IADREG ('do-while' sourceReg[bitIndex])
-                    if (bitAtIndex(bitIndex, dataRegs[dRegAddr].read())) {
+                    if (getBitAtIndex(bitIndex, dataRegs[dRegAddr].read())) {
                         PC.write(iAddrRegValue);
                     }
                     break;
@@ -640,7 +640,7 @@ public class BasicScalar extends ComputeCore {
     }
 
     private void updateAluCarry() {
-        if (bitAtIndex(StatusFlags.CARRY.ordinal(), statusReg.read())) {
+        if (getBitAtIndex(StatusFlags.CARRY.ordinal(), statusReg.read())) {
             alu.result(BasicAluDecoder.SETC);
         } else {
             alu.result(BasicAluDecoder.CLRC);

@@ -1,15 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <declare-styleable name="RomView">
-        <attr name="dataWidth" format="integer"/>
-        <attr name="addressWidth" format="integer"/>
-        <attr name="accessTime" format="integer"/>
-        
         <attr name="pinPosition" format="enum">
             <enum name="left" value="0" />
             <enum name="right" value="1" />
             <enum name="top" value="2" />
             <enum name="bottom" value="3" />
+        </attr>
+    </declare-styleable>
+
+    <declare-styleable name="MemoryPortView">
+        <attr name="devicePosition" format="enum">
+            <enum name="left" value="0" />
+            <enum name="right" value="1" />
+            <enum name="top" value="2" />
+            <enum name="bottom" value="3" />
+        </attr>
+    </declare-styleable>
+
+    <declare-styleable name="MemoryPortMultiplexerView">
+        <attr name="outputPosition" format="enum">
+            <enum name="left" value="0" />
+            <enum name="right" value="1" />
+            <enum name="top" value="2" />
+            <enum name="bottom" value="3" />
+        </attr>
+
+        <attr name="selectPosition" format="enum">
+            <enum name="firstEdge" value="0" />
+            <enum name="lastEdge" value="1" />
         </attr>
     </declare-styleable>
 

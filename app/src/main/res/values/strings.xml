@@ -23,6 +23,9 @@
     <item type="id" name="pinview_backgroundlayout" />
     <item type="id" name="pinview_pinname" />
     <item type="id" name="pinview_signaltext" />
+    <item type="id" name="memoryportmultiplexerview_outputpins" />
+    <item type="id" name="memoryportmultiplexerview_firsttriangle" />
+    <item type="id" name="memoryportmultiplexerview_lasttriangle" />
     
     <integer name="pin_sig_trans_time">2000</integer>
     <integer name="pin_sig_sync_delay">20</integer>

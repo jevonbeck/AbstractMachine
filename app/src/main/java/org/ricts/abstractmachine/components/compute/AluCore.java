@@ -144,7 +144,7 @@ public class AluCore extends Device {
 
     /* Convenience Functions */
     protected boolean sign(int number){
-        return bitAtIndex(dataWidth-1, number); // due to 2's complement integer representation
+        return getBitAtIndex(dataWidth - 1, number); // due to 2's complement integer representation
     }
 
     // Alternative method to update all ALU flags at once
@@ -212,6 +212,6 @@ public class AluCore extends Device {
     }
 
     private boolean shiftRightOut(int A){
-        return bitAtIndex(0, A);
+        return getBitAtIndex(0, A);
     }
 }
