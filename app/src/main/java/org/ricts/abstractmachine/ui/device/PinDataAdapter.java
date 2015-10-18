@@ -25,22 +25,9 @@ public class PinDataAdapter extends RecyclerView.Adapter<PinDataAdapter.ViewHold
     }
 
     @Override
-    public int getItemViewType(int position) {
-        switch(pinPosition) {
-            case 2: // top
-            case 3: // bottom
-                return R.xml.pinview_vertical;
-            case 0: // left
-            case 1: // right
-            default:
-                return R.xml.pinview_horizontal;
-        }
-    }
-
-    @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         Context context = parent.getContext();
-        PinView mainLayout = new PinView(context, UiUtils.makeAttributeSet(context, viewType));
+        PinView mainLayout = new PinView(context, UiUtils.makeAttributeSet(context, getResource()));
         mainLayout.setPosition(pinPosition);
 
         return new ViewHolder(mainLayout);
@@ -58,6 +45,18 @@ public class PinDataAdapter extends RecyclerView.Adapter<PinDataAdapter.ViewHold
 
     public DevicePin getItem(int position){
         return pinArray[position];
+    }
+
+    private int getResource() {
+        switch(pinPosition) {
+            case 2: // top
+            case 3: // bottom
+                return R.xml.pinview_vertical;
+            case 0: // left
+            case 1: // right
+            default:
+                return R.xml.pinview_horizontal;
+        }
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {

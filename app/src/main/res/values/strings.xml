@@ -23,7 +23,9 @@
     <item type="id" name="pinview_backgroundlayout" />
     <item type="id" name="pinview_pinname" />
     <item type="id" name="pinview_signaltext" />
+    <item type="id" name="memoryportmultiplexerview_inputpins" />
     <item type="id" name="memoryportmultiplexerview_outputpins" />
+    <item type="id" name="memoryportmultiplexerview_middle" />
     <item type="id" name="memoryportmultiplexerview_firsttriangle" />
     <item type="id" name="memoryportmultiplexerview_lasttriangle" />
     

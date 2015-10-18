@@ -169,6 +169,10 @@ public class PinView extends RelativeLayout {
         }
     }
 
+    public int getMinLength(){
+        return (int) pinNameView.getPaint().measureText((String) pinNameView.getText()) + 6;
+    }
+
     public boolean isHorizontal(){
         return isHorizontal;
     }
