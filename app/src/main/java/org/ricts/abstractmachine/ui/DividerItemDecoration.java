@@ -64,7 +64,9 @@ public class DividerItemDecoration extends RecyclerView.ItemDecoration {
     }
 
     public int getThickness(){
-        return mDivider.getIntrinsicHeight();
+        return (mOrientation == VERTICAL_LIST) ?
+                mDivider.getIntrinsicHeight() : mDivider.getIntrinsicWidth();
+
     }
 
     private void setOrientation(int orientation) {
@@ -84,7 +86,7 @@ public class DividerItemDecoration extends RecyclerView.ItemDecoration {
             final RecyclerView.LayoutParams params = (RecyclerView.LayoutParams) child
                     .getLayoutParams();
             final int top = child.getBottom() + params.bottomMargin;
-            final int bottom = top + mDivider.getIntrinsicHeight();
+            final int bottom = top + getThickness();
             mDivider.setBounds(left, top, right, bottom);
             mDivider.draw(c);
         }
@@ -100,7 +102,7 @@ public class DividerItemDecoration extends RecyclerView.ItemDecoration {
             final RecyclerView.LayoutParams params = (RecyclerView.LayoutParams) child
                     .getLayoutParams();
             final int left = child.getRight() + params.rightMargin;
-            final int right = left + mDivider.getIntrinsicHeight();
+            final int right = left + getThickness();
             mDivider.setBounds(left, top, right, bottom);
             mDivider.draw(c);
         }

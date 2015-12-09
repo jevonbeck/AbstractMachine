@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<org.ricts.abstractmachine.ui.device.RightAngleTriangleView
+    xmlns:custom="http://schemas.android.com/apk/res-auto"
+    custom:diagonal="topRightToBottomLeft"
+    custom:fillPosition="right">
+
+</org.ricts.abstractmachine.ui.device.RightAngleTriangleView>

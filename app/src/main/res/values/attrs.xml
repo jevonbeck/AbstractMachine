@@ -1,10 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <declare-styleable name="RomView">
-        <attr name="dataWidth" format="integer"/>
-        <attr name="addressWidth" format="integer"/>
-        <attr name="accessTime" format="integer"/>
-        
         <attr name="pinPosition" format="enum">
             <enum name="left" value="0" />
             <enum name="right" value="1" />
@@ -13,7 +9,66 @@
         </attr>
     </declare-styleable>
 
+    <declare-styleable name="ReadPortView">
+        <attr name="devicePosition" format="enum">
+            <enum name="left" value="0" />
+            <enum name="right" value="1" />
+            <enum name="top" value="2" />
+            <enum name="bottom" value="3" />
+        </attr>
+    </declare-styleable>
+
+    <declare-styleable name="MemoryPortMultiplexerView">
+        <attr name="outputPosition" format="enum">
+            <enum name="left" value="0" />
+            <enum name="right" value="1" />
+            <enum name="top" value="2" />
+            <enum name="bottom" value="3" />
+        </attr>
+
+        <attr name="selectPosition" format="enum">
+            <enum name="firstEdge" value="0" />
+            <enum name="lastEdge" value="1" />
+        </attr>
+    </declare-styleable>
+
     <declare-styleable name="VerticalTextView">
         <attr name="topDown" format="boolean"/>
+    </declare-styleable>
+
+    <declare-styleable name="PinView">
+        <attr name="nameBelow" format="boolean"/>
+
+        <attr name="orientation" format="enum">
+            <enum name="horizontal" value="0" />
+            <enum name="vertical" value="1" />
+        </attr>
+
+        <attr name="position" format="enum">
+            <enum name="left" value="0" />
+            <enum name="right" value="1" />
+            <enum name="top" value="2" />
+            <enum name="bottom" value="3" />
+        </attr>
+    </declare-styleable>
+
+    <declare-styleable name="RightAngleTriangleView">
+        <attr name="diagonal" format="enum">
+            <enum name="topLeftToBottomRight" value="0" />
+            <enum name="topRightToBottomLeft" value="1" />
+        </attr>
+
+        <attr name="fillPosition" format="enum">
+            <enum name="left" value="0" />
+            <enum name="right" value="1" />
+        </attr>
+
+        <attr name="pinOrientation" format="enum">
+            <enum name="none" value="0" />
+            <enum name="horizontal" value="1" />
+            <enum name="vertical" value="2" />
+        </attr>
+
+        <attr name="fillColour" format="color"/>
     </declare-styleable>
 </resources>

@@ -1,52 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     xmlns:custom="http://schemas.android.com/apk/res-auto"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    tools:context=".HomeActivity" >
+    android:layout_height="fill_parent">
 
-    <!-- TextView
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:text="@string/hello_world" /-->
+    <view
+        class="org.ricts.abstractmachine.ui.network.MemoryPortMultiplexerView"
+        android:id="@+id/mux"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        custom:outputPosition = "right"
+        custom:selectPosition = "lastEdge"
+        />
     <view
         class="org.ricts.abstractmachine.ui.storage.RamView"
         android:id="@+id/memory"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        custom:pinPosition = "right"
+        android:layout_toRightOf="@+id/mux"
+        custom:pinPosition = "left"
+        />
+    <TextView
+        android:id="@+id/selectLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/mux"
+        android:text="Select Index:"
+        />
+    <EditText
+        android:id="@+id/selectEdit"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/mux"
+        android:layout_toRightOf="@+id/selectLabel"
+        android:inputType="number"
+        />
+    <TextView
+        android:id = "@+id/addressLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/selectEdit"
+        android:text= "@string/address_string"
+        />
+
+    <EditText
+        android:id = "@+id/addressEdit"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/selectEdit"
+        android:layout_toRightOf = "@+id/addressLabel"
+        android:inputType = "number"
+        />
+    <TextView
+        android:id = "@+id/dataLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop = "@+id/dataEdit"
+        android:layout_alignParentLeft = "true"
+        android:text= "@string/data_string"
+        />
+
+    <EditText
+        android:id = "@+id/dataEdit"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below = "@+id/addressEdit"
+        android:layout_toRightOf = "@+id/dataLabel"
+        android:inputType = "number"
         />
 
     <Button
-        android:id="@+id/stepButton"
-        android:layout_width="wrap_content"
+        android:id = "@+id/readButton"
         android:layout_height="wrap_content"
-        android:layout_below="@id/memory"
-        android:text="Step forward"
-        />
-    <TextView
-        android:id="@+id/sysClockLabel"
         android:layout_width="wrap_content"
+        android:layout_below = "@+id/dataLabel"
+        android:text="@string/mem_tut_read_button"/>
+    <Button
+        android:id = "@+id/writeButton"
         android:layout_height="wrap_content"
-        android:layout_toRightOf="@id/stepButton"
-        android:layout_alignTop="@id/stepButton"
-        android:text="Time elapsed: "
-        />
-    <TextView
-        android:id="@+id/sysClockText"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_toRightOf="@id/sysClockLabel"
-        android:layout_alignTop="@id/sysClockLabel"
-        />
+        android:layout_below = "@+id/dataLabel"
+        android:layout_toRightOf="@+id/readButton"
+        android:text="@string/mem_tut_write_button"/>
 
-    <view
-        class="org.ricts.abstractmachine.ui.compute.CpuCoreView"
-        android:id="@+id/cpuView"
-        android:layout_width="wrap_content"
-        android:layout_height="fill_parent"
-        android:layout_toRightOf="@id/memory"
-        android:layout_alignTop="@id/memory"
-        android:layout_alignBottom="@id/memory"
-        />
 </RelativeLayout>

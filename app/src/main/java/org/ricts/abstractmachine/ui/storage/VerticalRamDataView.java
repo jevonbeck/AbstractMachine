@@ -54,7 +54,6 @@ public class VerticalRamDataView extends CustomDimenRecyclerView {
                 TextView addr = (TextView) item.findViewById(R.id.address);
                 TextView data = (TextView) item.findViewById(R.id.data);
 
-
                 // Measure the text
                 Rect addrBounds = new Rect();
                 String text = (String) addr.getText();

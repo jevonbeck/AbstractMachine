@@ -9,11 +9,7 @@ package org.ricts.abstractmachine.components;
  */
 public class Device {
     protected static int bitMaskOfWidth(int width){
-        int bitMask = 0;
-        for(int x=0; x != width; ++x){
-            bitMask |= (1<<x);
-        }
-        return bitMask;
+        return ((1 << width) - 1);
     }
 
     protected static int bitWidth(int number){
@@ -41,7 +37,7 @@ public class Device {
         return intactNumberBits | value ;
     }
 
-    protected static boolean bitAtIndex(int bitIndex, int number){
+    protected static boolean getBitAtIndex(int bitIndex, int number){
         return ((number & (1<<bitIndex)) != 0);
     }
 
@@ -56,12 +52,7 @@ public class Device {
     }
 
     protected static int setBitValueAtIndex(int bitIndex, int number, boolean value){
-        if(value){
-            return setBitAtIndex(bitIndex, number);
-        }
-        else {
-            return clearBitAtIndex(bitIndex, number);
-        }
+        return (value) ? setBitAtIndex(bitIndex, number) : clearBitAtIndex(bitIndex, number);
     }
 
     public static String formatNumberInHex(int number, int bitWidth){
@@ -72,6 +63,9 @@ public class Device {
 
     private static String zeroPad(int count){
         String ret = "";
+
+        if(count < 0)
+            return "Err";
 
         for(int x=0; x!= count; ++x){
             ret += "0";

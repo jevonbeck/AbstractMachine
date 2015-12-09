@@ -6,7 +6,10 @@
 
     <color name="test_color">#CC0066</color>
     <color name="test_color2">#9A2EFE</color>
+    <color name="test_color3">#FF00F0</color>
     <color name="pin_sig_color">#FFBF00</color>
+    <color name="pin_color">@android:color/darker_gray</color>
+    <color name="mux_fill_color">#9A2EFE</color>
 
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">

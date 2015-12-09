@@ -1,6 +1,6 @@
 package org.ricts.abstractmachine.activities;
 
-import android.support.v7.app.ActionBarActivity;
+import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -16,14 +16,11 @@ import org.ricts.abstractmachine.ui.storage.RamView;
 
 import java.util.ArrayList;
 
-public class VonNeumannActivity extends ActionBarActivity {
-
-    private static final String TAG = "TestActivity";
+public class VonNeumannActivity extends Activity {
+    private static final String TAG = "VonNeumannActivity";
 
     private CpuCoreView cpu;
-
     private TextView sysClockTextView;
-
     private int sysClock; // system clock
 
     @Override

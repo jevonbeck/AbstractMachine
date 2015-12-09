@@ -1,10 +1,10 @@
-package org.ricts.abstractmachine.ui.storage;
+package org.ricts.abstractmachine.ui.device;
 
 import android.view.animation.Animation.AnimationListener;
 
 public class DevicePin {
 	public enum PinDirection{
-		LEFT, RIGHT, LEFTRIGHT, UP, DOWN, UPDOWN
+		LEFT, RIGHT, UP, DOWN
 	}
 	
 	public enum PinAction{
@@ -14,11 +14,26 @@ public class DevicePin {
 	public enum AnimStartBehaviour{
 		IMMEDIATE, DELAY
 	}
-	
+
+	public DevicePin(){
+
+	}
+
+	public DevicePin(DevicePin pin){
+		data = pin.data;
+		name = pin.name;
+		dataWidth = pin.dataWidth;
+		direction = pin.direction;
+		action = pin.action;
+		startBehaviour = pin.startBehaviour;
+		animListener = pin.animListener;
+		animationDelay = pin.animationDelay;
+	}
+
 	public String data = "";
-	public String name;
+	public String name = "";
 	public int dataWidth;
-	public PinDirection direction = PinDirection.LEFTRIGHT;
+	public PinDirection direction = PinDirection.LEFT;
 	public PinAction action = PinAction.STATIONARY;
 	public AnimStartBehaviour startBehaviour = AnimStartBehaviour.IMMEDIATE;
 	public AnimationListener animListener = null;

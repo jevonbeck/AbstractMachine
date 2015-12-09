@@ -1,4 +1,4 @@
-package org.ricts.abstractmachine.ui.storage;
+package org.ricts.abstractmachine.ui.device;
 
 import android.content.Context;
 import android.graphics.Rect;
@@ -51,8 +51,8 @@ public class HorizontalPinDataView extends CustomDimenRecyclerView {
 
                     View item = holder.itemView;
 
-                    VerticalTextView pin = (VerticalTextView) item.findViewById(R.id.pinName);
-                    VerticalTextView signal = (VerticalTextView) item.findViewById(R.id.signalText);
+                    VerticalTextView pin = (VerticalTextView) item.findViewById(R.id.pinview_pinname);
+                    VerticalTextView signal = (VerticalTextView) item.findViewById(R.id.pinview_signaltext);
                     DevicePin pinData = adapter.getItem(x);
 
                     // Measure the text
@@ -83,14 +83,13 @@ public class HorizontalPinDataView extends CustomDimenRecyclerView {
                 adapter.bindViewHolder(holder, 0);
 
                 View item = holder.itemView;
-                TextView pin = (TextView) item.findViewById(R.id.pinName);
+                TextView pin = (TextView) item.findViewById(R.id.pinview_pinname);
 
                 // Measure the text
                 Rect pinBounds = new Rect();
                 String text = (String) pin.getText();
                 pin.getPaint().getTextBounds(text, 0, text.length(), pinBounds);
 
-                //int result = 2*(Math.abs(pinBounds.height()) + 6) * adapter.getItemCount();
                 int result = (2*Math.abs(pinBounds.height()) + 24) *
                         adapter.getItemCount();
 

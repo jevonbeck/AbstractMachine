@@ -8,9 +8,9 @@ import android.widget.TextView;
 import org.ricts.abstractmachine.components.Device;
 import org.ricts.abstractmachine.components.interfaces.RegisterPort;
 import org.ricts.abstractmachine.components.storage.Register;
-import org.ricts.abstractmachine.ui.storage.RomView.AnimationResponder;
+import org.ricts.abstractmachine.ui.device.ReadPortView;
 
-public class RegDataView extends TextView implements RegisterPort, AnimationResponder{
+public class RegDataView extends TextView implements RegisterPort, ReadPortView.ReadResponder {
 	private Register dataReg;
 	private boolean isDelayed;
 
@@ -56,15 +56,22 @@ public class RegDataView extends TextView implements RegisterPort, AnimationResp
 	}
 
 	@Override
-	public void onAnimationFinished() {
-        updateTextView();
+	public void onReadFinished() {
+		updateTextView();
 	}
-	
-	public void setDelayEnable(boolean enable){
+
+    @Override
+    public void onReadStart() {
+
+    }
+
+    public void setDelayEnable(boolean enable){
 		isDelayed = enable;
 	}
 
     private void updateTextView(){
         setText(Device.formatNumberInHex(dataReg.read(), dataReg.dataWidth()));
     }
+
+
 }
