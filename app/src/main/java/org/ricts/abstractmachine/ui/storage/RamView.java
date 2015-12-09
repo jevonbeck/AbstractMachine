@@ -41,18 +41,23 @@ public class RamView extends RomView implements MemoryPort {
 	@Override
 	protected void init(){
 		rom = ram;
-		super.init();
+        pinView.setSource(ram);
+        super.init();
         pinView.setWriteResponder(new MemoryPortView.WriteResponder() {
             @Override
             public void onWriteFinished() {
                 dataAdapter.notifyDataSetChanged(); // Animate rom UI
+            }
+
+            @Override
+            public void onWriteStart() {
+
             }
         });
 	}
 
     public void setDataSource(RAM r){
         ram = r;
-
         dataWidth = ram.dataWidth();
         addressWidth = ram.addressWidth();
 

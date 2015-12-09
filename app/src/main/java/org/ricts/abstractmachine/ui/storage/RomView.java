@@ -13,7 +13,7 @@ import org.ricts.abstractmachine.components.storage.ROM;
 import org.ricts.abstractmachine.ui.CustomDimenRecyclerView;
 import org.ricts.abstractmachine.ui.UiUtils;
 import org.ricts.abstractmachine.ui.device.MemoryPortView;
-import org.ricts.abstractmachine.ui.device.MemoryPortView.ReadResponder;
+import org.ricts.abstractmachine.ui.device.ReadPortView;
 
 public class RomView extends RelativeLayout implements ReadPort {
     protected int dataWidth;
@@ -110,10 +110,7 @@ public class RomView extends RelativeLayout implements ReadPort {
 
     @Override
     public int read(int address) {
-        int data = rom.read(address);
-        pinView.setReadData(data);
-        pinView.read(address); // initialise read animation
-        return data; // return actual data to underlying requester
+        return pinView.read(address); // initialise read animation & return underlying data
     }
 
     @Override
@@ -136,12 +133,12 @@ public class RomView extends RelativeLayout implements ReadPort {
         addressWidth = rom.addressWidth();
 
         rom = r;
-
         init();
     }
 
     protected void init(){
-        pinView.initParams(dataWidth, addressWidth, rom.accessTime());
+        pinView.initParams(dataWidth, addressWidth);
+        pinView.setSource(rom);
 
         /*** bind memoryView to their data ***/
         try {
@@ -159,7 +156,7 @@ public class RomView extends RelativeLayout implements ReadPort {
         rom.setData(data, addrOffset);
     }
 
-    public void setReadResponder(ReadResponder responder){
+    public void setReadResponder(ReadPortView.ReadResponder responder){
         pinView.setReadResponder(responder);
     }
 

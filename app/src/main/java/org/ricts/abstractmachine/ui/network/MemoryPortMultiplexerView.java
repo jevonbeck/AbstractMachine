@@ -9,8 +9,11 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
 import org.ricts.abstractmachine.R;
+import org.ricts.abstractmachine.components.Device;
+import org.ricts.abstractmachine.components.interfaces.MemoryPort;
 import org.ricts.abstractmachine.components.network.MemoryPortMultiplexer;
 import org.ricts.abstractmachine.ui.device.DevicePin;
+import org.ricts.abstractmachine.ui.device.ReadPortView;
 import org.ricts.abstractmachine.ui.device.RightAngleTriangleView;
 import org.ricts.abstractmachine.ui.UiUtils;
 import org.ricts.abstractmachine.ui.device.MemoryPortView;
@@ -29,6 +32,9 @@ public class MemoryPortMultiplexerView extends RelativeLayout {
 
     private MemoryPortMultiplexer mux;
     private int inputsPosition;
+    private Responder commandResponder;
+    private DevicePin selectPinData;
+    private RightAngleTriangleView pinTriangle;
 
     private int selectWidth, selMask, currentSel;
 
@@ -60,15 +66,16 @@ public class MemoryPortMultiplexerView extends RelativeLayout {
         //inputPinsLayout.setDividerPadding(10); // TODO: verify this works on its own (i.e. no Divider drawable)
 
         outputPins = new MemoryPortView(context,
-                UiUtils.makeAttributeSet(context, getResourceId(outputPosition)));
+                UiUtils.makeAttributeSet(context, getResourceId(inputsPosition)));
         outputPins.setId(R.id.memoryportmultiplexerview_outputpins);
+        outputPins.setStartDelay(1);
 
         middle = new View(context);
         middle.setId(R.id.memoryportmultiplexerview_middle);
         middle.setBackgroundColor(context.getResources().getColor(R.color.mux_fill_color));
 
-        DevicePin pinData = new DevicePin();
-        pinData.name = "select";
+        selectPinData = new DevicePin();
+        selectPinData.name = "select";
         switch (outputPosition) {
             case 2: // top
                 if(selectPosition == 0){
@@ -76,14 +83,16 @@ public class MemoryPortMultiplexerView extends RelativeLayout {
                             UiUtils.makeAttributeSet(context, R.xml.triangleview_trbl_rightfilled_pinh));
                     lastTriangle = new RightAngleTriangleView(context,
                             UiUtils.makeAttributeSet(context, R.xml.triangleview_tlbr_leftfilled_nopin));
-                    firstTriangle.setPinData(pinData);
+                    firstTriangle.setPinData(selectPinData);
+                    pinTriangle = firstTriangle;
                 }
                 else{
                     firstTriangle = new RightAngleTriangleView(context,
                             UiUtils.makeAttributeSet(context, R.xml.triangleview_trbl_rightfilled_nopin));
                     lastTriangle = new RightAngleTriangleView(context,
                             UiUtils.makeAttributeSet(context, R.xml.triangleview_tlbr_leftfilled_pinh));
-                    lastTriangle.setPinData(pinData);
+                    lastTriangle.setPinData(selectPinData);
+                    pinTriangle = lastTriangle;
                 }
                 break;
             case 3: // bottom
@@ -92,14 +101,16 @@ public class MemoryPortMultiplexerView extends RelativeLayout {
                             UiUtils.makeAttributeSet(context, R.xml.triangleview_tlbr_rightfilled_pinh));
                     lastTriangle = new RightAngleTriangleView(context,
                             UiUtils.makeAttributeSet(context, R.xml.triangleview_trbl_leftfilled_nopin));
-                    firstTriangle.setPinData(pinData);
+                    firstTriangle.setPinData(selectPinData);
+                    pinTriangle = firstTriangle;
                 }
                 else{
                     firstTriangle = new RightAngleTriangleView(context,
                             UiUtils.makeAttributeSet(context, R.xml.triangleview_tlbr_rightfilled_nopin));
                     lastTriangle = new RightAngleTriangleView(context,
                             UiUtils.makeAttributeSet(context, R.xml.triangleview_trbl_leftfilled_pinh));
-                    lastTriangle.setPinData(pinData);
+                    lastTriangle.setPinData(selectPinData);
+                    pinTriangle = lastTriangle;
                 }
                 break;
             case 0: // left
@@ -108,14 +119,16 @@ public class MemoryPortMultiplexerView extends RelativeLayout {
                             UiUtils.makeAttributeSet(context, R.xml.triangleview_trbl_rightfilled_pinv));
                     lastTriangle = new RightAngleTriangleView(context,
                             UiUtils.makeAttributeSet(context, R.xml.triangleview_tlbr_rightfilled_nopin));
-                    firstTriangle.setPinData(pinData);
+                    firstTriangle.setPinData(selectPinData);
+                    pinTriangle = firstTriangle;
                 }
                 else{
                     firstTriangle = new RightAngleTriangleView(context,
                             UiUtils.makeAttributeSet(context, R.xml.triangleview_trbl_rightfilled_nopin));
                     lastTriangle = new RightAngleTriangleView(context,
                             UiUtils.makeAttributeSet(context, R.xml.triangleview_tlbr_rightfilled_pinv));
-                    lastTriangle.setPinData(pinData);
+                    lastTriangle.setPinData(selectPinData);
+                    pinTriangle = lastTriangle;
                 }
                 break;
             case 1: // right
@@ -125,15 +138,16 @@ public class MemoryPortMultiplexerView extends RelativeLayout {
                             UiUtils.makeAttributeSet(context, R.xml.triangleview_tlbr_leftfilled_pinv));
                     lastTriangle = new RightAngleTriangleView(context,
                             UiUtils.makeAttributeSet(context, R.xml.triangleview_trbl_leftfilled_nopin));
-                    firstTriangle.setPinData(pinData);
-
+                    firstTriangle.setPinData(selectPinData);
+                    pinTriangle = firstTriangle;
                 }
                 else{
                     firstTriangle = new RightAngleTriangleView(context,
                             UiUtils.makeAttributeSet(context, R.xml.triangleview_tlbr_leftfilled_nopin));
                     lastTriangle = new RightAngleTriangleView(context,
                             UiUtils.makeAttributeSet(context, R.xml.triangleview_trbl_leftfilled_pinv));
-                    lastTriangle.setPinData(pinData);
+                    lastTriangle.setPinData(selectPinData);
+                    pinTriangle = lastTriangle;
                 }
                 break;
         }
@@ -242,6 +256,10 @@ public class MemoryPortMultiplexerView extends RelativeLayout {
                 addView(outputPins, lpOutputPins);
                 break;
         }
+
+        /*** Initialise other vars ***/
+        selectPinData.action = DevicePin.PinAction.MOVING;
+        commandResponder = new Responder();
     }
 
     @Override
@@ -285,22 +303,29 @@ public class MemoryPortMultiplexerView extends RelativeLayout {
         lpLastTriangle.height = triangleH;
     }
 
-    public void setSelection(int sel){
-        currentSel = sel & selMask;
+    public int getSelection(){
+        return currentSel;
     }
 
-    public MemoryPortView getOutput(){
-        return outputPins;
+    public void setSelection(int sel){
+        currentSel = sel & selMask;
+        selectPinData.data = Device.formatNumberInHex(currentSel, selectWidth);
+    }
+
+    public void setOutputSource(MemoryPort source){
+        outputPins.setSource(source);
     }
 
     public MemoryPortView [] getInputs(){
         return inputPins;
     }
 
-    public void initMux(int selW){
+    public void initMux(int selW, int dataW, int addrW){
         selectWidth = selW;
         selMask = (1 << selectWidth) - 1; // bit mask of width selectWidth
+        selectPinData.dataWidth = selectWidth;
 
+        outputPins.initParams(dataW, addrW);
         inputPinsLayout.removeAllViewsInLayout();
 
         Context c = getContext();
@@ -308,6 +333,35 @@ public class MemoryPortMultiplexerView extends RelativeLayout {
         for(int x=0; x < inputPins.length; ++x){
             inputPins[x] = new MemoryPortView(c,
                     UiUtils.makeAttributeSet(c, getResourceId(inputsPosition)));
+
+            inputPins[x].initParams(dataW, addrW);
+            inputPins[x].setReadAnimationDelay(3);
+            //inputPins[x].setReadResponder(commandResponder);
+            //inputPins[x].setWriteResponder(commandResponder);
+
+            //inputPins[x].setSource(outputPins);
+            final int index = x;
+            inputPins[x].setSource(new MemoryPort(){
+                @Override
+                public int read(int address) {
+                    if(currentSel == index){
+                        return outputPins.read(address);
+                    }
+                    return -1;
+                }
+
+                @Override
+                public int accessTime() {
+                    return outputPins.accessTime();
+                }
+
+                @Override
+                public void write(int address, int data) {
+                    if(currentSel == index){
+                        outputPins.write(address, data);
+                    }
+                }
+            });
 
             inputPinsLayout.addView(inputPins[x], x);
         }
@@ -338,6 +392,32 @@ public class MemoryPortMultiplexerView extends RelativeLayout {
             case 1: // right
             default:
                 return 0;
+        }
+    }
+
+    private class Responder implements ReadPortView.ReadResponder, MemoryPortView.WriteResponder {
+        @Override
+        public void onReadStart() {
+            initSelectPinAnimation();
+        }
+
+        @Override
+        public void onWriteStart() {
+            initSelectPinAnimation();
+        }
+
+        @Override
+        public void onReadFinished() {
+
+        }
+
+        @Override
+        public void onWriteFinished() {
+
+        }
+
+        private void initSelectPinAnimation(){
+            pinTriangle.setPinData(selectPinData);
         }
     }
 }

@@ -8,9 +8,9 @@ import android.widget.TextView;
 import org.ricts.abstractmachine.components.Device;
 import org.ricts.abstractmachine.components.interfaces.RegisterPort;
 import org.ricts.abstractmachine.components.storage.Register;
-import org.ricts.abstractmachine.ui.device.MemoryPortView.ReadResponder;
+import org.ricts.abstractmachine.ui.device.ReadPortView;
 
-public class RegDataView extends TextView implements RegisterPort, ReadResponder {
+public class RegDataView extends TextView implements RegisterPort, ReadPortView.ReadResponder {
 	private Register dataReg;
 	private boolean isDelayed;
 
@@ -60,7 +60,12 @@ public class RegDataView extends TextView implements RegisterPort, ReadResponder
 		updateTextView();
 	}
 
-	public void setDelayEnable(boolean enable){
+    @Override
+    public void onReadStart() {
+
+    }
+
+    public void setDelayEnable(boolean enable){
 		isDelayed = enable;
 	}
 

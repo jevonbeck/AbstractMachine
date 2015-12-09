@@ -21,6 +21,10 @@ import org.ricts.abstractmachine.ui.device.PinView;
 public class RightAngleTriangleView extends ViewGroup {
     private static final String TAG = "RightAngleTriangleView";
 
+    public enum PinDirection{
+        IN, OUT
+    }
+
     private int pinOrientation;
     private boolean isRightFilled, diagonalIsTopRightBottomLeft;
     private Paint trianglePaint, pinPaint;
@@ -30,7 +34,7 @@ public class RightAngleTriangleView extends ViewGroup {
 
     private PinView pinView;
     private float pinLengthDiff, pinThickness;
-    protected DevicePin.PinDirection inDirection, outDirection;
+    protected DevicePin.PinDirection inDirection, outDirection, actualDirection;
 
     public RightAngleTriangleView(Context context) {
         this(context, null);
@@ -91,6 +95,9 @@ public class RightAngleTriangleView extends ViewGroup {
             pinView = new PinView(context, UiUtils.makeAttributeSet(context, getResourceId()));
             addView(pinView);
         }
+
+        /*** initialise other vars ***/
+        actualDirection = DevicePin.PinDirection.LEFT;
     }
 
     @Override
@@ -105,8 +112,6 @@ public class RightAngleTriangleView extends ViewGroup {
 
     @Override
     protected void onLayout (boolean changed, int left, int top, int right, int bottom){
-        Log.d(TAG, "onLayout() changed = " + changed);
-
         if(hasPin()){
             // use 'wrapped' valid dimension as pinThickness
             if(pinView.isHorizontal()) {
@@ -179,6 +184,7 @@ public class RightAngleTriangleView extends ViewGroup {
 
     public void setPinData(DevicePin pinData){
         if(hasPin()) {
+            pinData.direction = actualDirection;
             pinView.setData(pinData);
         }
     }
@@ -199,6 +205,17 @@ public class RightAngleTriangleView extends ViewGroup {
     public void setFillColour(int colourResourceId){
         trianglePaint.setColor(getContext().getResources().getColor(colourResourceId));
         invalidate();
+    }
+
+    public void setPinDirection(PinDirection direction){
+        switch (direction){
+            case IN:
+                actualDirection = inDirection;
+                break;
+            case OUT:
+                actualDirection = outDirection;
+                break;
+        }
     }
 
     private void placePinView(int left, int top, int right, int bottom){
@@ -315,6 +332,9 @@ public class RightAngleTriangleView extends ViewGroup {
 
         pinView.setPosition(pinPosition); // ensure that pinName is in correct position
         pinView.layout(l, t, r, b); // position pinView
+
+        // set pin initial direction as 'in'
+        setPinDirection(PinDirection.IN);
     }
 
     private int getResourceId(){

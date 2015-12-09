@@ -3,6 +3,7 @@ package org.ricts.abstractmachine.ui;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
+import android.text.Layout;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Gravity;
@@ -52,7 +53,10 @@ public class VerticalTextView extends TextView {
 		}
 		
 		canvas.translate(getCompoundPaddingLeft(), getExtendedPaddingTop());
-		getLayout().draw(canvas);
+        Layout layout = getLayout();
+        if(layout != null){
+            layout.draw(canvas);
+        }
         canvas.restore();
 	}
 }
