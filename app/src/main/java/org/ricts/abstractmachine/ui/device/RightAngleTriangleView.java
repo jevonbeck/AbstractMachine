@@ -344,7 +344,6 @@ public class RightAngleTriangleView extends ViewGroup {
                 R.integer.RightAngleTriangleView_pinOrientation_horizontal) ? 1 : 0;
 
         int result = trbl + rightFilled + horizontal;
-        Log.d(TAG, "getResourceId(): result = " + result);
         switch (result){
             case 0: // diagonal = top-left to bottom-right, left-filled, pin vertical
                 return R.xml.pinview_vertical_namebelow;

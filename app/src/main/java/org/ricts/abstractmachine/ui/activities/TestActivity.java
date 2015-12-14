@@ -1,4 +1,4 @@
-package org.ricts.abstractmachine.activities;
+package org.ricts.abstractmachine.ui.activities;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -7,10 +7,7 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import org.ricts.abstractmachine.R;
-import org.ricts.abstractmachine.ui.device.DevicePin;
 import org.ricts.abstractmachine.ui.device.MemoryPortView;
-import org.ricts.abstractmachine.ui.device.PinView;
-import org.ricts.abstractmachine.ui.device.RightAngleTriangleView;
 import org.ricts.abstractmachine.ui.network.MemoryPortMultiplexerView;
 import org.ricts.abstractmachine.ui.storage.RamView;
 
