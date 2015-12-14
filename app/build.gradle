@@ -6,7 +6,7 @@ android {
 
     defaultConfig {
         applicationId "org.ricts.abstractmachine"
-        minSdkVersion 14
+        minSdkVersion 16
         targetSdkVersion 16
         versionCode 1
         versionName "1.0"

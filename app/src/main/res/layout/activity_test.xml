@@ -73,13 +73,13 @@
         android:id = "@+id/readButton"
         android:layout_height="wrap_content"
         android:layout_width="wrap_content"
-        android:layout_below = "@+id/dataLabel"
+        android:layout_below = "@+id/dataEdit"
         android:text="@string/mem_tut_read_button"/>
     <Button
         android:id = "@+id/writeButton"
         android:layout_height="wrap_content"
         android:layout_width="wrap_content"
-        android:layout_below = "@+id/dataLabel"
+        android:layout_below = "@+id/dataEdit"
         android:layout_toRightOf="@+id/readButton"
         android:text="@string/mem_tut_write_button"/>
 

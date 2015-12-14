@@ -1,4 +1,4 @@
-package org.ricts.abstractmachine.activities;
+package org.ricts.abstractmachine.ui.activities;
 
 import java.util.ArrayList;
 
