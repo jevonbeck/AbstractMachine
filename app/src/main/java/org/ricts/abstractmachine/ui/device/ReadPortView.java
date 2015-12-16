@@ -83,7 +83,6 @@ public class ReadPortView extends RelativeLayout implements ReadPort {
                 outDirection = DevicePin.PinDirection.RIGHT;
                 break;
         }
-        pinView.setId(R.id.romview_pindata);
         addView(pinView, lpPinView);
 
         /*** create pin child data ***/

@@ -53,14 +53,14 @@ public class RomView extends RelativeLayout implements ReadPort {
                 LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
 
         pinView = new MemoryPortView(context, UiUtils.makeAttributeSet(context, getResourceId()));
-        pinView.setId(R.id.romview_pindata);
+        pinView.setId(R.id.RomView_pin_data);
 
         switch (pinPosition) {
             case 2: // top
                 ramItemLayout = R.layout.mem_data_vertical;
 
                 ramView = new HorizontalRamDataView(context);
-                ramView.setId(R.id.romview_romdata);
+                ramView.setId(R.id.RomView_rom_data);
 
                 lpPinView.addRule(RelativeLayout.CENTER_HORIZONTAL);
                 addView(pinView, lpPinView);
@@ -72,7 +72,7 @@ public class RomView extends RelativeLayout implements ReadPort {
                 ramItemLayout = R.layout.mem_data_vertical;
 
                 ramView = new HorizontalRamDataView(context);
-                ramView.setId(R.id.romview_romdata);
+                ramView.setId(R.id.RomView_rom_data);
 
                 addView(ramView, lpRamView);
 
@@ -84,7 +84,7 @@ public class RomView extends RelativeLayout implements ReadPort {
                 ramItemLayout = R.layout.mem_data_horizontal;
 
                 ramView = new VerticalRamDataView(context);
-                ramView.setId(R.id.romview_romdata);
+                ramView.setId(R.id.RomView_rom_data);
 
                 lpPinView.addRule(RelativeLayout.CENTER_VERTICAL);
                 addView(pinView, lpPinView);
@@ -97,7 +97,7 @@ public class RomView extends RelativeLayout implements ReadPort {
                 ramItemLayout = R.layout.mem_data_horizontal;
 
                 ramView = new VerticalRamDataView(context);
-                ramView.setId(R.id.romview_romdata);
+                ramView.setId(R.id.RomView_rom_data);
 
                 addView(ramView, lpRamView);
 

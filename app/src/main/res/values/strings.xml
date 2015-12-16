@@ -13,21 +13,21 @@
     <string name="title_activity_von_neumann">VonNeumannActivity</string>
     <string name="title_activity_test">TestActivity</string>
 
-    <item type="id" name="romview_romdata" />
-    <item type="id" name="romview_pindata" />
-    <item type="id" name="cpucoreview_pclabel" />
-    <item type="id" name="cpucoreview_irlabel" />
-    <item type="id" name="cpucoreview_irview" />
-    <item type="id" name="cpucoreview_statelabel" />
-    <item type="id" name="cpucoreview_instuctionlabel" />
-    <item type="id" name="pinview_backgroundlayout" />
-    <item type="id" name="pinview_pinname" />
-    <item type="id" name="pinview_signaltext" />
-    <item type="id" name="memoryportmultiplexerview_inputpins" />
-    <item type="id" name="memoryportmultiplexerview_outputpins" />
-    <item type="id" name="memoryportmultiplexerview_middle" />
-    <item type="id" name="memoryportmultiplexerview_firsttriangle" />
-    <item type="id" name="memoryportmultiplexerview_lasttriangle" />
+    <item type="id" name="RomView_rom_data" />
+    <item type="id" name="RomView_pin_data" />
+    <item type="id" name="CpuCoreView_pc_label" />
+    <item type="id" name="CpuCoreView_ir_label" />
+    <item type="id" name="CpuCoreView_ir_view" />
+    <item type="id" name="CpuCoreView_state_label" />
+    <item type="id" name="CpuCoreView_instruction_label" />
+    <item type="id" name="PinView_background_layout" />
+    <item type="id" name="PinView_pin_name" />
+    <item type="id" name="PinView_signal_text" />
+    <item type="id" name="MemoryPortMultiplexerView_input_pins" />
+    <item type="id" name="MemoryPortMultiplexerView_output_pins" />
+    <item type="id" name="MemoryPortMultiplexerView_middle" />
+    <item type="id" name="MemoryPortMultiplexerView_first_triangle" />
+    <item type="id" name="MemoryPortMultiplexerView_last_triangle" />
     
     <integer name="pin_sig_trans_time">2000</integer>
     <integer name="pin_sig_sync_delay">20</integer>

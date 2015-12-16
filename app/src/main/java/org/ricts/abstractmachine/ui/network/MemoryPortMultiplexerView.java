@@ -59,7 +59,7 @@ public class MemoryPortMultiplexerView extends RelativeLayout {
 
         /*** create children ***/
         inputPinsLayout = new LinearLayout(context);
-        inputPinsLayout.setId(R.id.memoryportmultiplexerview_inputpins);
+        inputPinsLayout.setId(R.id.MemoryPortMultiplexerView_input_pins);
         inputPinsLayout.setShowDividers(LinearLayout.SHOW_DIVIDER_MIDDLE);
         ShapeDrawable inputsDivider = new ShapeDrawable();
         inputsDivider.getPaint().setColor(context.getResources().getColor(android.R.color.transparent));
@@ -78,11 +78,11 @@ public class MemoryPortMultiplexerView extends RelativeLayout {
 
         outputPins = new MemoryPortView(context,
                 UiUtils.makeAttributeSet(context, getResourceId(inputsPosition)));
-        outputPins.setId(R.id.memoryportmultiplexerview_outputpins);
+        outputPins.setId(R.id.MemoryPortMultiplexerView_output_pins);
         outputPins.setStartDelay(1);
 
         middle = new View(context);
-        middle.setId(R.id.memoryportmultiplexerview_middle);
+        middle.setId(R.id.MemoryPortMultiplexerView_middle);
         middle.setBackgroundColor(context.getResources().getColor(R.color.mux_fill_color));
 
         selectPinData = new DevicePin();
@@ -162,10 +162,10 @@ public class MemoryPortMultiplexerView extends RelativeLayout {
                 }
                 break;
         }
-        firstTriangle.setId(R.id.memoryportmultiplexerview_firsttriangle);
+        firstTriangle.setId(R.id.MemoryPortMultiplexerView_first_triangle);
         firstTriangle.setFillColour(R.color.mux_fill_color);
 
-        lastTriangle.setId(R.id.memoryportmultiplexerview_lasttriangle);
+        lastTriangle.setId(R.id.MemoryPortMultiplexerView_last_triangle);
         lastTriangle.setFillColour(R.color.mux_fill_color);
 
         /*** determine children layouts & positions based on attributes ***/
