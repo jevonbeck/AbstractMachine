@@ -75,9 +75,6 @@ public class PipelinedCpuCore implements ThreadProcessingUnit{
 				ir1.write(nopInstruction); // ... don't execute instruction that was just fetched!
 			}
 			
-			//ir.write(ir1.read());
-			//pc.write(val2);
-						
 			pc1.write(val2 + 1);
 		}
 		else{ // cu2 just finished fetch!
@@ -85,10 +82,7 @@ public class PipelinedCpuCore implements ThreadProcessingUnit{
 				ir2.write(nopInstruction); // ... don't execute instruction that was just fetched!
 			}
 			
-			//ir.write(ir2.read());
-			//pc.write(val1);
-			
-			pc2.write(val1 + 1); 
+			pc2.write(val1 + 1);
 		}	
 	}
 }

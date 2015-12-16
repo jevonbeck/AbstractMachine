@@ -37,7 +37,7 @@ public class Stack {
     }
 
     public boolean isEmpty(){
-        return currentIndex == 0;
+        return currentIndex == startAddress;
     }
 
     public void loadStackFrom(MemoryPort storageSpace, int memStartAddress, int memStackSize){

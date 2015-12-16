@@ -1,7 +1,6 @@
 package org.ricts.abstractmachine.components;
 
-public interface ComputeDevice {
-    int dataWidth();
+public interface ComputeDevice extends DataDevice{
     int dAddrWidth();
     int instrWidth();
     int iAddrWidth();

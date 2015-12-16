@@ -8,12 +8,12 @@ public class BasicALU extends AluCore {
         super(dWidth);
     }
 
-    public enum BasicAluDecoder {
+    public enum Mneumonics {
         CLRC, SETC, ISZ, SIGN, COMP, RLC, RRC, SHIFTL, SHIFTR,
         INC, DEC, ADD, ADDWC, SUB, SUBWB, AND, OR, XOR, UPDATEWIDTH
     }
 
-    public void result(BasicAluDecoder opcode){
+    public void result(Mneumonics opcode){
         switch(opcode){
             case CLRC: // clear CARRY Flag
                 clearCarryFlag();
@@ -24,7 +24,7 @@ public class BasicALU extends AluCore {
         }
     }
 
-    public int result(BasicAluDecoder opcode, int A){
+    public int result(Mneumonics opcode, int A){
         switch(opcode){
             case UPDATEWIDTH: // ALU_dataWidth <-- A
                 updateDataWidth(A);
@@ -60,7 +60,7 @@ public class BasicALU extends AluCore {
         }
     }
 
-    public int result(BasicAluDecoder opcode, int A, int B){
+    public int result(Mneumonics opcode, int A, int B){
         switch(opcode){
             case SHIFTL: // LOGIC SHIFT A TO THE LEFT BY B BITS
                 return logicalShiftLeft(A,B);
