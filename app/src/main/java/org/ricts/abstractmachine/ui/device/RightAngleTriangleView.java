@@ -7,13 +7,10 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PointF;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.ViewGroup;
 
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.ui.UiUtils;
-import org.ricts.abstractmachine.ui.device.DevicePin;
-import org.ricts.abstractmachine.ui.device.PinView;
 
 /**
  * Created by Jevon on 09/05/2015.

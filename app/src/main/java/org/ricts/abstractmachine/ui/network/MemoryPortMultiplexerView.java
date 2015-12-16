@@ -2,9 +2,7 @@ package org.ricts.abstractmachine.ui.network;
 
 import android.content.Context;
 import android.content.res.TypedArray;
-import android.graphics.Rect;
 import android.graphics.drawable.ShapeDrawable;
-import android.graphics.drawable.shapes.RectShape;
 import android.util.AttributeSet;
 import android.view.View;
 import android.widget.LinearLayout;
@@ -35,8 +33,6 @@ public class MemoryPortMultiplexerView extends RelativeLayout {
     private RightAngleTriangleView pinTriangle;
 
     private int selectWidth, selMask, currentSel;
-
-    private ShapeDrawable inputsDivider;
     private static final int dividerThickness = 30;
 
 
@@ -62,11 +58,23 @@ public class MemoryPortMultiplexerView extends RelativeLayout {
         inputsPosition = getInputsPosition(outputPosition);
 
         /*** create children ***/
-        inputsDivider = new ShapeDrawable();
-        inputsDivider.getPaint().setColor(context.getResources().getColor(android.R.color.transparent));
         inputPinsLayout = new LinearLayout(context);
         inputPinsLayout.setId(R.id.memoryportmultiplexerview_inputpins);
         inputPinsLayout.setShowDividers(LinearLayout.SHOW_DIVIDER_MIDDLE);
+        ShapeDrawable inputsDivider = new ShapeDrawable();
+        inputsDivider.getPaint().setColor(context.getResources().getColor(android.R.color.transparent));
+        switch (inputsPosition){
+            case 2: // top
+            case 3: // bottom
+                inputsDivider.setIntrinsicWidth(dividerThickness);
+                break;
+            case 0: // left
+            case 1: // right
+            default:
+                inputsDivider.setIntrinsicHeight(dividerThickness);
+                break;
+        }
+        inputPinsLayout.setDividerDrawable(inputsDivider);
 
         outputPins = new MemoryPortView(context,
                 UiUtils.makeAttributeSet(context, getResourceId(inputsPosition)));
@@ -272,9 +280,8 @@ public class MemoryPortMultiplexerView extends RelativeLayout {
         measureChild(outputPins, widthMeasureSpec, heightMeasureSpec);
         measureChild(inputPinsLayout, widthMeasureSpec, heightMeasureSpec);
 
-        LayoutParams lpMiddle = (LayoutParams) middle.getLayoutParams();
-        lpMiddle.width = outputPins.getMeasuredWidth();
-        lpMiddle.height = outputPins.getMeasuredHeight();
+        int outputPinsW = outputPins.getMeasuredWidth();
+        int outputPinsH = outputPins.getMeasuredHeight();
 
         int triangleMinDimension = Math.max(firstTriangle.getMinPinDimension(),
                 lastTriangle.getMinPinDimension());
@@ -283,35 +290,43 @@ public class MemoryPortMultiplexerView extends RelativeLayout {
         switch (inputsPosition){
             case 2: // top
             case 3: // bottom
-                difference = Math.abs(inputPinsLayout.getMeasuredWidth() - outputPins.getMeasuredWidth());
+                difference = Math.abs(inputPinsLayout.getMeasuredWidth() - outputPinsW);
                 triangleW = Math.max(difference / 2, triangleMinDimension);
-                triangleH = lpMiddle.height;
-
-                inputsDivider.setIntrinsicHeight(triangleH);
-                inputsDivider.setIntrinsicWidth(dividerThickness);
+                triangleH = outputPinsH;
                 break;
             case 0: // left
             case 1: // right
             default:
-                difference = Math.abs(inputPinsLayout.getMeasuredHeight() - outputPins.getMeasuredHeight());
-                triangleW = lpMiddle.width;
+                difference = Math.abs(inputPinsLayout.getMeasuredHeight() - outputPinsH);
+                triangleW = outputPinsW;
                 triangleH = Math.max(difference / 2, triangleMinDimension);
-
-                inputsDivider.setIntrinsicHeight(dividerThickness);
-                inputsDivider.setIntrinsicWidth(triangleW);
                 break;
         }
 
+        int diffW, diffH, diffMax = 10;
+
+        LayoutParams lpMiddle = (LayoutParams) middle.getLayoutParams();
+        diffW = Math.abs(lpMiddle.width - outputPinsW);
+        diffH = Math.abs(lpMiddle.height - outputPinsH);
+        if(diffW > diffMax || diffH > diffMax) {
+            lpMiddle.width = outputPinsW;
+            lpMiddle.height = outputPinsH;
+        }
+
         LayoutParams lpFirstTriangle = (LayoutParams) firstTriangle.getLayoutParams();
-        lpFirstTriangle.width = triangleW;
-        lpFirstTriangle.height = triangleH;
+        diffW = Math.abs(lpFirstTriangle.width - triangleW);
+        diffH = Math.abs(lpFirstTriangle.height - triangleH);
+        if(diffW > diffMax || diffH > diffMax) {
+            lpFirstTriangle.width = triangleW;
+            lpFirstTriangle.height = triangleH;
+        }
 
         LayoutParams lpLastTriangle = (LayoutParams) lastTriangle.getLayoutParams();
-        lpLastTriangle.width = triangleW;
-        lpLastTriangle.height = triangleH;
-
-        if(inputPinsLayout.getDividerDrawable() == null) {
-            inputPinsLayout.setDividerDrawable(inputsDivider);
+        diffW = Math.abs(lpLastTriangle.width - triangleW);
+        diffH = Math.abs(lpLastTriangle.height - triangleH);
+        if(diffW > diffMax || diffH > diffMax) {
+            lpLastTriangle.width = triangleW;
+            lpLastTriangle.height = triangleH;
         }
     }
 

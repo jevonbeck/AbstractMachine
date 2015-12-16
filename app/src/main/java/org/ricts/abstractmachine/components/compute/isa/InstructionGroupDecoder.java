@@ -39,12 +39,6 @@ public class InstructionGroupDecoder extends Device {
 	}
 	
 	public int decode(int instruction){
-		/*
-		if(isValidInstruction(instruction))
-			return opcodeIndex(opcodeDecoder.getOpFrom(instruction));
-		else
-			return -1;
-		*/
 		return opcodeIndex(opcodeDecoder.getOpFrom(instruction));
 	}
 	

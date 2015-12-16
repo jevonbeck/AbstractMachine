@@ -11,7 +11,7 @@ import org.ricts.abstractmachine.components.storage.RAM;
 import org.ricts.abstractmachine.components.storage.Register;
 import org.ricts.abstractmachine.datastructures.Stack;
 import org.ricts.abstractmachine.devices.compute.alu.BasicALU;
-import org.ricts.abstractmachine.devices.compute.alu.BasicALU.BasicAluDecoder;
+import org.ricts.abstractmachine.devices.compute.alu.BasicALU.Mneumonics;
 
 public class BasicScalar extends ComputeCore {
     public enum StatusFlags {
@@ -57,23 +57,6 @@ public class BasicScalar extends ComputeCore {
         int dWidth = 8 * byteCount;
         dataWidth = dWidth;
         dataBitMask = bitMaskOfWidth(dataWidth);
-		
-        /* dynamic array testing
-         *
-        // Java
-        int [][] test = new int[2][];
-        test[0] = new int[1];
-        test[1] = new int[3];
-
-        int [][][] blah = new int [3][][];
-
-        // C++ equivalent
-        int **test = new int*[2];
-        test[0] = new int[1];
-        test[1] = new int[3];
-
-        int ***blah = new int **[3];
-        */
 
         /* Initialise core units */
         alu = new BasicALU(dataWidth);
@@ -81,7 +64,7 @@ public class BasicScalar extends ComputeCore {
         RAM stackRam = new RAM(dataWidth, stkAdWidth, 0);
         callStack = new Stack(stackRam, 0, (int) Math.pow(2, stkAdWidth));
 	  
-	  /* Initialise registers */
+	    /* Initialise registers */
         dataRegs = new Register[(int) Math.pow(2, dRegAdWidth)]; // for data
         statusReg = new Register(StatusFlags.values().length);
         intEnableReg = new Register(InterruptFlags.values().length);
@@ -305,19 +288,19 @@ public class BasicScalar extends ComputeCore {
                     dataRegs[destRegAddr].write(dataRegs[sourceRegAddr].read());
                     break;
                 case NOT: // DESTINATION <-- 1's_COMPLEMENT(SOURCE)
-                    dataRegs[destRegAddr].write(alu.result(BasicAluDecoder.COMP, dataRegs[sourceRegAddr].read()));
+                    dataRegs[destRegAddr].write(alu.result(Mneumonics.COMP, dataRegs[sourceRegAddr].read()));
                     break;
                 case RLC: // DESTINATION <-- ROTATE_LEFT_WITH_CARRY(SOURCE)
-                    dataRegs[destRegAddr].write(alu.result(BasicAluDecoder.RLC, dataRegs[sourceRegAddr].read()));
+                    dataRegs[destRegAddr].write(alu.result(Mneumonics.RLC, dataRegs[sourceRegAddr].read()));
                     break;
                 case RRC: // DESTINATION <-- ROTATE_RIGHT_WITH_CARRY(SOURCE)
-                    dataRegs[destRegAddr].write(alu.result(BasicAluDecoder.RRC, dataRegs[sourceRegAddr].read()));
+                    dataRegs[destRegAddr].write(alu.result(Mneumonics.RRC, dataRegs[sourceRegAddr].read()));
                     break;
                 case INC: // DESTINATION <-- SOURCE + 1
-                    dataRegs[destRegAddr].write(alu.result(BasicAluDecoder.INC, dataRegs[sourceRegAddr].read()));
+                    dataRegs[destRegAddr].write(alu.result(Mneumonics.INC, dataRegs[sourceRegAddr].read()));
                     break;
                 case DEC: // DESTINATION <-- SOURCE - 1 (useful for end of array indexing with DESTINATION)
-                    dataRegs[destRegAddr].write(alu.result(BasicAluDecoder.DEC, dataRegs[sourceRegAddr].read()));
+                    dataRegs[destRegAddr].write(alu.result(Mneumonics.DEC, dataRegs[sourceRegAddr].read()));
                     break;
             }
             updateStatusReg();
@@ -329,10 +312,10 @@ public class BasicScalar extends ComputeCore {
 
             switch (BasicScalarEnums.ShiftReg.decode(enumOrdinal)) {
                 case SHIFTL: // DESTINATION <-- (SOURCE << SHIFTAMOUNT)
-                    dataRegs[destRegAddr].write(alu.result(BasicAluDecoder.SHIFTL, dataRegs[sourceRegAddr].read(), shiftAmount));
+                    dataRegs[destRegAddr].write(alu.result(Mneumonics.SHIFTL, dataRegs[sourceRegAddr].read(), shiftAmount));
                     break;
                 case SHIFTR: // DESTINATION <-- (SOURCE >> SHIFTAMOUNT)
-                    dataRegs[destRegAddr].write(alu.result(BasicAluDecoder.SHIFTR, dataRegs[sourceRegAddr].read(), shiftAmount));
+                    dataRegs[destRegAddr].write(alu.result(Mneumonics.SHIFTR, dataRegs[sourceRegAddr].read(), shiftAmount));
                     break;
             }
         } else if (groupName.equals(BasicScalarEnums.RegByteManip.enumName())) {
@@ -358,25 +341,25 @@ public class BasicScalar extends ComputeCore {
             updateAluCarry();
             switch (BasicScalarEnums.AluOps.decode(enumOrdinal)) {
                 case ADD: // RESULT <-- A + B
-                    dataRegs[destRegAddr].write(alu.result(BasicAluDecoder.ADD, dataRegs[aRegAddr].read(), dataRegs[bRegAddr].read()));
+                    dataRegs[destRegAddr].write(alu.result(Mneumonics.ADD, dataRegs[aRegAddr].read(), dataRegs[bRegAddr].read()));
                     break;
                 case ADDWC: // RESULT <-- A + B + CARRY
-                    dataRegs[destRegAddr].write(alu.result(BasicAluDecoder.ADDWC, dataRegs[aRegAddr].read(), dataRegs[bRegAddr].read()));
+                    dataRegs[destRegAddr].write(alu.result(Mneumonics.ADDWC, dataRegs[aRegAddr].read(), dataRegs[bRegAddr].read()));
                     break;
                 case SUB: // RESULT <-- A - B
-                    dataRegs[destRegAddr].write(alu.result(BasicAluDecoder.SUB, dataRegs[aRegAddr].read(), dataRegs[bRegAddr].read()));
+                    dataRegs[destRegAddr].write(alu.result(Mneumonics.SUB, dataRegs[aRegAddr].read(), dataRegs[bRegAddr].read()));
                     break;
                 case SUBWB: // RESULT <-- A - B + BORROW
-                    dataRegs[destRegAddr].write(alu.result(BasicAluDecoder.SUBWB, dataRegs[aRegAddr].read(), dataRegs[bRegAddr].read()));
+                    dataRegs[destRegAddr].write(alu.result(Mneumonics.SUBWB, dataRegs[aRegAddr].read(), dataRegs[bRegAddr].read()));
                     break;
                 case AND: // RESULT <-- A & B
-                    dataRegs[destRegAddr].write(alu.result(BasicAluDecoder.AND, dataRegs[aRegAddr].read(), dataRegs[bRegAddr].read()));
+                    dataRegs[destRegAddr].write(alu.result(Mneumonics.AND, dataRegs[aRegAddr].read(), dataRegs[bRegAddr].read()));
                     break;
                 case OR: // RESULT <-- A | B
-                    dataRegs[destRegAddr].write(alu.result(BasicAluDecoder.OR, dataRegs[aRegAddr].read(), dataRegs[bRegAddr].read()));
+                    dataRegs[destRegAddr].write(alu.result(Mneumonics.OR, dataRegs[aRegAddr].read(), dataRegs[bRegAddr].read()));
                     break;
                 case XOR: // RESULT <-- A ^ B
-                    dataRegs[destRegAddr].write(alu.result(BasicAluDecoder.XOR, dataRegs[aRegAddr].read(), dataRegs[bRegAddr].read()));
+                    dataRegs[destRegAddr].write(alu.result(Mneumonics.XOR, dataRegs[aRegAddr].read(), dataRegs[bRegAddr].read()));
                     break;
             }
             updateStatusReg();
@@ -396,31 +379,31 @@ public class BasicScalar extends ComputeCore {
             int B = dataRegs[operands[2]].read() & byteMask;
 
             updateAluCarry();
-            alu.result(BasicAluDecoder.UPDATEWIDTH, bitWidth); // temporarily modify ALU dataWidth to set appropriately set ALU flags
+            alu.result(Mneumonics.UPDATEWIDTH, bitWidth); // temporarily modify ALU dataWidth to set appropriately set ALU flags
             switch (BasicScalarEnums.MultiWidthAluOps.decode(enumOrdinal)) {
                 case ADDWIDTH: // RESULT <-- A[((BYTEMULT*8)-1):0] + B[((BYTEMULT*8)-1):0]
-                    dataRegs[resultRegAddr].write(alu.result(BasicAluDecoder.ADD, A, B) & byteMask);
+                    dataRegs[resultRegAddr].write(alu.result(Mneumonics.ADD, A, B) & byteMask);
                     break;
                 case ADDCWIDTH: // RESULT <-- A[((BYTEMULT*8)-1):0] + B[((BYTEMULT*8)-1):0] + CARRY
-                    dataRegs[resultRegAddr].write(alu.result(BasicAluDecoder.ADDWC, A, B) & byteMask);
+                    dataRegs[resultRegAddr].write(alu.result(Mneumonics.ADDWC, A, B) & byteMask);
                     break;
                 case SUBWIDTH: // RESULT <-- A[((BYTEMULT*8)-1):0] - B[((BYTEMULT*8)-1):0]
-                    dataRegs[resultRegAddr].write(alu.result(BasicAluDecoder.SUB, A, B) & byteMask);
+                    dataRegs[resultRegAddr].write(alu.result(Mneumonics.SUB, A, B) & byteMask);
                     break;
                 case SUBCWIDTH: // RESULT <-- A[((BYTEMULT*8)-1):0] - B[((BYTEMULT*8)-1):0] + BORROW
-                    dataRegs[resultRegAddr].write(alu.result(BasicAluDecoder.SUBWB, A, B) & byteMask);
+                    dataRegs[resultRegAddr].write(alu.result(Mneumonics.SUBWB, A, B) & byteMask);
                     break;
                 case ANDWIDTH: // RESULT <-- A[((BYTEMULT*8)-1):0] & B[((BYTEMULT*8)-1):0]
-                    dataRegs[resultRegAddr].write(alu.result(BasicAluDecoder.AND, A, B) & byteMask);
+                    dataRegs[resultRegAddr].write(alu.result(Mneumonics.AND, A, B) & byteMask);
                     break;
                 case ORWIDTH: // RESULT <-- A[((BYTEMULT*8)-1):0] | B[((BYTEMULT*8)-1):0]
-                    dataRegs[resultRegAddr].write(alu.result(BasicAluDecoder.OR, A, B) & byteMask);
+                    dataRegs[resultRegAddr].write(alu.result(Mneumonics.OR, A, B) & byteMask);
                     break;
                 case XORWIDTH: // RESULT <-- A[((BYTEMULT*8)-1):0] ^ B[((BYTEMULT*8)-1):0]
-                    dataRegs[resultRegAddr].write(alu.result(BasicAluDecoder.XOR, A, B) & byteMask);
+                    dataRegs[resultRegAddr].write(alu.result(Mneumonics.XOR, A, B) & byteMask);
                     break;
             }
-            alu.result(BasicAluDecoder.UPDATEWIDTH, dataWidth); // restore ALU dataWidth
+            alu.result(Mneumonics.UPDATEWIDTH, dataWidth); // restore ALU dataWidth
             updateStatusReg(); // flags are in accordance with previously set dataWidth
         }
     }
@@ -641,9 +624,9 @@ public class BasicScalar extends ComputeCore {
 
     private void updateAluCarry() {
         if (getBitAtIndex(StatusFlags.CARRY.ordinal(), statusReg.read())) {
-            alu.result(BasicAluDecoder.SETC);
+            alu.result(Mneumonics.SETC);
         } else {
-            alu.result(BasicAluDecoder.CLRC);
+            alu.result(Mneumonics.CLRC);
         }
     }
 

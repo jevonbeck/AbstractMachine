@@ -107,17 +107,6 @@ public class IsaDecoder extends Device {
 	public int encode(String groupName, String mneumonic, int[] operands){
 		if(isValidGroupName(groupName)){
 			int decoderIndex = groupNameIndex(groupName);
-			
-			/*
-			if(instructionDecoders.get(decoderIndex).isVaildMneumonic(mneumonic) &&
-				 instructionDecoders.get(decoderIndex).operandsAreValid(operands)){
-				
-				return instructionDecoders.get(decoderIndex).encode(mneumonic, operands);
-			}
-			else {
-				return -2;
-			}
-			*/
 			return instructionDecoders.get(decoderIndex).encode(mneumonic, operands);
 		}		
 		return -2;
