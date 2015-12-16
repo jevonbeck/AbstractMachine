@@ -13,22 +13,22 @@
     <string name="title_activity_von_neumann">VonNeumannActivity</string>
     <string name="title_activity_test">TestActivity</string>
 
-    <item type="id" name="RomView_rom_data" />
-    <item type="id" name="RomView_pin_data" />
-    <item type="id" name="CpuCoreView_pc_label" />
-    <item type="id" name="CpuCoreView_ir_label" />
-    <item type="id" name="CpuCoreView_ir_view" />
-    <item type="id" name="CpuCoreView_state_label" />
-    <item type="id" name="CpuCoreView_instruction_label" />
-    <item type="id" name="PinView_background_layout" />
-    <item type="id" name="PinView_pin_name" />
-    <item type="id" name="PinView_signal_text" />
-    <item type="id" name="MemoryPortMultiplexerView_input_pins" />
-    <item type="id" name="MemoryPortMultiplexerView_output_pins" />
-    <item type="id" name="MemoryPortMultiplexerView_middle" />
-    <item type="id" name="MemoryPortMultiplexerView_first_triangle" />
-    <item type="id" name="MemoryPortMultiplexerView_last_triangle" />
-    
+    <item name="RomView_rom_data" type="id"/>
+    <item name="RomView_pin_data" type="id"/>
+    <item name="CpuCoreView_pc_label" type="id"/>
+    <item name="CpuCoreView_ir_label" type="id"/>
+    <item name="CpuCoreView_ir_view" type="id"/>
+    <item name="CpuCoreView_state_label" type="id"/>
+    <item name="CpuCoreView_instruction_label" type="id"/>
+    <item name="PinView_background_layout" type="id"/>
+    <item name="PinView_pin_name" type="id"/>
+    <item name="PinView_signal_text" type="id"/>
+    <item name="MemoryPortMultiplexerView_input_pins" type="id"/>
+    <item name="MemoryPortMultiplexerView_output_pins" type="id"/>
+    <item name="MemoryPortMultiplexerView_middle" type="id"/>
+    <item name="MemoryPortMultiplexerView_first_triangle" type="id"/>
+    <item name="MemoryPortMultiplexerView_last_triangle" type="id"/>
+
     <integer name="pin_sig_trans_time">2000</integer>
     <integer name="pin_sig_sync_delay">20</integer>
 
@@ -44,4 +44,7 @@
     <integer name="RightAngleTriangleView_pinOrientation_none">0</integer>
     <integer name="RightAngleTriangleView_pinOrientation_horizontal">1</integer>
     <integer name="RightAngleTriangleView_pinOrientation_vertical">2</integer>
+    <string name="title_activity_memory_port_multiplexer_tutorial">
+        MemoryPortMultiplexerTutorialActivity
+    </string>
 </resources>
