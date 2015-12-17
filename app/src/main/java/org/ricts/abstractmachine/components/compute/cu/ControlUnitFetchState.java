@@ -7,11 +7,9 @@ public class ControlUnitFetchState extends ControlUnitState{
     private RegisterPort PC; // Program Counter
     private RegisterPort IR; // Instruction Register
     private ReadPort instructionCache;
-    private int clockFrequency;
 
-    public ControlUnitFetchState(int clockFreq, RegisterPort nextInstrAddr, ReadPort iCache, RegisterPort currentInstr){
-        super();
-        clockFrequency = clockFreq;
+    public ControlUnitFetchState(RegisterPort nextInstrAddr, ReadPort iCache, RegisterPort currentInstr){
+        super("fetch");
         PC = nextInstrAddr;
         instructionCache = iCache;
         IR = currentInstr;
@@ -24,12 +22,7 @@ public class ControlUnitFetchState extends ControlUnitState{
     }
 
     @Override
-    public String name() {
-        return "fetch";
-    }
-
-    @Override
     public int actionDuration(){
-        return instructionCache.accessTime()/clockFrequency;
+        return instructionCache.accessTime();
     }
 }

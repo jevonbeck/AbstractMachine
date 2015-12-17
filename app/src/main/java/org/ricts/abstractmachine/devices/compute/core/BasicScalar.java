@@ -37,14 +37,12 @@ public class BasicScalar extends ComputeCore {
     private BasicALU alu; // operations allowed by ALU
 
 
-    public BasicScalar(int clockFreq, int byteMultiplierWidth, int dAdWidth, int iAdWidth, int stkAdWidth,
+    public BasicScalar(int byteMultiplierWidth, int dAdWidth, int iAdWidth, int stkAdWidth,
                        int dRegAdWidth, int dAdrRegAdWidth, int iAdrRegAdWidth) {
         // byteMultiplierWidth - for making number of bytes in dataWidth a power of 2
         // dRegAdWidth - for accessing data registers.
         // dAdrRegAdWidth - for accessing data address registers.
         // iAdrRegAdWidth - for accessing instruction address registers. iAdrRegAdWidth >= 1 (PC must be one of them)
-
-        super(clockFreq);
 
 		/* Initialise protected variables first */
         iAddrWidth = iAdWidth;
@@ -502,7 +500,7 @@ public class BasicScalar extends ComputeCore {
             switch (BasicScalarEnums.DataMemOps.decode(enumOrdinal)) {
                 case LOADM: // DREG <-- MEMORY[DADREG] (dereference pointer and assign value to variable)
                 case STOREM: // MEMORY[DADREG] <-- DREG (assign variable to dereferenced pointer)
-                    return dataMemory.accessTime() / clockFrequency;
+                    return dataMemory.accessTime();
                 default:
 
             }

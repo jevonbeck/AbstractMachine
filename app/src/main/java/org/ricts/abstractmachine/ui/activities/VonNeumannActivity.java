@@ -28,7 +28,6 @@ public class VonNeumannActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_von_neumann);
 
-        int clockFreq = 1;
         int byteMultiplierWidth = 0;
         int dAdWidth = 3;
         int iAdWidth = 3;
@@ -38,7 +37,7 @@ public class VonNeumannActivity extends Activity {
         int dAdrRegAdWidth = 1;
         int iAdrRegAdWidth = 1;
 
-        BasicScalar core = new BasicScalar(clockFreq, byteMultiplierWidth, dAdWidth, iAdWidth,
+        BasicScalar core = new BasicScalar(byteMultiplierWidth, dAdWidth, iAdWidth,
                 stkAdWidth,dRegAdWidth, dAdrRegAdWidth, iAdrRegAdWidth);
 
         RamView memory = (RamView) findViewById(R.id.memory);

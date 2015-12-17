@@ -70,19 +70,22 @@ public class PipelinedCpuCore implements ThreadProcessingUnit{
 		// newIR is obtained from thread unit that just fetched an instruction
 		// newPC is obtained from thread unit that just executed an instruction
 		// thread unit that fetched an instruction is loaded with newPC + 1 (always assumes no branching)
+        Register currentPC, currentIR;
+        int currentPCVal;
 		if(cu1.isAboutToExecute()){ // cu1 just finished fetch!
-			if(val1 != val2){ // if branch has occurred ...				
-				ir1.write(nopInstruction); // ... don't execute instruction that was just fetched!
-			}
-			
-			pc1.write(val2 + 1);
+            currentPC = pc1;
+            currentIR = ir1;
+            currentPCVal = val2;
 		}
 		else{ // cu2 just finished fetch!
-			if(val1 != val2){ // if branch has occurred ...
-				ir2.write(nopInstruction); // ... don't execute instruction that was just fetched!
-			}
-			
-			pc2.write(val1 + 1);
-		}	
+            currentPC = pc2;
+            currentIR = ir2;
+            currentPCVal = val1;
+		}
+
+        if(val1 != val2){ // if branch has occurred ...
+            currentIR.write(nopInstruction); // ... don't execute instruction that was just fetched!
+        }
+        currentPC.write(currentPCVal + 1);
 	}
 }

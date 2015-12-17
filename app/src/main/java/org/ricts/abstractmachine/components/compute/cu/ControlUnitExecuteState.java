@@ -12,7 +12,7 @@ public class ControlUnitExecuteState extends ControlUnitState {
 
     public ControlUnitExecuteState(RegisterPort currentInstr, ComputeCore proc,
                                    MemoryPort dMemory, RegisterPort nextInstrAddr){
-        super();
+        super("execute");
         IR = currentInstr;
         core = proc;
         dataMemory = dMemory;
@@ -22,11 +22,6 @@ public class ControlUnitExecuteState extends ControlUnitState {
     @Override
     public void performAction(){
         core.executeInstruction(IR.read(), dataMemory, PC);
-    }
-
-    @Override
-    public String name() {
-        return "execute";
     }
 
     @Override

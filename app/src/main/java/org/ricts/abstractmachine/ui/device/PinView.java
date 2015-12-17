@@ -78,7 +78,7 @@ public class PinView extends RelativeLayout {
         LayoutParams lpPinName = new LayoutParams(
                 LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
 
-        // place pin name accordingly
+        // place pin getName accordingly
         if(nameBelow){
             addView(backgroundLayout, lpBackgroundLayout);
 
@@ -106,7 +106,7 @@ public class PinView extends RelativeLayout {
     }
 
     public void setPosition(int position){
-        // align pin name according to pin position on device
+        // align pin getName according to pin position on device
         LayoutParams params = (RelativeLayout.LayoutParams) pinNameView.getLayoutParams();
         switch(position){ // pin's position relative to parent device
             case 2: // top

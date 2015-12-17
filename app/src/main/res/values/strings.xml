@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <integer name="pin_sig_trans_time">2000</integer>
+    <integer name="pin_sig_sync_delay">20</integer>
+
+    <!-- UI Strings -->
     <string name="app_name">AbstractMachine</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
@@ -13,6 +17,17 @@
     <string name="title_activity_von_neumann">VonNeumannActivity</string>
     <string name="title_activity_test">TestActivity</string>
 
+    <string name="control_unit_state_label">Next Act:</string>
+    <string name="program_counter_label">PC:</string>
+    <string name="instruction_register_label">IR:</string>
+    <string name="decoded_instruction_label">Ins:</string>
+
+    <string name="title_activity_memory_port_multiplexer_tutorial">
+        MemoryPortMultiplexerTutorialActivity
+    </string>
+
+
+    <!-- Custom View IDs -->
     <item name="RomView_rom_data" type="id"/>
     <item name="RomView_pin_data" type="id"/>
     <item name="CpuCoreView_pc_label" type="id"/>
@@ -29,14 +44,11 @@
     <item name="MemoryPortMultiplexerView_first_triangle" type="id"/>
     <item name="MemoryPortMultiplexerView_last_triangle" type="id"/>
 
-    <integer name="pin_sig_trans_time">2000</integer>
-    <integer name="pin_sig_sync_delay">20</integer>
-
+    <!-- Custom View Attributes -->
     <integer name="PinView_position_left">0</integer>
     <integer name="PinView_position_right">1</integer>
     <integer name="PinView_position_top">2</integer>
     <integer name="PinView_position_bottom">3</integer>
-
     <integer name="RightAngleTriangleView_diagonal_topLeftToBottomRight">0</integer>
     <integer name="RightAngleTriangleView_diagonal_topRightToBottomLeft">1</integer>
     <integer name="RightAngleTriangleView_fillPosition_left">0</integer>
@@ -44,7 +56,5 @@
     <integer name="RightAngleTriangleView_pinOrientation_none">0</integer>
     <integer name="RightAngleTriangleView_pinOrientation_horizontal">1</integer>
     <integer name="RightAngleTriangleView_pinOrientation_vertical">2</integer>
-    <string name="title_activity_memory_port_multiplexer_tutorial">
-        MemoryPortMultiplexerTutorialActivity
-    </string>
+
 </resources>
