@@ -31,8 +31,8 @@ public class MultiPinView extends RelativeLayout {
         super(context, attrs, defStyleAttr);
 
         /*** extract XML attributes ***/
-        TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.MultiPinView);
-        pinPosition = a.getInt(R.styleable.MultiPinView_devicePosition, 1);
+        TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.DeviceView);
+        pinPosition = a.getInt(R.styleable.DeviceView_pinPosition, 1);
         a.recycle();
 
         /*** create child and determine View properties based on attributes ***/

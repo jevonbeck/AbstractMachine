@@ -42,7 +42,7 @@ public class ReadPortView extends MultiPinView implements ReadPort {
         super(context, attrs, defStyle);
 
         /*** create pin child data ***/
-        // initialise pin names (pinView data)
+        // initialise pin names (memoryPins data)
         DevicePin[] pinData = new DevicePin[PinNames.values().length];
         DevicePin pin = new DevicePin();
         pin.name = "command";
@@ -126,7 +126,7 @@ public class ReadPortView extends MultiPinView implements ReadPort {
         dataWidth = dWidth;
         addressWidth = aWidth;
 
-        // update pin data (pinView data)
+        // update pin data (memoryPins data)
         pinArray[PinNames.ADDRESS.ordinal()].dataWidth = addressWidth;
         pinArray[PinNames.DATA.ordinal()].dataWidth = dataWidth;
     }

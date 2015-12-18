@@ -107,11 +107,6 @@ public class ControlUnitView extends RelativeLayout implements ControlUnitInterf
     }
 
     @Override
-    public boolean isAboutToExecute() {
-        return cu.isAboutToExecute();
-    }
-
-    @Override
     public void setToFetchState() {
         cu.setToFetchState();
         updateStateView();
@@ -127,6 +122,11 @@ public class ControlUnitView extends RelativeLayout implements ControlUnitInterf
     public void performNextAction() {
         cu.performNextAction();
         updateStateView();
+    }
+
+    @Override
+    public boolean isAboutToExecute() {
+        return cu.isAboutToExecute();
     }
 
     @Override

@@ -12,6 +12,7 @@ import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.devices.Device;
 import org.ricts.abstractmachine.components.interfaces.MemoryPort;
 import org.ricts.abstractmachine.ui.device.DevicePin;
+import org.ricts.abstractmachine.ui.device.DeviceView;
 import org.ricts.abstractmachine.ui.device.RightAngleTriangleView;
 import org.ricts.abstractmachine.ui.utils.UiUtils;
 import org.ricts.abstractmachine.ui.storage.MemoryPortView;
@@ -394,17 +395,7 @@ public class MemoryPortMultiplexerView extends RelativeLayout {
     }
 
     private int getResourceId(int portPosition){
-        switch (portPosition){
-            case 2: // top
-                return R.xml.memoryportview_top;
-            case 3: // bottom
-                return R.xml.memoryportview_bottom;
-            case 0: // left
-                return R.xml.memoryportview_left;
-            case 1: // right
-            default:
-                return R.xml.memoryportview_right;
-        }
+        return DeviceView.getDefaultResourceId(portPosition);
     }
 
     private int getInputsPosition(int ouputPosition){

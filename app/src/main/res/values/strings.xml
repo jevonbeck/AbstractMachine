@@ -28,8 +28,8 @@
 
 
     <!-- Custom View IDs -->
-    <item name="RomView_rom_data" type="id"/>
-    <item name="RomView_pin_data" type="id"/>
+    <item name="DeviceView_main_view" type="id"/>
+    <item name="DeviceView_pin_view" type="id"/>
     <item name="ControlUnitView_pc_label" type="id"/>
     <item name="ControlUnitView_ir_label" type="id"/>
     <item name="ControlUnitView_ir_view" type="id"/>
@@ -45,10 +45,10 @@
     <item name="MemoryPortMultiplexerView_last_triangle" type="id"/>
 
     <!-- Custom View Attributes -->
-    <integer name="PinView_position_left">0</integer>
-    <integer name="PinView_position_right">1</integer>
-    <integer name="PinView_position_top">2</integer>
-    <integer name="PinView_position_bottom">3</integer>
+    <integer name="DeviceView_pin_position_left">0</integer>
+    <integer name="DeviceView_pin_position_right">1</integer>
+    <integer name="DeviceView_pin_position_top">2</integer>
+    <integer name="DeviceView_pin_position_bottom">3</integer>
     <integer name="RightAngleTriangleView_diagonal_topLeftToBottomRight">0</integer>
     <integer name="RightAngleTriangleView_diagonal_topRightToBottomLeft">1</integer>
     <integer name="RightAngleTriangleView_fillPosition_left">0</integer>

@@ -32,6 +32,7 @@ public class RightAngleTriangleView extends ViewGroup {
     private PinView pinView;
     private float pinLengthDiff, pinThickness;
     protected DevicePin.PinDirection inDirection, outDirection, actualDirection;
+    private final int positionLeft, positionRight, positionTop, positionBottom;
 
     public RightAngleTriangleView(Context context) {
         this(context, null);
@@ -44,6 +45,16 @@ public class RightAngleTriangleView extends ViewGroup {
     public RightAngleTriangleView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         setWillNotDraw(false); // remove default (non) drawing behaviour for ViewGroup
+
+        /*** Initialise constants ***/
+        positionLeft = getContext().getResources().getInteger(
+                R.integer.DeviceView_pin_position_left);
+        positionRight = getContext().getResources().getInteger(
+                R.integer.DeviceView_pin_position_right);
+        positionTop = getContext().getResources().getInteger(
+                R.integer.DeviceView_pin_position_top);
+        positionBottom = getContext().getResources().getInteger(
+                R.integer.DeviceView_pin_position_bottom);
 
         /*** extract XML attributes ***/
         TypedArray a = getContext().obtainStyledAttributes(attrs, R.styleable.RightAngleTriangleView);
@@ -86,7 +97,7 @@ public class RightAngleTriangleView extends ViewGroup {
         pinPath = new Path();
         pinPath.setFillType(Path.FillType.EVEN_ODD);
 
-        // create pinView (if present)
+        // create memoryPins (if present)
         if(pinOrientation != context.getResources().getInteger(
                 R.integer.RightAngleTriangleView_pinOrientation_none)){
             pinView = new PinView(context, UiUtils.makeAttributeSet(context, getResourceId()));
@@ -125,17 +136,20 @@ public class RightAngleTriangleView extends ViewGroup {
 
     @Override
     protected void onDraw(Canvas canvas){
+        float width = getWidth();
+        float height = getHeight();
+
         // draw pin 'edge' if applicable
         if(hasPin()){
             pinPath.reset(); // remove any previously drawn paths
             if(pinView.isHorizontal()){
-                pinPath.addRect((getWidth() - pinLengthDiff) / 2, (getHeight() - pinThickness) / 2,
-                        (getWidth() + pinLengthDiff) / 2, (getHeight() + pinThickness) / 2,
+                pinPath.addRect((width - pinLengthDiff) / 2, (height - pinThickness) / 2,
+                        (width + pinLengthDiff) / 2, (height + pinThickness) / 2,
                         Path.Direction.CW);
             }
             else{
-                pinPath.addRect((getWidth() - pinThickness) / 2, (getHeight() - pinLengthDiff) / 2,
-                        (getWidth() + pinThickness) / 2, (getHeight() + pinLengthDiff) / 2,
+                pinPath.addRect((width - pinThickness) / 2, (height - pinLengthDiff) / 2,
+                        (width + pinThickness) / 2, (height + pinLengthDiff) / 2,
                         Path.Direction.CW);
             }
             canvas.drawPath(pinPath, pinPaint);
@@ -144,12 +158,12 @@ public class RightAngleTriangleView extends ViewGroup {
         // determine triangle vertices
         if(diagonalIsTopRightBottomLeft){
             // draw diagonal
-            triStart.set(getWidth(), 0);
-            triMiddle.set(0, getHeight());
+            triStart.set(width, 0);
+            triMiddle.set(0, height);
 
             // determine triEnd based on fill position
             if(isRightFilled){
-                triEnd.set(getWidth(), getHeight());
+                triEnd.set(width, height);
             }
             else{
                 triEnd.set(0, 0);
@@ -158,14 +172,14 @@ public class RightAngleTriangleView extends ViewGroup {
         else{
             // draw diagonal
             triStart.set(0, 0);
-            triMiddle.set(getWidth(), getHeight());
+            triMiddle.set(width, height);
 
             // determine triEnd based on fill position
             if(isRightFilled){
-                triEnd.set(getWidth(), 0);
+                triEnd.set(width, 0);
             }
             else{
-                triEnd.set(0, getHeight());
+                triEnd.set(0, height);
             }
         }
 
@@ -230,8 +244,7 @@ public class RightAngleTriangleView extends ViewGroup {
                 l = (int) (getWidth() - pinThickness)/2;
                 r = l + pinView.getMeasuredWidth();
 
-                pinPosition = getContext().getResources().getInteger(
-                        R.integer.PinView_position_top);
+                pinPosition = positionTop;
                 inDirection = DevicePin.PinDirection.DOWN;
                 outDirection = DevicePin.PinDirection.UP;
                 break;
@@ -241,8 +254,7 @@ public class RightAngleTriangleView extends ViewGroup {
                 b = (int) (getHeight() + pinThickness)/ 2;
                 t = b - pinView.getMeasuredHeight();
 
-                pinPosition = getContext().getResources().getInteger(
-                        R.integer.PinView_position_right);
+                pinPosition = positionRight;
                 inDirection = DevicePin.PinDirection.LEFT;
                 outDirection = DevicePin.PinDirection.RIGHT;
                 break;
@@ -252,8 +264,7 @@ public class RightAngleTriangleView extends ViewGroup {
                 r = (int) (getWidth() + pinThickness)/2;
                 l = r - pinView.getMeasuredWidth();
 
-                pinPosition = getContext().getResources().getInteger(
-                        R.integer.PinView_position_bottom);
+                pinPosition = positionBottom;
                 inDirection = DevicePin.PinDirection.UP;
                 outDirection = DevicePin.PinDirection.DOWN;
                 break;
@@ -263,8 +274,7 @@ public class RightAngleTriangleView extends ViewGroup {
                 r = l + (int) (getWidth() - pinLengthDiff) / 2;
                 b = t + pinView.getMeasuredHeight();
 
-                pinPosition = getContext().getResources().getInteger(
-                        R.integer.PinView_position_left);
+                pinPosition = positionLeft;
                 inDirection = DevicePin.PinDirection.RIGHT;
                 outDirection = DevicePin.PinDirection.LEFT;
                 break;
@@ -274,8 +284,7 @@ public class RightAngleTriangleView extends ViewGroup {
                 l = (int) (getWidth() - pinThickness)/2;
                 r = l + pinView.getMeasuredWidth();
 
-                pinPosition = getContext().getResources().getInteger(
-                        R.integer.PinView_position_bottom);
+                pinPosition = positionBottom;
                 inDirection = DevicePin.PinDirection.UP;
                 outDirection = DevicePin.PinDirection.DOWN;
                 break;
@@ -285,8 +294,7 @@ public class RightAngleTriangleView extends ViewGroup {
                 r = right - left;
                 b = t + pinView.getMeasuredHeight();
 
-                pinPosition = getContext().getResources().getInteger(
-                        R.integer.PinView_position_right);
+                pinPosition = positionRight;
                 inDirection = DevicePin.PinDirection.LEFT;
                 outDirection = DevicePin.PinDirection.RIGHT;
                 break;
@@ -296,8 +304,7 @@ public class RightAngleTriangleView extends ViewGroup {
                 r = (int) (getWidth() + pinThickness)/2;
                 l = r - pinView.getMeasuredWidth();
 
-                pinPosition = getContext().getResources().getInteger(
-                        R.integer.PinView_position_top);
+                pinPosition = positionTop;
                 inDirection = DevicePin.PinDirection.DOWN;
                 outDirection = DevicePin.PinDirection.UP;
                 break;
@@ -307,8 +314,7 @@ public class RightAngleTriangleView extends ViewGroup {
                 b = (int) (getHeight() + pinThickness)/2;
                 t = b - pinView.getMeasuredHeight();
 
-                pinPosition = getContext().getResources().getInteger(
-                        R.integer.PinView_position_left);
+                pinPosition = positionLeft;
                 inDirection = DevicePin.PinDirection.RIGHT;
                 outDirection = DevicePin.PinDirection.LEFT;
                 break;
@@ -323,12 +329,12 @@ public class RightAngleTriangleView extends ViewGroup {
                 break;
         }
 
-        // remeasure / resize pinView accounting for correct unspecified dimension
+        // remeasure / resize memoryPins accounting for correct unspecified dimension
         measureChild(pinView, MeasureSpec.makeMeasureSpec(r - l, MeasureSpec.EXACTLY),
                 MeasureSpec.makeMeasureSpec(b - t, MeasureSpec.EXACTLY));
 
         pinView.setPosition(pinPosition); // ensure that pinName is in correct position
-        pinView.layout(l, t, r, b); // position pinView
+        pinView.layout(l, t, r, b); // position memoryPins
 
         // set pin initial direction as 'in'
         setPinDirection(PinDirection.IN);
