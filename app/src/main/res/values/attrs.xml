@@ -9,7 +9,7 @@
         </attr>
     </declare-styleable>
 
-    <declare-styleable name="ReadPortView">
+    <declare-styleable name="MultiPinView">
         <attr name="devicePosition" format="enum">
             <enum name="left" value="0" />
             <enum name="right" value="1" />
@@ -39,10 +39,7 @@
     <declare-styleable name="PinView">
         <attr name="nameBelow" format="boolean"/>
 
-        <attr name="orientation" format="enum">
-            <enum name="horizontal" value="0" />
-            <enum name="vertical" value="1" />
-        </attr>
+        <attr name="android:orientation"/>
 
         <attr name="position" format="enum">
             <enum name="left" value="0" />

@@ -14,7 +14,7 @@ import org.ricts.abstractmachine.ui.CustomDimenRecyclerView;
 /**
  * Created by Jevon on 21/08/2015.
  */
-public class ReadPortView extends RelativeLayout implements ReadPort {
+public class ReadPortView extends MultiPinView implements ReadPort {
     public interface ReadResponder{
         void onReadFinished();
         void onReadStart();
@@ -25,10 +25,6 @@ public class ReadPortView extends RelativeLayout implements ReadPort {
 
     private ReadResponder readResponder;
     protected ReadPort rom;
-
-    protected final DevicePin.PinDirection inDirection, outDirection;
-    protected PinDataAdapter pinAdapter;
-    protected DevicePin[] pinArray;
 
     protected enum PinNames{
         COMMAND, ADDRESS, DATA
@@ -46,68 +42,24 @@ public class ReadPortView extends RelativeLayout implements ReadPort {
     public ReadPortView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
 
-        /*** extract XML attributes ***/
-        TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.ReadPortView);
-        int pinPosition = a.getInt(R.styleable.ReadPortView_devicePosition, 1);
-        a.recycle();
-
-        /*** create child and determine View properties based on attributes ***/
-        RelativeLayout.LayoutParams lpPinView = new RelativeLayout.LayoutParams(
-                RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-
-        CustomDimenRecyclerView pinView;
-        switch (pinPosition) {
-            case 2: // top
-                pinView = new HorizontalPinDataView(context);
-
-                inDirection = DevicePin.PinDirection.DOWN;
-                outDirection = DevicePin.PinDirection.UP;
-                break;
-            case 3: // bottom
-                pinView = new HorizontalPinDataView(context);
-
-                inDirection = DevicePin.PinDirection.UP;
-                outDirection = DevicePin.PinDirection.DOWN;
-                break;
-            case 0: // left
-                pinView = new VerticalPinDataView(context);
-
-                inDirection = DevicePin.PinDirection.RIGHT;
-                outDirection = DevicePin.PinDirection.LEFT;
-                break;
-            case 1: // right
-            default:
-                pinView = new VerticalPinDataView(context);
-
-                inDirection = DevicePin.PinDirection.LEFT;
-                outDirection = DevicePin.PinDirection.RIGHT;
-                break;
-        }
-        addView(pinView, lpPinView);
-
         /*** create pin child data ***/
         // initialise pin names (pinView data)
-        pinArray = new DevicePin[PinNames.values().length];
+        DevicePin[] pinData = new DevicePin[PinNames.values().length];
         DevicePin pin = new DevicePin();
         pin.name = "command";
         pin.dataWidth = 2;
-        pinArray[PinNames.COMMAND.ordinal()] = pin;
+        pinData[PinNames.COMMAND.ordinal()] = pin;
 
         pin = new DevicePin();
         pin.name = "address";
-        pinArray[PinNames.ADDRESS.ordinal()] = pin;
+        pinData[PinNames.ADDRESS.ordinal()] = pin;
 
         pin = new DevicePin();
         pin.name = "data";
-        pinArray[PinNames.DATA.ordinal()] = pin;
+        pinData[PinNames.DATA.ordinal()] = pin;
 
         /*** bind pin child to its data ***/
-        try {
-            pinAdapter = new PinDataAdapter(pinArray, pinPosition);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        pinView.setAdapter(pinAdapter);
+        setPinData(pinData);
 
         /*** Setup other vars ***/
         setReadAnimationDelay(1);
@@ -161,7 +113,7 @@ public class ReadPortView extends RelativeLayout implements ReadPort {
             }
         };
 
-        pinAdapter.notifyDataSetChanged(); // Animate pin UI
+        updateView(); // Animate pin UI
 
         return readData; // return actual data to underlying requester
     }

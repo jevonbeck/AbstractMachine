@@ -34,7 +34,7 @@ public class PinView extends RelativeLayout {
         /*** extract XML attributes ***/
         TypedArray a = getContext().obtainStyledAttributes(attrs, R.styleable.PinView);
         boolean nameBelow = a.getBoolean(R.styleable.PinView_nameBelow, false);
-        int orientation = a.getInt(R.styleable.PinView_orientation, 0);
+        int orientation = a.getInt(R.styleable.PinView_android_orientation, 0);
         int position = a.getInt(R.styleable.PinView_position, -1);
         isHorizontal = orientation == 0;
         a.recycle();

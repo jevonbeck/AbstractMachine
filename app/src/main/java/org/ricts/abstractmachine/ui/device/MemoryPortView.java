@@ -79,7 +79,7 @@ public class MemoryPortView extends ReadPortView implements MemoryPort {
         };
 
         ram.write(address, data);
-        pinAdapter.notifyDataSetChanged(); // Animate pin UI
+        updateView(); // Animate pin UI
     }
 
     public void setSource(MemoryPort readSource){
