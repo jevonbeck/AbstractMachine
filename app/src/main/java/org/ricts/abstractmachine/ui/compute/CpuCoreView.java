@@ -48,24 +48,24 @@ public class CpuCoreView extends RelativeLayout implements ThreadProcessingUnit 
         pc.setTextColor(context.getResources().getColor(android.R.color.white));
 
         ir = new RegDataView(context);
-        ir.setId(R.id.CpuCoreView_ir_view);
+        ir.setId(R.id.ControlUnitView_ir_view);
         ir.setBackgroundColor(context.getResources().getColor(R.color.test_color));
         ir.setTextColor(context.getResources().getColor(android.R.color.white));
 
         TextView pcLabel = new TextView(context);
-        pcLabel.setId(R.id.CpuCoreView_pc_label);
+        pcLabel.setId(R.id.ControlUnitView_pc_label);
         pcLabel.setTypeface(Typeface.MONOSPACE);
         pcLabel.setTextColor(context.getResources().getColor(android.R.color.white));
         pcLabel.setText(context.getResources().getText(R.string.program_counter_label));
 
         TextView irLabel = new TextView(context);
-        irLabel.setId(R.id.CpuCoreView_ir_label);
+        irLabel.setId(R.id.ControlUnitView_ir_label);
         irLabel.setTypeface(Typeface.MONOSPACE);
         irLabel.setTextColor(context.getResources().getColor(android.R.color.white));
         irLabel.setText(context.getResources().getText(R.string.instruction_register_label));
 
         TextView stateLabel = new TextView(context);
-        stateLabel.setId(R.id.CpuCoreView_state_label);
+        stateLabel.setId(R.id.ControlUnitView_state_label);
         stateLabel.setTextColor(context.getResources().getColor(android.R.color.white));
         stateLabel.setText(context.getResources().getText(R.string.control_unit_state_label));
 
@@ -74,7 +74,7 @@ public class CpuCoreView extends RelativeLayout implements ThreadProcessingUnit 
         stateView.setBackgroundColor(context.getResources().getColor(R.color.test_color2));
 
         TextView instructionLabel = new TextView(context);
-        instructionLabel.setId(R.id.CpuCoreView_instruction_label);
+        instructionLabel.setId(R.id.ComputeCoreView_instruction_label);
         instructionLabel.setTextColor(context.getResources().getColor(android.R.color.white));
         instructionLabel.setText(context.getResources().getText(R.string.decoded_instruction_label));
 

@@ -1,26 +1,28 @@
 package org.ricts.abstractmachine.components.compute.cu;
 
-import org.ricts.abstractmachine.components.compute.ComputeCore;
-import org.ricts.abstractmachine.components.interfaces.ControlUnitPort;
+import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
+import org.ricts.abstractmachine.components.interfaces.ControlUnitInterface;
 import org.ricts.abstractmachine.components.interfaces.MemoryPort;
 import org.ricts.abstractmachine.components.interfaces.ReadPort;
 import org.ricts.abstractmachine.components.interfaces.RegisterPort;
 
-public class ControlUnit implements ControlUnitPort {
+public class ControlUnit implements ControlUnitInterface {
+    private RegisterPort pc; // Program Counter
     private RegisterPort ir; // Instruction Register
-    private ComputeCore mainCore;
+    private ComputeCoreInterface mainCore;
     private FiniteStateMachine fsm;
     private ControlUnitState fetch, execute, halt;
 
-    public ControlUnit(RegisterPort pc, RegisterPort instruction, ComputeCore core,
+    public ControlUnit(RegisterPort instrPtr, RegisterPort instruction, ComputeCoreInterface core,
                        ReadPort instructionCache, MemoryPort dataMemory){
+        pc = instrPtr;
         ir = instruction;
         mainCore = core;
         fsm = new FiniteStateMachine();
 
         // setup instruction cycle
         fetch = new ControlUnitFetchState(pc, instructionCache, ir);
-        execute = new ControlUnitExecuteState(ir, core, dataMemory, pc);
+        execute = new ControlUnitExecuteState(ir, mainCore, dataMemory, pc);
         halt = new ControlUnitHaltState();
 
         fetch.setNextState(execute);
@@ -54,8 +56,24 @@ public class ControlUnit implements ControlUnitPort {
         }
     }
 
+    @Override
     public int nextActionDuration(){ // in clock cycles
         return ((ControlUnitState) fsm.currentState()).actionDuration();
+    }
+
+    @Override
+    public int getPC(){
+        return pc.read();
+    }
+
+    @Override
+    public void setPC(int currentPC){
+        pc.write(currentPC);
+    }
+
+    @Override
+    public void setIR(int currentIR){
+        ir.write(currentIR);
     }
 
     public String getCurrentState(){

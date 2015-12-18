@@ -30,11 +30,11 @@
     <!-- Custom View IDs -->
     <item name="RomView_rom_data" type="id"/>
     <item name="RomView_pin_data" type="id"/>
-    <item name="CpuCoreView_pc_label" type="id"/>
-    <item name="CpuCoreView_ir_label" type="id"/>
-    <item name="CpuCoreView_ir_view" type="id"/>
-    <item name="CpuCoreView_state_label" type="id"/>
-    <item name="CpuCoreView_instruction_label" type="id"/>
+    <item name="ControlUnitView_pc_label" type="id"/>
+    <item name="ControlUnitView_ir_label" type="id"/>
+    <item name="ControlUnitView_ir_view" type="id"/>
+    <item name="ControlUnitView_state_label" type="id"/>
+    <item name="ComputeCoreView_instruction_label" type="id"/>
     <item name="PinView_background_layout" type="id"/>
     <item name="PinView_pin_name" type="id"/>
     <item name="PinView_signal_text" type="id"/>

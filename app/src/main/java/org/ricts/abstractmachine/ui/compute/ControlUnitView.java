@@ -7,19 +7,14 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import org.ricts.abstractmachine.R;
-import org.ricts.abstractmachine.components.compute.ComputeCore;
 import org.ricts.abstractmachine.components.compute.cu.ControlUnit;
-import org.ricts.abstractmachine.components.compute.cu.ControlUnitExecuteState;
-import org.ricts.abstractmachine.components.compute.cu.ControlUnitFetchState;
-import org.ricts.abstractmachine.components.compute.cu.FiniteStateMachine;
-import org.ricts.abstractmachine.components.compute.cu.State;
-import org.ricts.abstractmachine.components.interfaces.ControlUnitPort;
+import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
+import org.ricts.abstractmachine.components.interfaces.ControlUnitInterface;
 import org.ricts.abstractmachine.components.interfaces.MemoryPort;
 import org.ricts.abstractmachine.components.interfaces.ReadPort;
-import org.ricts.abstractmachine.components.interfaces.RegisterPort;
 import org.ricts.abstractmachine.ui.storage.RegDataView;
 
-public class ControlUnitView extends RelativeLayout implements ControlUnitPort {
+public class ControlUnitView extends RelativeLayout implements ControlUnitInterface {
     private RegDataView pc; // Program Counter
     private RegDataView ir; // Instruction Register
     private TextView stateView;
@@ -48,24 +43,24 @@ public class ControlUnitView extends RelativeLayout implements ControlUnitPort {
         pc.setTextColor(context.getResources().getColor(android.R.color.white));
 
         ir = new RegDataView(context);
-        ir.setId(R.id.CpuCoreView_ir_view);
+        ir.setId(R.id.ControlUnitView_ir_view);
         ir.setBackgroundColor(context.getResources().getColor(R.color.test_color));
         ir.setTextColor(context.getResources().getColor(android.R.color.white));
 
         TextView pcLabel = new TextView(context);
-        pcLabel.setId(R.id.CpuCoreView_pc_label);
+        pcLabel.setId(R.id.ControlUnitView_pc_label);
         pcLabel.setTypeface(Typeface.MONOSPACE);
         pcLabel.setTextColor(context.getResources().getColor(android.R.color.white));
         pcLabel.setText(context.getResources().getText(R.string.program_counter_label));
 
         TextView irLabel = new TextView(context);
-        irLabel.setId(R.id.CpuCoreView_ir_label);
+        irLabel.setId(R.id.ControlUnitView_ir_label);
         irLabel.setTypeface(Typeface.MONOSPACE);
         irLabel.setTextColor(context.getResources().getColor(android.R.color.white));
         irLabel.setText(context.getResources().getText(R.string.instruction_register_label));
 
         TextView stateLabel = new TextView(context);
-        stateLabel.setId(R.id.CpuCoreView_state_label);
+        stateLabel.setId(R.id.ControlUnitView_state_label);
         stateLabel.setTextColor(context.getResources().getColor(android.R.color.white));
         stateLabel.setText(context.getResources().getText(R.string.control_unit_state_label));
 
@@ -134,12 +129,28 @@ public class ControlUnitView extends RelativeLayout implements ControlUnitPort {
         updateStateView();
     }
 
-    public void initCU(ComputeCore core, ReadPort instructionCache, MemoryPort dataMemory){
-        cu = new ControlUnit(pc,  ir, core, instructionCache, dataMemory);
-    }
-
+    @Override
     public int nextActionDuration(){
         return cu.nextActionDuration();
+    }
+
+    @Override
+    public int getPC() {
+        return cu.getPC();
+    }
+
+    @Override
+    public void setPC(int currentPC) {
+        cu.setPC(currentPC);
+    }
+
+    @Override
+    public void setIR(int currentIR) {
+        cu.setIR(currentIR);
+    }
+
+    public void initCU(ComputeCoreInterface core, ReadPort instructionCache, MemoryPort dataMemory){
+        cu = new ControlUnit(pc,  ir, core, instructionCache, dataMemory);
     }
 
     private void updateStateView(){
