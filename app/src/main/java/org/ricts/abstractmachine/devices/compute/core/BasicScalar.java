@@ -2,7 +2,7 @@ package org.ricts.abstractmachine.devices.compute.core;
 
 import java.util.ArrayList;
 
-import org.ricts.abstractmachine.components.compute.ComputeCore;
+import org.ricts.abstractmachine.components.compute.cores.ComputeCore;
 import org.ricts.abstractmachine.components.compute.isa.InstructionGroup;
 import org.ricts.abstractmachine.components.compute.isa.IsaDecoder;
 import org.ricts.abstractmachine.components.interfaces.MemoryPort;

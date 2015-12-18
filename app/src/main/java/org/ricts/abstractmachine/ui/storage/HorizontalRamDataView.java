@@ -9,8 +9,8 @@ import android.view.View;
 import android.widget.TextView;
 
 import org.ricts.abstractmachine.R;
-import org.ricts.abstractmachine.ui.CustomDimenRecyclerView;
-import org.ricts.abstractmachine.ui.DividerItemDecoration;
+import org.ricts.abstractmachine.ui.utils.CustomDimenRecyclerView;
+import org.ricts.abstractmachine.ui.utils.DividerItemDecoration;
 
 /**
  * Created by Jevon on 02/11/14.

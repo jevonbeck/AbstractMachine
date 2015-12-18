@@ -10,7 +10,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import org.ricts.abstractmachine.R;
-import org.ricts.abstractmachine.ui.VerticalTextView;
+import org.ricts.abstractmachine.ui.utils.VerticalTextView;
 
 /**
  * Created by LXQL2591 on 20/05/2015.

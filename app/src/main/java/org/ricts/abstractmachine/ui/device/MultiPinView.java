@@ -6,7 +6,7 @@ import android.util.AttributeSet;
 import android.widget.RelativeLayout;
 
 import org.ricts.abstractmachine.R;
-import org.ricts.abstractmachine.ui.CustomDimenRecyclerView;
+import org.ricts.abstractmachine.ui.utils.CustomDimenRecyclerView;
 
 /**
  * Created by Jevon on 18/12/2015.

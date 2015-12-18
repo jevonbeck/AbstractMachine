@@ -1,8 +1,8 @@
-package org.ricts.abstractmachine.components.compute;
+package org.ricts.abstractmachine.components.compute.cores;
 
 import java.util.ArrayList;
 
-import org.ricts.abstractmachine.components.Device;
+import org.ricts.abstractmachine.components.devices.Device;
 import org.ricts.abstractmachine.components.compute.isa.InstructionGroup;
 import org.ricts.abstractmachine.components.compute.isa.IsaDecoder;
 import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;

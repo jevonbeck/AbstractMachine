@@ -1,4 +1,4 @@
-package org.ricts.abstractmachine.components.compute;
+package org.ricts.abstractmachine.components.compute.cores;
 
 import org.ricts.abstractmachine.components.compute.cu.ControlUnit;
 import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
@@ -8,13 +8,13 @@ import org.ricts.abstractmachine.components.interfaces.MemoryPort;
 import org.ricts.abstractmachine.components.interfaces.ThreadProcessingUnit;
 import org.ricts.abstractmachine.components.storage.Register;
 
-public class PipelinedCpuCore implements ThreadProcessingUnit{
+public class HarvardCore implements ThreadProcessingUnit{
 	private int nopInstruction; 
   
 	private ControlUnitInterface cu1; // Control Unit for TU 1
 	private ControlUnitInterface cu2; // Control Unit for TU 2
   
-	public PipelinedCpuCore(ComputeCoreInterface core, ReadPort instructionCache, MemoryPort dataMemory){
+	public HarvardCore(ComputeCoreInterface core, ReadPort instructionCache, MemoryPort dataMemory){
 		nopInstruction = core.nopInstruction();
 				
     /* N.B. : Both thread units are connected to the same instructionCache and dataMemory! 

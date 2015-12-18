@@ -1,4 +1,4 @@
-package org.ricts.abstractmachine.ui;
+package org.ricts.abstractmachine.ui.utils;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;

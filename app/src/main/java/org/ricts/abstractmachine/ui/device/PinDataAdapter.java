@@ -6,7 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import org.ricts.abstractmachine.R;
-import org.ricts.abstractmachine.ui.UiUtils;
+import org.ricts.abstractmachine.ui.utils.UiUtils;
 
 
 /**

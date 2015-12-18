@@ -10,10 +10,8 @@ import android.widget.RelativeLayout;
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.interfaces.ReadPort;
 import org.ricts.abstractmachine.components.storage.ROM;
-import org.ricts.abstractmachine.ui.CustomDimenRecyclerView;
-import org.ricts.abstractmachine.ui.UiUtils;
-import org.ricts.abstractmachine.ui.device.MemoryPortView;
-import org.ricts.abstractmachine.ui.device.ReadPortView;
+import org.ricts.abstractmachine.ui.utils.CustomDimenRecyclerView;
+import org.ricts.abstractmachine.ui.utils.UiUtils;
 
 public class RomView extends RelativeLayout implements ReadPort {
     protected int dataWidth;

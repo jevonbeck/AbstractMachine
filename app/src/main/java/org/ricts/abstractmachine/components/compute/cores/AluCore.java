@@ -1,7 +1,7 @@
-package org.ricts.abstractmachine.components.compute;
+package org.ricts.abstractmachine.components.compute.cores;
 
 
-import org.ricts.abstractmachine.components.Device;
+import org.ricts.abstractmachine.components.devices.Device;
 
 public class AluCore extends Device {
     public enum Flag{

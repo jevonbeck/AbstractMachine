@@ -5,7 +5,6 @@ import android.util.AttributeSet;
 
 import org.ricts.abstractmachine.components.interfaces.MemoryPort;
 import org.ricts.abstractmachine.components.storage.RAM;
-import org.ricts.abstractmachine.ui.device.MemoryPortView;
 
 public class RamView extends RomView implements MemoryPort {
 	private RAM ram;

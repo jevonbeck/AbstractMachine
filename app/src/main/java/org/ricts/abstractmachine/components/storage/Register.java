@@ -1,6 +1,7 @@
 package org.ricts.abstractmachine.components.storage;
 
-import org.ricts.abstractmachine.components.*;
+import org.ricts.abstractmachine.components.devices.DataDevice;
+import org.ricts.abstractmachine.components.devices.Device;
 import org.ricts.abstractmachine.components.interfaces.RegisterPort;
 
 public class Register extends Device implements DataDevice, RegisterPort{

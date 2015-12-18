@@ -1,20 +1,19 @@
-package org.ricts.abstractmachine.components.compute;
+package org.ricts.abstractmachine.components.compute.cores;
 
 import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
 import org.ricts.abstractmachine.components.interfaces.ControlUnitInterface;
 import org.ricts.abstractmachine.components.interfaces.ThreadProcessingUnit;
 import org.ricts.abstractmachine.components.interfaces.MemoryPort;
-import org.ricts.abstractmachine.components.interfaces.ReadPort;
 import org.ricts.abstractmachine.components.compute.cu.ControlUnit;
 import org.ricts.abstractmachine.components.storage.Register;
 
-public class CpuCore implements ThreadProcessingUnit{
+public class VonNeumannCore implements ThreadProcessingUnit{
     private ControlUnitInterface cu; // Control Unit
 
-    public CpuCore(ComputeCoreInterface core, ReadPort instructionCache, MemoryPort dataMemory){
+    public VonNeumannCore(ComputeCoreInterface core, MemoryPort dataMemory){
         Register pc = new Register(core.iAddrWidth()); // Program Counter
         Register ir = new Register(core.instrWidth()); // Instruction Register
-        cu = new ControlUnit(pc, ir, core, instructionCache, dataMemory);
+        cu = new ControlUnit(pc, ir, core, dataMemory, dataMemory);
 
         setStartExecFrom(0);
     }

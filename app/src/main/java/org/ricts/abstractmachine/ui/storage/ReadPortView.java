@@ -1,15 +1,14 @@
-package org.ricts.abstractmachine.ui.device;
+package org.ricts.abstractmachine.ui.storage;
 
 import android.content.Context;
-import android.content.res.TypedArray;
 import android.util.AttributeSet;
 import android.view.animation.Animation;
-import android.widget.RelativeLayout;
 
 import org.ricts.abstractmachine.R;
-import org.ricts.abstractmachine.components.Device;
+import org.ricts.abstractmachine.components.devices.Device;
 import org.ricts.abstractmachine.components.interfaces.ReadPort;
-import org.ricts.abstractmachine.ui.CustomDimenRecyclerView;
+import org.ricts.abstractmachine.ui.device.DevicePin;
+import org.ricts.abstractmachine.ui.device.MultiPinView;
 
 /**
  * Created by Jevon on 21/08/2015.

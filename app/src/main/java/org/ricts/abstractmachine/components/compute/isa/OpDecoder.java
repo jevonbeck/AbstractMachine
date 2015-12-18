@@ -1,8 +1,9 @@
 package org.ricts.abstractmachine.components.compute.isa;
 
-import org.ricts.abstractmachine.components.*;
+import org.ricts.abstractmachine.components.devices.DataDevice;
+import org.ricts.abstractmachine.components.devices.Device;
 
-public class OpDecoder extends Device implements DataDevice{
+public class OpDecoder extends Device implements DataDevice {
 	private int dataWidth;
 	private int dataBitMask;
 	private int offset;

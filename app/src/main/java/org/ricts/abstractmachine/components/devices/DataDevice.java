@@ -1,4 +1,4 @@
-package org.ricts.abstractmachine.components;
+package org.ricts.abstractmachine.components.devices;
 
 public interface DataDevice {
     int dataWidth();

@@ -8,9 +8,9 @@ import android.view.View;
 import android.widget.TextView;
 
 import org.ricts.abstractmachine.R;
-import org.ricts.abstractmachine.components.Device;
-import org.ricts.abstractmachine.ui.CustomDimenRecyclerView;
-import org.ricts.abstractmachine.ui.VerticalTextView;
+import org.ricts.abstractmachine.components.devices.Device;
+import org.ricts.abstractmachine.ui.utils.CustomDimenRecyclerView;
+import org.ricts.abstractmachine.ui.utils.VerticalTextView;
 
 public class HorizontalPinDataView extends CustomDimenRecyclerView {
 

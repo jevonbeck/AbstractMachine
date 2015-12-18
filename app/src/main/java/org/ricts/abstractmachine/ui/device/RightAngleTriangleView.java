@@ -10,7 +10,7 @@ import android.util.AttributeSet;
 import android.view.ViewGroup;
 
 import org.ricts.abstractmachine.R;
-import org.ricts.abstractmachine.ui.UiUtils;
+import org.ricts.abstractmachine.ui.utils.UiUtils;
 
 /**
  * Created by Jevon on 09/05/2015.

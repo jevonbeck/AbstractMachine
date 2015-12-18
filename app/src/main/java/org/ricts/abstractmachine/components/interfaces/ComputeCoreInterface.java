@@ -1,6 +1,6 @@
 package org.ricts.abstractmachine.components.interfaces;
 
-import org.ricts.abstractmachine.components.ComputeDevice;
+import org.ricts.abstractmachine.components.devices.ComputeDevice;
 
 /**
  * Created by Jevon on 18/12/2015.

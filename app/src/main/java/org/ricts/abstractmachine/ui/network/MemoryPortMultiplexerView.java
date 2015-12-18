@@ -9,12 +9,12 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
 import org.ricts.abstractmachine.R;
-import org.ricts.abstractmachine.components.Device;
+import org.ricts.abstractmachine.components.devices.Device;
 import org.ricts.abstractmachine.components.interfaces.MemoryPort;
 import org.ricts.abstractmachine.ui.device.DevicePin;
 import org.ricts.abstractmachine.ui.device.RightAngleTriangleView;
-import org.ricts.abstractmachine.ui.UiUtils;
-import org.ricts.abstractmachine.ui.device.MemoryPortView;
+import org.ricts.abstractmachine.ui.utils.UiUtils;
+import org.ricts.abstractmachine.ui.storage.MemoryPortView;
 
 /**
  * Created by Jevon on 07/06/2015.
