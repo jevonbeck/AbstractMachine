@@ -14,6 +14,7 @@ import org.ricts.abstractmachine.components.interfaces.RegisterPort;
 import org.ricts.abstractmachine.ui.device.DevicePin;
 import org.ricts.abstractmachine.ui.device.DeviceView;
 import org.ricts.abstractmachine.ui.device.MultiPinView;
+import org.ricts.abstractmachine.ui.utils.UiUtils;
 
 /**
  * Created by Jevon on 18/12/2015.
@@ -39,7 +40,7 @@ public class ComputeCoreView extends DeviceView implements ComputeCoreInterface 
 
     @Override
     protected View createPinView(Context context, int pinPosition) {
-        return null;
+        return new PinsView(context, getDefaultAttributeSet(context, pinPosition));
     }
 
     @Override

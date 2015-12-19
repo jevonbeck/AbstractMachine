@@ -7,6 +7,7 @@ import android.view.View;
 import android.widget.RelativeLayout;
 
 import org.ricts.abstractmachine.R;
+import org.ricts.abstractmachine.ui.utils.UiUtils;
 
 /**
  * Created by Jevon on 18/12/2015.
@@ -80,7 +81,11 @@ public abstract class DeviceView extends RelativeLayout {
         }
     }
 
-    public static int getDefaultResourceId(int pinPosition){
+    public static AttributeSet getDefaultAttributeSet(Context context, int pinPosition){
+        return UiUtils.makeAttributeSet(context, getDefaultResourceId(pinPosition));
+    }
+
+    private static int getDefaultResourceId(int pinPosition){
         switch (pinPosition){
             case 2: // top
                 return R.xml.deviceview_pins_top;

@@ -42,7 +42,7 @@ public class RomView extends DeviceView implements ReadPort {
 
     @Override
     protected View createPinView(Context context, int pinPosition) {
-        return new MemoryPortView(context, UiUtils.makeAttributeSet(context, getDefaultResourceId(pinPosition)));
+        return new MemoryPortView(context, getDefaultAttributeSet(context, pinPosition));
     }
 
     @Override
