@@ -1,24 +1,22 @@
-package org.ricts.abstractmachine.components.compute;
+package org.ricts.abstractmachine.components.compute.cores;
 
 import java.util.ArrayList;
 
-import org.ricts.abstractmachine.components.ComputeDevice;
-import org.ricts.abstractmachine.components.Device;
+import org.ricts.abstractmachine.components.devices.Device;
 import org.ricts.abstractmachine.components.compute.isa.InstructionGroup;
 import org.ricts.abstractmachine.components.compute.isa.IsaDecoder;
+import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
 import org.ricts.abstractmachine.components.interfaces.MemoryPort;
 import org.ricts.abstractmachine.components.interfaces.RegisterPort;
 import org.ricts.abstractmachine.components.storage.Register;
 
-public abstract class ComputeCore extends Device implements ComputeDevice {
+public abstract class ComputeCore extends Device implements ComputeCoreInterface {
 	protected IsaDecoder instrDecoder;
 	protected ArrayList<InstructionGroup> instructionSet;
 	protected String nopGroupName, nopMneumonic;
 	
 	protected int instrWidth;  
 	protected int instrBitMask;
-	protected int clockFrequency; // in MHz
-	
 	protected int iAddrWidth;
 	protected int dAddrWidth;
 	protected int dataWidth;
@@ -38,15 +36,6 @@ public abstract class ComputeCore extends Device implements ComputeDevice {
 
     protected abstract String insToString(String groupName, int enumOrdinal, int[] operands);
 
-    public ComputeCore(int clockFreq){
-		super();
-		clockFrequency = clockFreq;
-	}
-  
-	public int clockFrequency(){ // in MHz
-		return clockFrequency;
-	}
-  
 	@Override
 	public int instrWidth(){
 		return instrWidth;
@@ -66,8 +55,9 @@ public abstract class ComputeCore extends Device implements ComputeDevice {
 	public int dataWidth(){
 		return dataWidth;
 	}
-  
-	public void executeInstruction(int instruction, MemoryPort dataMemory, RegisterPort PC) {
+
+    @Override
+    public void executeInstruction(int instruction, MemoryPort dataMemory, RegisterPort PC) {
 		int instruct = instruction & instrBitMask;
 		if(instrDecoder.isValidInstruction(instruct)){
 			// decode instruction
@@ -89,27 +79,8 @@ public abstract class ComputeCore extends Device implements ComputeDevice {
 		}
 	}
 
-    public String instrString(int instruction) {
-        int instruct = instruction & instrBitMask;
-        if(instrDecoder.isValidInstruction(instruct)){
-            // decode instruction
-            int decoderIndex = instrDecoder.getDecoderIndex(instruct);
-
-            String groupName = instrDecoder.groupName(decoderIndex);
-            int enumOrdinal = instrDecoder.decode(instruct, decoderIndex);
-
-            int[] operands = new int [instrDecoder.operandCount(decoderIndex)];
-            for(int x=0; x != operands.length; ++x){
-                operands[x] = instrDecoder.getOperand(x, instruct, decoderIndex);
-            }
-
-           // print string version of instruction
-           return  insToString(groupName, enumOrdinal, operands);
-        }
-        return null;
-    }
-
-	public int instrExecTime(int instruction, MemoryPort dataMemory) {
+    @Override
+    public int instrExecTime(int instruction, MemoryPort dataMemory) {
 		int instruct = instruction & instrBitMask;
 		if(instrDecoder.isValidInstruction(instruct)){
 			// decode instruction
@@ -124,12 +95,38 @@ public abstract class ComputeCore extends Device implements ComputeDevice {
 		
 		return -1;
 	}
-	
-	public int nopInstruction() {
-		return instrDecoder.encode(nopGroupName, nopMneumonic, new int [0]);
-	}
-	
-	public int encodeInstruction(String iGroupName, String iMneumonic, int [] operands) {
+
+    @Override
+    public boolean isHaltInstruction(int instruction) {
+        return instruction == 0;
+    }
+
+    @Override
+    public int nopInstruction() {
+        return instrDecoder.encode(nopGroupName, nopMneumonic, new int [0]);
+    }
+
+    public String instrString(int instruction) {
+        int instruct = instruction & instrBitMask;
+        if(instrDecoder.isValidInstruction(instruct)){
+            // decode instruction
+            int decoderIndex = instrDecoder.getDecoderIndex(instruct);
+
+            String groupName = instrDecoder.groupName(decoderIndex);
+            int enumOrdinal = instrDecoder.decode(instruct, decoderIndex);
+
+            int[] operands = new int [instrDecoder.operandCount(decoderIndex)];
+            for(int x=0; x != operands.length; ++x){
+                operands[x] = instrDecoder.getOperand(x, instruct, decoderIndex);
+            }
+
+            // print string version of instruction
+            return  insToString(groupName, enumOrdinal, operands);
+        }
+        return null;
+    }
+
+    public int encodeInstruction(String iGroupName, String iMneumonic, int [] operands) {
 		return instrDecoder.encode(iGroupName, iMneumonic, operands);
 	}
 }

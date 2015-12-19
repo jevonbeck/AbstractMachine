@@ -1,7 +1,7 @@
 package org.ricts.abstractmachine.ui.activities;
 
-import android.app.Activity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -11,15 +11,14 @@ import org.ricts.abstractmachine.ui.storage.MemoryPortView;
 import org.ricts.abstractmachine.ui.network.MemoryPortMultiplexerView;
 import org.ricts.abstractmachine.ui.storage.RamView;
 
-public class TestActivity extends Activity {
+public class MemoryPortMultiplexerTutorialActivity extends AppCompatActivity {
     private EditText addressEdit, dataEdit, selectEdit;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_test);
+        setContentView(R.layout.activity_memory_port_multiplexer_tutorial);
 
-        // TODO: Make MemoryPortMultiplexerView tutorial?!
         RamView memory = (RamView) findViewById(R.id.memory);
         memory.initMemory(8, 3, 10);
 

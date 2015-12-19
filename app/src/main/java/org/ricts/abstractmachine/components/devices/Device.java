@@ -1,7 +1,7 @@
 /**
  *
  */
-package org.ricts.abstractmachine.components;
+package org.ricts.abstractmachine.components.devices;
 
 /**
  * @author Jevon

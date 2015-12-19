@@ -5,10 +5,9 @@ import android.content.Context;
 import android.graphics.Typeface;
 import android.util.AttributeSet;
 import android.widget.TextView;
-import org.ricts.abstractmachine.components.Device;
+import org.ricts.abstractmachine.components.devices.Device;
 import org.ricts.abstractmachine.components.interfaces.RegisterPort;
 import org.ricts.abstractmachine.components.storage.Register;
-import org.ricts.abstractmachine.ui.device.ReadPortView;
 
 public class RegDataView extends TextView implements RegisterPort, ReadPortView.ReadResponder {
 	private Register dataReg;

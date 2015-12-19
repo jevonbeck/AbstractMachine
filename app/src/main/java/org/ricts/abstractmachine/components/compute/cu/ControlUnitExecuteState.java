@@ -1,6 +1,6 @@
 package org.ricts.abstractmachine.components.compute.cu;
 
-import org.ricts.abstractmachine.components.compute.ComputeCore;
+import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
 import org.ricts.abstractmachine.components.interfaces.MemoryPort;
 import org.ricts.abstractmachine.components.interfaces.RegisterPort;
 
@@ -8,11 +8,11 @@ public class ControlUnitExecuteState extends ControlUnitState {
     private RegisterPort PC; // Program Counter
     private RegisterPort IR; // Instruction Register
     private MemoryPort dataMemory;
-    private ComputeCore core;
+    private ComputeCoreInterface core;
 
-    public ControlUnitExecuteState(RegisterPort currentInstr, ComputeCore proc,
+    public ControlUnitExecuteState(RegisterPort currentInstr, ComputeCoreInterface proc,
                                    MemoryPort dMemory, RegisterPort nextInstrAddr){
-        super();
+        super("execute");
         IR = currentInstr;
         core = proc;
         dataMemory = dMemory;
@@ -22,11 +22,6 @@ public class ControlUnitExecuteState extends ControlUnitState {
     @Override
     public void performAction(){
         core.executeInstruction(IR.read(), dataMemory, PC);
-    }
-
-    @Override
-    public String name() {
-        return "execute";
     }
 
     @Override

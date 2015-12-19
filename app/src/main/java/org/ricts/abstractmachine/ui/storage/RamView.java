@@ -5,7 +5,6 @@ import android.util.AttributeSet;
 
 import org.ricts.abstractmachine.components.interfaces.MemoryPort;
 import org.ricts.abstractmachine.components.storage.RAM;
-import org.ricts.abstractmachine.ui.device.MemoryPortView;
 
 public class RamView extends RomView implements MemoryPort {
 	private RAM ram;
@@ -25,7 +24,7 @@ public class RamView extends RomView implements MemoryPort {
     @Override
     public void write(int address, int data) {
         ram.write(address, data);
-        pinView.write(address, data);
+        memoryPins.write(address, data);
     }
 
     @Override
@@ -41,9 +40,9 @@ public class RamView extends RomView implements MemoryPort {
 	@Override
 	protected void init(){
 		rom = ram;
-        pinView.setSource(ram);
+        memoryPins.setSource(ram);
         super.init();
-        pinView.setWriteResponder(new MemoryPortView.WriteResponder() {
+        memoryPins.setWriteResponder(new MemoryPortView.WriteResponder() {
             @Override
             public void onWriteFinished() {
                 dataAdapter.notifyDataSetChanged(); // Animate rom UI

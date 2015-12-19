@@ -10,7 +10,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import org.ricts.abstractmachine.R;
-import org.ricts.abstractmachine.ui.VerticalTextView;
+import org.ricts.abstractmachine.ui.utils.VerticalTextView;
 
 /**
  * Created by LXQL2591 on 20/05/2015.
@@ -34,14 +34,18 @@ public class PinView extends RelativeLayout {
         /*** extract XML attributes ***/
         TypedArray a = getContext().obtainStyledAttributes(attrs, R.styleable.PinView);
         boolean nameBelow = a.getBoolean(R.styleable.PinView_nameBelow, false);
-        int orientation = a.getInt(R.styleable.PinView_orientation, 0);
-        int position = a.getInt(R.styleable.PinView_position, -1);
+        int orientation = a.getInt(R.styleable.PinView_android_orientation, 0);
         isHorizontal = orientation == 0;
+        a.recycle();
+
+        // obtain the correct position attribute!
+        a = getContext().obtainStyledAttributes(attrs, R.styleable.DeviceView);
+        int position = a.getInt(R.styleable.DeviceView_pinPosition, -1); // default is -1 on purpose
         a.recycle();
 
         /*** create children ***/
         LinearLayout backgroundLayout = new LinearLayout(context);
-        backgroundLayout.setId(R.id.pinview_backgroundlayout);
+        backgroundLayout.setId(R.id.PinView_background_layout);
         backgroundLayout.setBackgroundColor(context.getResources().getColor(R.color.pin_color));
 
         if(isHorizontal){
@@ -53,10 +57,10 @@ public class PinView extends RelativeLayout {
             signalTextView = new VerticalTextView(context);
         }
 
-        pinNameView.setId(R.id.pinview_pinname);
+        pinNameView.setId(R.id.PinView_pin_name);
         pinNameView.setTextColor(context.getResources().getColor(android.R.color.black));
 
-        signalTextView.setId(R.id.pinview_signaltext);
+        signalTextView.setId(R.id.PinView_signal_text);
         signalTextView.setTextColor(context.getResources().getColor(android.R.color.black));
         signalTextView.setBackgroundColor(context.getResources().getColor(R.color.pin_sig_color));
 
@@ -78,7 +82,7 @@ public class PinView extends RelativeLayout {
         LayoutParams lpPinName = new LayoutParams(
                 LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
 
-        // place pin name accordingly
+        // place pin getName accordingly
         if(nameBelow){
             addView(backgroundLayout, lpBackgroundLayout);
 
@@ -106,7 +110,7 @@ public class PinView extends RelativeLayout {
     }
 
     public void setPosition(int position){
-        // align pin name according to pin position on device
+        // align pin getName according to pin position on device
         LayoutParams params = (RelativeLayout.LayoutParams) pinNameView.getLayoutParams();
         switch(position){ // pin's position relative to parent device
             case 2: // top

@@ -1,11 +1,12 @@
-package org.ricts.abstractmachine.ui.device;
+package org.ricts.abstractmachine.ui.storage;
 
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.animation.Animation;
 
-import org.ricts.abstractmachine.components.Device;
+import org.ricts.abstractmachine.components.devices.Device;
 import org.ricts.abstractmachine.components.interfaces.MemoryPort;
+import org.ricts.abstractmachine.ui.device.DevicePin;
 
 /**
  * Created by Jevon on 21/08/2015.
@@ -79,7 +80,7 @@ public class MemoryPortView extends ReadPortView implements MemoryPort {
         };
 
         ram.write(address, data);
-        pinAdapter.notifyDataSetChanged(); // Animate pin UI
+        updateView(); // Animate pin UI
     }
 
     public void setSource(MemoryPort readSource){

@@ -1,26 +1,26 @@
-package org.ricts.abstractmachine.components.compute;
+package org.ricts.abstractmachine.components.compute.cores;
 
+import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
+import org.ricts.abstractmachine.components.interfaces.ControlUnitInterface;
 import org.ricts.abstractmachine.components.interfaces.ThreadProcessingUnit;
 import org.ricts.abstractmachine.components.interfaces.MemoryPort;
-import org.ricts.abstractmachine.components.interfaces.ReadPort;
 import org.ricts.abstractmachine.components.compute.cu.ControlUnit;
 import org.ricts.abstractmachine.components.storage.Register;
 
-public class CpuCore implements ThreadProcessingUnit{
-    private Register pc; // Program Counter
-    private ControlUnit cu; // Control Unit
+public class VonNeumannCore implements ThreadProcessingUnit{
+    private ControlUnitInterface cu; // Control Unit
 
-    public CpuCore(ComputeCore core, ReadPort instructionCache, MemoryPort dataMemory){
-        pc = new Register(core.iAddrWidth());
+    public VonNeumannCore(ComputeCoreInterface core, MemoryPort dataMemory){
+        Register pc = new Register(core.iAddrWidth()); // Program Counter
         Register ir = new Register(core.instrWidth()); // Instruction Register
-        cu = new ControlUnit(pc, ir, core, instructionCache, dataMemory);
+        cu = new ControlUnit(pc, ir, core, dataMemory, dataMemory);
 
         setStartExecFrom(0);
     }
 
     @Override
-    public void setStartExecFrom(int currentPC){
-        pc.write(currentPC);
+    public void setStartExecFrom(int currentPC) {
+        cu.setPC(currentPC);
         cu.setToFetchState();
     }
 

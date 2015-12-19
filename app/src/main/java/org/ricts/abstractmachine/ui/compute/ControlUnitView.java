@@ -7,33 +7,28 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import org.ricts.abstractmachine.R;
-import org.ricts.abstractmachine.components.compute.cores.ComputeCore;
 import org.ricts.abstractmachine.components.compute.cu.ControlUnit;
-import org.ricts.abstractmachine.components.interfaces.ThreadProcessingUnit;
-import org.ricts.abstractmachine.ui.storage.RamView;
+import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
+import org.ricts.abstractmachine.components.interfaces.ControlUnitInterface;
+import org.ricts.abstractmachine.components.interfaces.MemoryPort;
+import org.ricts.abstractmachine.components.interfaces.ReadPort;
 import org.ricts.abstractmachine.ui.storage.RegDataView;
 
-/**
- * Created by Jevon on 18/01/15.
- */
-public class CpuCoreView extends RelativeLayout implements ThreadProcessingUnit {
+public class ControlUnitView extends RelativeLayout implements ControlUnitInterface {
     private RegDataView pc; // Program Counter
     private RegDataView ir; // Instruction Register
-    private TextView stateView, instructionView;
+    private TextView stateView;
+    private ControlUnit cu;
 
-    private ControlUnit cu; // Control Unit
-    private ComputeCore mainCore;
-
-    /** Standard Constructors **/
-    public CpuCoreView(Context context) {
+    public ControlUnitView(Context context) {
         this(context, null);
     }
 
-    public CpuCoreView(Context context, AttributeSet attrs) {
+    public ControlUnitView(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
     }
 
-    public CpuCoreView(Context context, AttributeSet attrs, int defStyle) {
+    public ControlUnitView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
 
         float scaleFactor = context.getResources().getDisplayMetrics().density;
@@ -73,98 +68,92 @@ public class CpuCoreView extends RelativeLayout implements ThreadProcessingUnit 
         stateView.setTextColor(context.getResources().getColor(android.R.color.white));
         stateView.setBackgroundColor(context.getResources().getColor(R.color.test_color2));
 
-        TextView instructionLabel = new TextView(context);
-        instructionLabel.setId(R.id.ComputeCoreView_instruction_label);
-        instructionLabel.setTextColor(context.getResources().getColor(android.R.color.white));
-        instructionLabel.setText(context.getResources().getText(R.string.decoded_instruction_label));
-
-        instructionView = new TextView(context);
-        instructionView.setTextColor(context.getResources().getColor(android.R.color.white));
-        instructionView.setBackgroundColor(context.getResources().getColor(R.color.test_color2));
-
-
         /*** determine children layouts and positions ***/
         int viewWidth = (int) (110 * scaleFactor);
 
-        LayoutParams lpPcLabel = new LayoutParams(
-                LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+        RelativeLayout.LayoutParams lpPcLabel = new RelativeLayout.LayoutParams(
+                RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
         addView(pcLabel, lpPcLabel);
 
-        LayoutParams lpPcView = new LayoutParams(
-                viewWidth, LayoutParams.WRAP_CONTENT);
+        RelativeLayout.LayoutParams lpPcView = new RelativeLayout.LayoutParams(
+                viewWidth, RelativeLayout.LayoutParams.WRAP_CONTENT);
         lpPcView.addRule(RelativeLayout.RIGHT_OF, pcLabel.getId());
         lpPcView.addRule(RelativeLayout.ALIGN_TOP, pcLabel.getId());
         addView(pc, lpPcView);
 
-        LayoutParams lpIrLabel = new LayoutParams(
-                LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+        RelativeLayout.LayoutParams lpIrLabel = new RelativeLayout.LayoutParams(
+                RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
         lpIrLabel.addRule(RelativeLayout.BELOW, pcLabel.getId());
         lpIrLabel.addRule(RelativeLayout.ALIGN_LEFT, pcLabel.getId());
         addView(irLabel, lpIrLabel);
 
-        LayoutParams lpIrView = new LayoutParams(
-                viewWidth, LayoutParams.WRAP_CONTENT);
+        RelativeLayout.LayoutParams lpIrView = new RelativeLayout.LayoutParams(
+                viewWidth, RelativeLayout.LayoutParams.WRAP_CONTENT);
         lpIrView.addRule(RelativeLayout.RIGHT_OF, irLabel.getId());
         lpIrView.addRule(RelativeLayout.ALIGN_TOP, irLabel.getId());
         addView(ir, lpIrView);
 
-        LayoutParams lpStateLabel = new LayoutParams(
-                LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+        RelativeLayout.LayoutParams lpStateLabel = new RelativeLayout.LayoutParams(
+                RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
         lpStateLabel.addRule(RelativeLayout.BELOW, irLabel.getId());
         addView(stateLabel, lpStateLabel);
 
-        LayoutParams lpStateView = new LayoutParams(
-                LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
+        RelativeLayout.LayoutParams lpStateView = new RelativeLayout.LayoutParams(
+                RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
         lpStateView.addRule(RelativeLayout.RIGHT_OF, stateLabel.getId());
         lpStateView.addRule(RelativeLayout.ALIGN_TOP, stateLabel.getId());
         lpStateView.addRule(RelativeLayout.ALIGN_RIGHT, ir.getId());
         addView(stateView, lpStateView);
-
-        LayoutParams lpInstructionLabel = new LayoutParams(
-                LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
-        lpInstructionLabel.addRule(RelativeLayout.BELOW, stateLabel.getId());
-        addView(instructionLabel, lpInstructionLabel);
-
-        LayoutParams lpInstructionView = new LayoutParams(
-                LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
-        lpInstructionView.addRule(RelativeLayout.RIGHT_OF, instructionLabel.getId());
-        lpInstructionView.addRule(RelativeLayout.ALIGN_TOP, instructionLabel.getId());
-        lpInstructionView.addRule(RelativeLayout.ALIGN_RIGHT, ir.getId());
-        addView(instructionView, lpInstructionView);
-    }
-
-    public void initCpu(ComputeCore core, RamView mainMemory){
-        mainCore = core;
-
-        pc.setDataWidth(mainCore.iAddrWidth());
-        ir.setDataWidth(mainCore.instrWidth());
-        mainMemory.setReadResponder(ir);
-        ir.setDelayEnable(true);
-
-        cu = new ControlUnit(pc, ir, mainCore, mainMemory, mainMemory);
-
-        setStartExecFrom(0);
     }
 
     @Override
-    public void setStartExecFrom(int currentPC){
-        pc.write(currentPC);
+    public void setToFetchState() {
         cu.setToFetchState();
-        stateView.setText(cu.getCurrentState());
+        updateStateView();
     }
 
     @Override
-    public int nextActionTransitionTime(){
+    public void setToExecuteState() {
+        cu.setToExecuteState();
+        updateStateView();
+    }
+
+    @Override
+    public void performNextAction() {
+        cu.performNextAction();
+        updateStateView();
+    }
+
+    @Override
+    public boolean isAboutToExecute() {
+        return cu.isAboutToExecute();
+    }
+
+    @Override
+    public int nextActionDuration(){
         return cu.nextActionDuration();
     }
 
     @Override
-    public void triggerNextAction(){
-        cu.performNextAction(); // perform action for 'currentState' and go to next state
-        stateView.setText(cu.getCurrentState());
+    public int getPC() {
+        return cu.getPC();
+    }
 
-        if(!cu.isAboutToExecute()){
-            instructionView.setText(mainCore.instrString(ir.read()));
-        }
+    @Override
+    public void setPC(int currentPC) {
+        cu.setPC(currentPC);
+    }
+
+    @Override
+    public void setIR(int currentIR) {
+        cu.setIR(currentIR);
+    }
+
+    public void initCU(ComputeCoreInterface core, ReadPort instructionCache, MemoryPort dataMemory){
+        cu = new ControlUnit(pc,  ir, core, instructionCache, dataMemory);
+    }
+
+    private void updateStateView(){
+        stateView.setText(cu.getCurrentState());
     }
 }

@@ -2,7 +2,9 @@ package org.ricts.abstractmachine.components.storage;
 
 import java.util.List;
 
-import org.ricts.abstractmachine.components.*;
+import org.ricts.abstractmachine.components.devices.AddressDevice;
+import org.ricts.abstractmachine.components.devices.DataDevice;
+import org.ricts.abstractmachine.components.devices.Device;
 import org.ricts.abstractmachine.components.interfaces.ReadPort;
 
 public class ROM extends Device implements AddressDevice, DataDevice, ReadPort {

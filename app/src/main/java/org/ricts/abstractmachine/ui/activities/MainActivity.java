@@ -38,7 +38,6 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.home);
 
-        int clockFreq = 1;
         int byteMultiplierWidth = 0;
         int dAdWidth = 3;
         int iAdWidth = 3;
@@ -48,7 +47,7 @@ public class MainActivity extends Activity {
         int dAdrRegAdWidth = 1;
         int iAdrRegAdWidth = 1;
 
-        BasicScalar core = new BasicScalar(clockFreq, byteMultiplierWidth, dAdWidth, iAdWidth,
+        BasicScalar core = new BasicScalar(byteMultiplierWidth, dAdWidth, iAdWidth,
                 stkAdWidth,dRegAdWidth, dAdrRegAdWidth, iAdrRegAdWidth);
 
         memory = (RamView) findViewById(R.id.memory);
