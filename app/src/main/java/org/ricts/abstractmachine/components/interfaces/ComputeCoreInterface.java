@@ -6,7 +6,7 @@ import org.ricts.abstractmachine.components.devices.ComputeDevice;
  * Created by Jevon on 18/12/2015.
  */
 public interface ComputeCoreInterface extends ComputeDevice{
-    void executeInstruction(int instruction, MemoryPort dataMemory, RegisterPort PC);
+    void executeInstruction(int instruction, MemoryPort dataMemory, ControlUnitInterface cu);
     int instrExecTime(int instruction, MemoryPort dataMemory);
 
     boolean isHaltInstruction(int instruction);

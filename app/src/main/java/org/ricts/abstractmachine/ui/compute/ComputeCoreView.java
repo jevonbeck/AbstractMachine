@@ -3,18 +3,19 @@ package org.ricts.abstractmachine.ui.compute;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.View;
+import android.view.animation.Animation;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.compute.cores.ComputeCore;
+import org.ricts.abstractmachine.components.devices.Device;
 import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
+import org.ricts.abstractmachine.components.interfaces.ControlUnitInterface;
 import org.ricts.abstractmachine.components.interfaces.MemoryPort;
-import org.ricts.abstractmachine.components.interfaces.RegisterPort;
 import org.ricts.abstractmachine.ui.device.DevicePin;
 import org.ricts.abstractmachine.ui.device.DeviceView;
 import org.ricts.abstractmachine.ui.device.MultiPinView;
-import org.ricts.abstractmachine.ui.utils.UiUtils;
 
 /**
  * Created by Jevon on 18/12/2015.
@@ -35,7 +36,8 @@ public class ComputeCoreView extends DeviceView implements ComputeCoreInterface 
 
     public ComputeCoreView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-
+        mainBody = (MainBodyView) mainView;
+        pins = (PinsView) pinView;
     }
 
     @Override
@@ -49,9 +51,32 @@ public class ComputeCoreView extends DeviceView implements ComputeCoreInterface 
     }
 
     @Override
-    public void executeInstruction(int instruction, MemoryPort dataMemory, RegisterPort PC) {
-        mainBody.setText(mainCore.instrString(instruction));
-        mainCore.executeInstruction(instruction, dataMemory, PC);
+    public void executeInstruction(final int instruction, MemoryPort dataMemory, final ControlUnitInterface cu) {
+        final int pcPreExecute = cu.getPC();
+        mainCore.executeInstruction(instruction, dataMemory, cu);
+        final int pcPostExecute = cu.getPC();
+
+        pins.setExecuteAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                mainBody.setText(mainCore.instrString(instruction));
+
+                if (pcPreExecute != pcPostExecute) {
+                    pins.updatePC(pcPostExecute);
+                }
+            }
+
+            @Override
+            public void onAnimationStart(Animation animation) {
+
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+
+            }
+        });
+        pins.executeInstruction(instruction);
     }
 
     @Override
@@ -91,9 +116,24 @@ public class ComputeCoreView extends DeviceView implements ComputeCoreInterface 
 
     public void setComputeCore(ComputeCore core){
         mainCore = core;
+
+        pins.initParams(mainCore.instrWidth(), mainCore.iAddrWidth());
     }
 
-    private static class PinsView extends MultiPinView {
+    public void setUpdatePcResponder(PinsView.UpdateResponder responder){
+        pins.setUpdateResponder(responder);
+    }
+
+    public static class PinsView extends MultiPinView {
+        private int instructionWidth, instructionAddrWidth;
+        private UpdateResponder updateResponder;
+
+        private Animation.AnimationListener executeResponder;
+
+        public interface UpdateResponder {
+            void onUpdatePcCompleted();
+        }
+
         protected enum PinNames{
             COMMAND, DATA
         }
@@ -123,6 +163,71 @@ public class ComputeCoreView extends DeviceView implements ComputeCoreInterface 
 
             /*** bind pin child to its data ***/
             setPinData(pinData);
+        }
+
+        public void initParams(int iWidth, int iAddrWidth){
+            instructionWidth = iWidth;
+            instructionAddrWidth = iAddrWidth;
+
+            pinArray[PinNames.COMMAND.ordinal()].dataWidth = instructionWidth;
+            pinArray[PinNames.DATA.ordinal()].dataWidth = instructionWidth;
+        }
+
+        public void executeInstruction(int instruction){
+            // Setup correct data in pin UI
+            DevicePin pin = pinArray[PinNames.COMMAND.ordinal()];
+            pin.data = "execute";
+            pin.direction = inDirection;
+            pin.action = DevicePin.PinAction.MOVING;
+
+            pin = pinArray[PinNames.DATA.ordinal()];
+            pin.data = Device.formatNumberInHex(instruction, instructionWidth);
+            pin.direction = inDirection;
+            pin.action = DevicePin.PinAction.MOVING;
+            pin.animListener = executeResponder;
+
+            updateView(); // Animate pin UI
+        }
+
+        public void setExecuteAnimationListener(Animation.AnimationListener execResponder) {
+            executeResponder = execResponder;
+        }
+
+        public void setUpdateResponder(UpdateResponder responder){
+            updateResponder = responder;
+        }
+
+        public void updatePC(int pcValue){
+            // Setup correct data in pin UI
+            DevicePin pin = pinArray[PinNames.COMMAND.ordinal()];
+            pin.data = "updatePC";
+            pin.direction = outDirection;
+            pin.action = DevicePin.PinAction.MOVING;
+
+            pin = pinArray[PinNames.DATA.ordinal()];
+            pin.data = Device.formatNumberInHex(pcValue, instructionAddrWidth);
+            pin.direction = outDirection;
+            pin.action = DevicePin.PinAction.MOVING;
+            pin.animListener = new Animation.AnimationListener(){
+                @Override
+                public void onAnimationEnd(Animation animation) {
+                    if(updateResponder != null){
+                        updateResponder.onUpdatePcCompleted();
+                    }
+                }
+
+                @Override
+                public void onAnimationStart(Animation animation) {
+
+                }
+
+                @Override
+                public void onAnimationRepeat(Animation animation) {
+
+                }
+            };
+
+            updateView(); // Animate pin UI
         }
     }
 

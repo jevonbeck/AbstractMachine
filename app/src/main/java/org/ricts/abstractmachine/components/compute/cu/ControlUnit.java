@@ -22,7 +22,7 @@ public class ControlUnit implements ControlUnitInterface {
 
         // setup instruction cycle
         fetch = new ControlUnitFetchState(pc, instructionCache, ir);
-        execute = new ControlUnitExecuteState(ir, mainCore, dataMemory, pc);
+        execute = new ControlUnitExecuteState(ir, mainCore, dataMemory, this);
         halt = new ControlUnitHaltState();
 
         fetch.setNextState(execute);

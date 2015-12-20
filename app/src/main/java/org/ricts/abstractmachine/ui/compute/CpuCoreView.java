@@ -11,6 +11,7 @@ import org.ricts.abstractmachine.components.compute.cores.ComputeCore;
 import org.ricts.abstractmachine.components.compute.cu.ControlUnit;
 import org.ricts.abstractmachine.components.interfaces.ThreadProcessingUnit;
 import org.ricts.abstractmachine.ui.storage.RamView;
+import org.ricts.abstractmachine.ui.storage.ReadPortView;
 import org.ricts.abstractmachine.ui.storage.RegDataView;
 
 /**
@@ -138,8 +139,18 @@ public class CpuCoreView extends RelativeLayout implements ThreadProcessingUnit 
 
         pc.setDataWidth(mainCore.iAddrWidth());
         ir.setDataWidth(mainCore.instrWidth());
-        mainMemory.setReadResponder(ir);
-        ir.setDelayEnable(true);
+        ir.setUpdateImmediately(false);
+        mainMemory.setReadResponder(new ReadPortView.ReadResponder() {
+            @Override
+            public void onReadFinished() {
+                ir.updateDisplayText();
+            }
+
+            @Override
+            public void onReadStart() {
+
+            }
+        });
 
         cu = new ControlUnit(pc, ir, mainCore, mainMemory, mainMemory);
 

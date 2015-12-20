@@ -6,6 +6,7 @@ import org.ricts.abstractmachine.components.devices.Device;
 import org.ricts.abstractmachine.components.compute.isa.InstructionGroup;
 import org.ricts.abstractmachine.components.compute.isa.IsaDecoder;
 import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
+import org.ricts.abstractmachine.components.interfaces.ControlUnitInterface;
 import org.ricts.abstractmachine.components.interfaces.MemoryPort;
 import org.ricts.abstractmachine.components.interfaces.RegisterPort;
 import org.ricts.abstractmachine.components.storage.Register;
@@ -30,7 +31,7 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
 	
 	protected abstract void fetchOpsExecuteInstr(String groupName, int enumOrdinal, int[] operands, MemoryPort dataMemory);
   
-	protected abstract void updateProgramCounter(String groupName, int enumOrdinal, int[] operands, RegisterPort PC);
+	protected abstract void updateProgramCounter(String groupName, int enumOrdinal, int[] operands, ControlUnitInterface cu);
   
 	protected abstract int executionTime(String groupName, int enumOrdinal, MemoryPort dataMemory);
 
@@ -57,7 +58,7 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
 	}
 
     @Override
-    public void executeInstruction(int instruction, MemoryPort dataMemory, RegisterPort PC) {
+    public void executeInstruction(int instruction, MemoryPort dataMemory, ControlUnitInterface cu) {
 		int instruct = instruction & instrBitMask;
 		if(instrDecoder.isValidInstruction(instruct)){
 			// decode instruction
@@ -75,7 +76,7 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
 			fetchOpsExecuteInstr(groupName, enumOrdinal, operands, dataMemory);
 
 			// update Program Counter based on execution result
-			updateProgramCounter(groupName, enumOrdinal, operands, PC);
+			updateProgramCounter(groupName, enumOrdinal, operands, cu);
 		}
 	}
 

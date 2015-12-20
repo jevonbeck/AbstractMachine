@@ -41,11 +41,13 @@ public class ControlUnitView extends RelativeLayout implements ControlUnitInterf
         pc = new RegDataView(context);
         pc.setBackgroundColor(context.getResources().getColor(R.color.test_color));
         pc.setTextColor(context.getResources().getColor(android.R.color.white));
+        pc.setUpdateImmediately(false);
 
         ir = new RegDataView(context);
         ir.setId(R.id.ControlUnitView_ir_view);
         ir.setBackgroundColor(context.getResources().getColor(R.color.test_color));
         ir.setTextColor(context.getResources().getColor(android.R.color.white));
+        ir.setUpdateImmediately(false);
 
         TextView pcLabel = new TextView(context);
         pcLabel.setId(R.id.ControlUnitView_pc_label);
@@ -151,6 +153,16 @@ public class ControlUnitView extends RelativeLayout implements ControlUnitInterf
 
     public void initCU(ComputeCoreInterface core, ReadPort instructionCache, MemoryPort dataMemory){
         cu = new ControlUnit(pc,  ir, core, instructionCache, dataMemory);
+        pc.setDataWidth(core.iAddrWidth());
+        ir.setDataWidth(core.instrWidth());
+    }
+
+    public void updatePcView(){
+        pc.updateDisplayText();
+    }
+
+    public void updateIrView(){
+        ir.updateDisplayText();
     }
 
     private void updateStateView(){

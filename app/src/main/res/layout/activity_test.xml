@@ -9,78 +9,49 @@
         android:id="@+id/mux"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        custom:outputPosition = "right"
-        custom:selectPosition = "lastEdge"
+        custom:outputPosition = "left"
+        custom:selectPosition = "firstEdge"
         />
+
     <view
-        class="org.ricts.abstractmachine.ui.storage.RamView"
-        android:id="@+id/memory"
+        class="org.ricts.abstractmachine.ui.compute.ControlUnitView"
+        android:id="@+id/control_unit"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_toRightOf="@+id/mux"
-        custom:pinPosition = "left"
-        />
-    <TextView
-        android:id="@+id/selectLabel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/mux"
-        android:text="Select Index:"
-        />
-    <EditText
-        android:id="@+id/selectEdit"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/mux"
-        android:layout_toRightOf="@+id/selectLabel"
-        android:inputType="number"
-        />
-    <TextView
-        android:id = "@+id/addressLabel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/selectEdit"
-        android:text= "@string/address_string"
         />
 
-    <EditText
-        android:id = "@+id/addressEdit"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/selectEdit"
-        android:layout_toRightOf = "@+id/addressLabel"
-        android:inputType = "number"
-        />
-    <TextView
-        android:id = "@+id/dataLabel"
+    <view
+        class="org.ricts.abstractmachine.ui.compute.ComputeCoreView"
+        android:id="@+id/core"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignTop = "@+id/dataEdit"
-        android:layout_alignParentLeft = "true"
-        android:text= "@string/data_string"
-        />
-
-    <EditText
-        android:id = "@+id/dataEdit"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_below = "@+id/addressEdit"
-        android:layout_toRightOf = "@+id/dataLabel"
-        android:inputType = "number"
+        android:layout_toRightOf="@+id/mux"
+        android:layout_below="@+id/control_unit"
+        custom:pinPosition="top"
         />
 
     <Button
-        android:id = "@+id/readButton"
-        android:layout_height="wrap_content"
+        android:id="@+id/stepButton"
         android:layout_width="wrap_content"
-        android:layout_below = "@+id/dataEdit"
-        android:text="@string/mem_tut_read_button"/>
-    <Button
-        android:id = "@+id/writeButton"
         android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:text="Step forward"
+        />
+    <TextView
+        android:id="@+id/sysClockLabel"
         android:layout_width="wrap_content"
-        android:layout_below = "@+id/dataEdit"
-        android:layout_toRightOf="@+id/readButton"
-        android:text="@string/mem_tut_write_button"/>
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/stepButton"
+        android:layout_alignTop="@id/stepButton"
+        android:text="Time elapsed: "
+        />
+    <TextView
+        android:id="@+id/sysClockText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/sysClockLabel"
+        android:layout_alignTop="@id/sysClockLabel"
+        />
 
 </RelativeLayout>

@@ -17,6 +17,7 @@ import org.ricts.abstractmachine.components.compute.cu.ControlUnit;
 import org.ricts.abstractmachine.devices.compute.core.BasicScalar;
 import org.ricts.abstractmachine.devices.compute.core.BasicScalarEnums;
 import org.ricts.abstractmachine.ui.storage.RamView;
+import org.ricts.abstractmachine.ui.storage.ReadPortView;
 import org.ricts.abstractmachine.ui.storage.RegDataView;
 
 public class MainActivity extends Activity {
@@ -117,8 +118,18 @@ public class MainActivity extends Activity {
 
         pc.setDataWidth(core.iAddrWidth());
         ir.setDataWidth(core.instrWidth());
-        memory.setReadResponder(ir);
-        ir.setDelayEnable(true);
+        ir.setUpdateImmediately(false);
+        memory.setReadResponder(new ReadPortView.ReadResponder() {
+            @Override
+            public void onReadFinished() {
+                ir.updateDisplayText();
+            }
+
+            @Override
+            public void onReadStart() {
+
+            }
+        });
 
         cu = new ControlUnit(pc, ir, core, memory, memory);
 

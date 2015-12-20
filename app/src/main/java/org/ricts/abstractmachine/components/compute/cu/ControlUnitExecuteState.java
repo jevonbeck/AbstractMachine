@@ -1,27 +1,28 @@
 package org.ricts.abstractmachine.components.compute.cu;
 
 import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
+import org.ricts.abstractmachine.components.interfaces.ControlUnitInterface;
 import org.ricts.abstractmachine.components.interfaces.MemoryPort;
 import org.ricts.abstractmachine.components.interfaces.RegisterPort;
 
 public class ControlUnitExecuteState extends ControlUnitState {
-    private RegisterPort PC; // Program Counter
+    private ControlUnitInterface cu;
     private RegisterPort IR; // Instruction Register
     private MemoryPort dataMemory;
     private ComputeCoreInterface core;
 
     public ControlUnitExecuteState(RegisterPort currentInstr, ComputeCoreInterface proc,
-                                   MemoryPort dMemory, RegisterPort nextInstrAddr){
+                                   MemoryPort dMemory, ControlUnitInterface controlUnit){
         super("execute");
         IR = currentInstr;
         core = proc;
         dataMemory = dMemory;
-        PC = nextInstrAddr;
+        cu = controlUnit;
     }
 
     @Override
     public void performAction(){
-        core.executeInstruction(IR.read(), dataMemory, PC);
+        core.executeInstruction(IR.read(), dataMemory, cu);
     }
 
     @Override

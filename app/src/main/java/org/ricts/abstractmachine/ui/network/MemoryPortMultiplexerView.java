@@ -77,8 +77,7 @@ public class MemoryPortMultiplexerView extends RelativeLayout {
         }
         inputPinsLayout.setDividerDrawable(inputsDivider);
 
-        outputPins = new MemoryPortView(context,
-                UiUtils.makeAttributeSet(context, getResourceId(inputsPosition)));
+        outputPins = new MemoryPortView(context, getMemoryPortAttributeSet(context, inputsPosition));
         outputPins.setId(R.id.MemoryPortMultiplexerView_output_pins);
         outputPins.setStartDelay(1);
 
@@ -359,8 +358,7 @@ public class MemoryPortMultiplexerView extends RelativeLayout {
         Context c = getContext();
         inputPins = new MemoryPortView[(int) Math.pow(2,selectWidth)];
         for(int x=0; x < inputPins.length; ++x){
-            inputPins[x] = new MemoryPortView(c,
-                    UiUtils.makeAttributeSet(c, getResourceId(inputsPosition)));
+            inputPins[x] = new MemoryPortView(c, getMemoryPortAttributeSet(c, inputsPosition));
 
             inputPins[x].initParams(dataW, addrW);
             inputPins[x].setReadAnimationDelay(3);
@@ -394,8 +392,8 @@ public class MemoryPortMultiplexerView extends RelativeLayout {
         }
     }
 
-    private int getResourceId(int portPosition){
-        return DeviceView.getDefaultResourceId(portPosition);
+    private AttributeSet getMemoryPortAttributeSet(Context context, int portPosition){
+        return DeviceView.getDefaultAttributeSet(context, portPosition);
     }
 
     private int getInputsPosition(int ouputPosition){
