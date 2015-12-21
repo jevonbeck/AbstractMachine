@@ -7,8 +7,8 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import org.ricts.abstractmachine.R;
-import org.ricts.abstractmachine.ui.storage.MemoryPortView;
 import org.ricts.abstractmachine.ui.network.MemoryPortMultiplexerView;
+import org.ricts.abstractmachine.ui.storage.MemoryPortView;
 import org.ricts.abstractmachine.ui.storage.RamView;
 
 public class MemoryPortMultiplexerTutorialActivity extends AppCompatActivity {
@@ -26,7 +26,11 @@ public class MemoryPortMultiplexerTutorialActivity extends AppCompatActivity {
         mux.initMux(1, 8, 3);
         mux.setOutputSource(memory);
 
-        final MemoryPortView inputs[] =  mux.getInputs();
+        View [] temp = mux.getInputs();
+        final MemoryPortView inputs[] =  new MemoryPortView[temp.length];
+        for(int x=0; x != inputs.length; ++x){
+            inputs[x] = (MemoryPortView) temp[x];
+        }
 
         addressEdit = (EditText) findViewById(R.id.addressEdit);
         dataEdit = (EditText) findViewById(R.id.dataEdit);

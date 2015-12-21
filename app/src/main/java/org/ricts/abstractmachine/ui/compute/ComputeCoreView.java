@@ -56,24 +56,14 @@ public class ComputeCoreView extends DeviceView implements ComputeCoreInterface 
         mainCore.executeInstruction(instruction, dataMemory, cu);
         final int pcPostExecute = cu.getPC();
 
-        pins.setExecuteAnimationListener(new Animation.AnimationListener() {
+        pins.setExecuteResponder(new PinsView.ExecuteResponder(){
             @Override
-            public void onAnimationEnd(Animation animation) {
+            public void onExecuteCompleted() {
                 mainBody.setText(mainCore.instrString(instruction));
 
                 if (pcPreExecute != pcPostExecute) {
                     pins.updatePC(pcPostExecute);
                 }
-            }
-
-            @Override
-            public void onAnimationStart(Animation animation) {
-
-            }
-
-            @Override
-            public void onAnimationRepeat(Animation animation) {
-
             }
         });
         pins.executeInstruction(instruction);
@@ -127,8 +117,12 @@ public class ComputeCoreView extends DeviceView implements ComputeCoreInterface 
     public static class PinsView extends MultiPinView {
         private int instructionWidth, instructionAddrWidth;
         private UpdateResponder updateResponder;
+        private ExecuteResponder executeResponder;
+        private int startDelay;
 
-        private Animation.AnimationListener executeResponder;
+        public interface ExecuteResponder {
+            void onExecuteCompleted();
+        }
 
         public interface UpdateResponder {
             void onUpdatePcCompleted();
@@ -163,6 +157,9 @@ public class ComputeCoreView extends DeviceView implements ComputeCoreInterface 
 
             /*** bind pin child to its data ***/
             setPinData(pinData);
+
+            /*** Setup other vars ***/
+            startDelay = (int) (getDelay(1) * 0.5);
         }
 
         public void initParams(int iWidth, int iAddrWidth){
@@ -179,17 +176,36 @@ public class ComputeCoreView extends DeviceView implements ComputeCoreInterface 
             pin.data = "execute";
             pin.direction = inDirection;
             pin.action = DevicePin.PinAction.MOVING;
+            pin.startBehaviour = DevicePin.AnimStartBehaviour.IMMEDIATE;
 
             pin = pinArray[PinNames.DATA.ordinal()];
             pin.data = Device.formatNumberInHex(instruction, instructionWidth);
             pin.direction = inDirection;
             pin.action = DevicePin.PinAction.MOVING;
-            pin.animListener = executeResponder;
+            pin.startBehaviour = DevicePin.AnimStartBehaviour.IMMEDIATE;
+            pin.animListener = new Animation.AnimationListener() {
+                @Override
+                public void onAnimationEnd(Animation animation) {
+                    if(executeResponder != null){
+                        executeResponder.onExecuteCompleted();
+                    }
+                }
+
+                @Override
+                public void onAnimationStart(Animation animation) {
+
+                }
+
+                @Override
+                public void onAnimationRepeat(Animation animation) {
+
+                }
+            };
 
             updateView(); // Animate pin UI
         }
 
-        public void setExecuteAnimationListener(Animation.AnimationListener execResponder) {
+        public void setExecuteResponder(ExecuteResponder execResponder) {
             executeResponder = execResponder;
         }
 
@@ -200,14 +216,18 @@ public class ComputeCoreView extends DeviceView implements ComputeCoreInterface 
         public void updatePC(int pcValue){
             // Setup correct data in pin UI
             DevicePin pin = pinArray[PinNames.COMMAND.ordinal()];
-            pin.data = "updatePC";
+            pin.data = "setPC";
             pin.direction = outDirection;
             pin.action = DevicePin.PinAction.MOVING;
+            pin.startBehaviour = DevicePin.AnimStartBehaviour.DELAY;
+            pin.animationDelay = startDelay;
 
             pin = pinArray[PinNames.DATA.ordinal()];
             pin.data = Device.formatNumberInHex(pcValue, instructionAddrWidth);
             pin.direction = outDirection;
             pin.action = DevicePin.PinAction.MOVING;
+            pin.startBehaviour = DevicePin.AnimStartBehaviour.DELAY;
+            pin.animationDelay = startDelay;
             pin.animListener = new Animation.AnimationListener(){
                 @Override
                 public void onAnimationEnd(Animation animation) {

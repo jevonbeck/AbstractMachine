@@ -4,7 +4,6 @@ import android.content.Context;
 import android.util.AttributeSet;
 import android.view.animation.Animation;
 
-import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.devices.Device;
 import org.ricts.abstractmachine.components.interfaces.ReadPort;
 import org.ricts.abstractmachine.ui.device.DevicePin;
@@ -20,7 +19,7 @@ public class ReadPortView extends MultiPinView implements ReadPort {
     }
 
     protected int dataWidth, addressWidth;
-    protected int readDelay, startDelay;
+    protected int readDelay;
 
     private ReadResponder readResponder;
     protected ReadPort rom;
@@ -131,10 +130,6 @@ public class ReadPortView extends MultiPinView implements ReadPort {
         pinArray[PinNames.DATA.ordinal()].dataWidth = dataWidth;
     }
 
-    public void setStartDelay(int delayMultiple){
-        startDelay = getDelay(delayMultiple);
-    }
-
     public void setReadAnimationDelay(int delayMultiple){
         readDelay = getDelay(delayMultiple);
     }
@@ -145,9 +140,5 @@ public class ReadPortView extends MultiPinView implements ReadPort {
 
     public void setSource(ReadPort readSource){
         rom = readSource;
-    }
-
-    private int getDelay(int multiple){
-        return multiple * getContext().getResources().getInteger(R.integer.pin_sig_trans_time);
     }
 }

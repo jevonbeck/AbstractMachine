@@ -52,16 +52,12 @@ public class HorizontalPinDataView extends CustomDimenRecyclerView {
                     View item = holder.itemView;
 
                     VerticalTextView pin = (VerticalTextView) item.findViewById(R.id.PinView_pin_name);
-                    VerticalTextView signal = (VerticalTextView) item.findViewById(R.id.PinView_signal_text);
-                    DevicePin pinData = adapter.getItem(x);
 
                     // Measure the text
                     int pinWidth = (int) pin.getPaint().measureText((String) pin.getText());
-                    int dataWidth = (int) signal.getPaint().measureText(
-                            Device.formatNumberInHex(0, pinData.dataWidth));
 
                     // find maximum
-                    int textMax = Math.max(pinWidth + 14, 2*dataWidth);
+                    int textMax = pinWidth + 14;
                     max_height = Math.max(max_height, textMax);
                 }
 

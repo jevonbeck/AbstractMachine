@@ -101,7 +101,7 @@ public class ControlUnitView extends RelativeLayout implements ControlUnitInterf
         addView(stateLabel, lpStateLabel);
 
         RelativeLayout.LayoutParams lpStateView = new RelativeLayout.LayoutParams(
-                RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+                RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
         lpStateView.addRule(RelativeLayout.RIGHT_OF, stateLabel.getId());
         lpStateView.addRule(RelativeLayout.ALIGN_TOP, stateLabel.getId());
         lpStateView.addRule(RelativeLayout.ALIGN_RIGHT, ir.getId());
@@ -155,6 +155,8 @@ public class ControlUnitView extends RelativeLayout implements ControlUnitInterf
         cu = new ControlUnit(pc,  ir, core, instructionCache, dataMemory);
         pc.setDataWidth(core.iAddrWidth());
         ir.setDataWidth(core.instrWidth());
+
+        updateStateView();
     }
 
     public void updatePcView(){
