@@ -158,7 +158,10 @@ public class ControlUnitView extends RelativeLayout implements ControlUnitInterf
     }
 
     public void initCU(ComputeCoreInterface core, ReadPort instructionCache, MemoryPort dataMemory){
-        cu = new ControlUnit(pc,  ir, core, instructionCache, dataMemory, this);
+        cu = new ControlUnit();
+        cu.setStateEngine(
+                new ControlUnit.StateEngine(pc, ir, core, instructionCache, dataMemory, this));
+
         pc.setDataWidth(core.iAddrWidth());
         ir.setDataWidth(core.instrWidth());
 

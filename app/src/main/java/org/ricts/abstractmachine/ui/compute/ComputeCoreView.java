@@ -2,7 +2,6 @@ package org.ricts.abstractmachine.ui.compute;
 
 import android.content.Context;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
 import android.view.animation.Animation;
 import android.widget.RelativeLayout;
@@ -73,10 +72,10 @@ public class ComputeCoreView extends DeviceView implements ComputeCoreInterface 
         }
         final int pcPostExecute = cu.getPC();
 
-        pins.setHaltResponder(new PinsView.HaltResponder() {
+        pins.setCommandResponder(new PinsView.CommandOnlyResponder() {
             @Override
-            public void onHaltCompleted() {
-                // perform halt action
+            public void onCommandCompleted() {
+                // perform halt OR data memory action
                 mainCore.executeInstruction(instruction, dataMemory, cu);
             }
         });
@@ -89,12 +88,10 @@ public class ComputeCoreView extends DeviceView implements ComputeCoreInterface 
 
                 /** Start one of these animations if applicable (they are mutually exclusive) **/
                 if(isHaltInstruction){
-                    pins.setToHalt();
+                    pins.sendCommandOnly("setHalt");
                 }
-
-                if (isDataMemInstruction /*|| isHaltInstruction*/) {
-                    // perform data memory animation
-                    mainCore.executeInstruction(instruction, dataMemory, cu);
+                else if(isDataMemInstruction){
+                    pins.sendCommandOnly("getMem");
                 }
 
                 if (pcPreExecute != pcPostExecute) {
@@ -156,7 +153,7 @@ public class ComputeCoreView extends DeviceView implements ComputeCoreInterface 
         private int instructionWidth, instructionAddrWidth;
         private UpdateResponder updateResponder;
         private ExecuteResponder executeResponder;
-        private HaltResponder haltResponder;
+        private CommandOnlyResponder cmdResponder;
 
         private int startDelay;
 
@@ -168,8 +165,8 @@ public class ComputeCoreView extends DeviceView implements ComputeCoreInterface 
             void onUpdatePcCompleted();
         }
 
-        public interface HaltResponder {
-            void onHaltCompleted();
+        public interface CommandOnlyResponder {
+            void onCommandCompleted();
         }
 
         protected enum PinNames{
@@ -296,14 +293,14 @@ public class ComputeCoreView extends DeviceView implements ComputeCoreInterface 
             updateView(); // Animate pin UI
         }
 
-        public void setHaltResponder(HaltResponder responder){
-            haltResponder = responder;
+        public void setCommandResponder(CommandOnlyResponder responder){
+            cmdResponder = responder;
         }
 
-        public void setToHalt(){
+        public void sendCommandOnly(String command){
             // Setup correct data in pin UI
             DevicePin pin = pinArray[PinNames.COMMAND.ordinal()];
-            pin.data = "setHalt";
+            pin.data = command;
             pin.direction = outDirection;
             pin.action = DevicePin.PinAction.MOVING;
             pin.startBehaviour = DevicePin.AnimStartBehaviour.DELAY;
@@ -311,8 +308,8 @@ public class ComputeCoreView extends DeviceView implements ComputeCoreInterface 
             pin.animListener = new Animation.AnimationListener(){
                 @Override
                 public void onAnimationEnd(Animation animation) {
-                    if(haltResponder != null){
-                        haltResponder.onHaltCompleted();
+                    if(cmdResponder != null){
+                        cmdResponder.onCommandCompleted();
                     }
                 }
 
