@@ -110,11 +110,6 @@ public class ComputeCoreView extends DeviceView implements ComputeCoreInterface 
     }
 
     @Override
-    public boolean isHaltInstruction(int instruction) {
-        return mainCore.isHaltInstruction(instruction);
-    }
-
-    @Override
     public int nopInstruction() {
         return mainCore.nopInstruction();
     }
@@ -141,7 +136,6 @@ public class ComputeCoreView extends DeviceView implements ComputeCoreInterface 
 
     public void setComputeCore(ComputeCore core){
         mainCore = core;
-
         pins.initParams(mainCore.instrWidth(), mainCore.iAddrWidth());
     }
 

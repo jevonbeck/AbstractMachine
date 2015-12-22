@@ -8,7 +8,5 @@ import org.ricts.abstractmachine.components.devices.ComputeDevice;
 public interface ComputeCoreInterface extends ComputeDevice{
     void executeInstruction(int instruction, MemoryPort dataMemory, ControlUnitInterface cu);
     int instrExecTime(int instruction, MemoryPort dataMemory);
-
-    boolean isHaltInstruction(int instruction);
     int nopInstruction();
 }

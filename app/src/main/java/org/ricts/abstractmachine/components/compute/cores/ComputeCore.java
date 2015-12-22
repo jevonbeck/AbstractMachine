@@ -98,7 +98,6 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
 		return -1;
 	}
 
-    @Override
     public boolean isHaltInstruction(int instruction) {
         int instruct = instruction & instrBitMask;
         if(instrDecoder.isValidInstruction(instruct)){
