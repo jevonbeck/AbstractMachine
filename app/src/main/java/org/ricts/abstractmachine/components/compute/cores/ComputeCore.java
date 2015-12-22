@@ -1,18 +1,13 @@
 package org.ricts.abstractmachine.components.compute.cores;
 
-import java.util.ArrayList;
-
 import org.ricts.abstractmachine.components.devices.Device;
-import org.ricts.abstractmachine.components.compute.isa.InstructionGroup;
 import org.ricts.abstractmachine.components.compute.isa.IsaDecoder;
 import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
 import org.ricts.abstractmachine.components.interfaces.ControlUnitInterface;
 import org.ricts.abstractmachine.components.interfaces.MemoryPort;
-import org.ricts.abstractmachine.components.storage.Register;
 
 public abstract class ComputeCore extends Device implements ComputeCoreInterface {
 	protected IsaDecoder instrDecoder;
-	protected ArrayList<InstructionGroup> instructionSet;
 	protected String nopGroupName, nopMneumonic;
 	
 	protected int instrWidth;  
@@ -20,13 +15,6 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
 	protected int iAddrWidth;
 	protected int dAddrWidth;
 	protected int dataWidth;
-	protected int iAddrBitMask;
-	protected int dAddrBitMask;
-	protected int dataBitMask;
-
-	protected Register statusReg;
-	protected Register intEnableReg; // interrupt enable
-	protected Register intFlagsReg; // interrupt flags
 
     protected abstract boolean isDataMemInstr(String groupName, int enumOrdinal);
     protected abstract boolean isHaltInstr(String groupName, int enumOrdinal);
@@ -111,7 +99,6 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
             return isHaltInstr(groupName, enumOrdinal);
         }
         return true;
-        //return instruction == 0;
     }
 
     @Override
@@ -151,7 +138,7 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
             // print string version of instruction
             return  insToString(groupName, enumOrdinal, operands);
         }
-        return "Invalid!";
+        return "Ins invalid!";
     }
 
     public int encodeInstruction(String iGroupName, String iMneumonic, int [] operands) {

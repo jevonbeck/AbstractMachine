@@ -7,7 +7,6 @@ import org.ricts.abstractmachine.components.compute.isa.InstructionGroup;
 import org.ricts.abstractmachine.components.compute.isa.IsaDecoder;
 import org.ricts.abstractmachine.components.interfaces.ControlUnitInterface;
 import org.ricts.abstractmachine.components.interfaces.MemoryPort;
-import org.ricts.abstractmachine.components.interfaces.RegisterPort;
 import org.ricts.abstractmachine.components.storage.RAM;
 import org.ricts.abstractmachine.components.storage.Register;
 import org.ricts.abstractmachine.datastructures.Stack;
@@ -31,12 +30,18 @@ public class BasicScalar extends ComputeCore {
 
 
     /* core dependent features */
+    private Register statusReg;
+    private Register intEnableReg; // interrupt enable
+    private Register intFlagsReg; // interrupt flags
     private Register[] dataRegs; // (no. of) registers for manipulating data
     private Register[] dataAddrRegs; // (no. of) registers for storing data addresses
     private Register[] instrAddrRegs; // (no. of) registers for storing instruction addresses (temporarily)
     private Stack callStack; // presence or absence of on-chip call stack
     private BasicALU alu; // operations allowed by ALU
 
+    private int iAddrBitMask;
+    private int dAddrBitMask;
+    private int dataBitMask;
 
     public BasicScalar(int byteMultiplierWidth, int dAdWidth, int iAdWidth, int stkAdWidth,
                        int dRegAdWidth, int dAdrRegAdWidth, int iAdrRegAdWidth) {
@@ -87,7 +92,7 @@ public class BasicScalar extends ComputeCore {
         }
 
         int[] array; // array for populating instruction formats
-        instructionSet = new ArrayList<InstructionGroup>();
+        ArrayList<InstructionGroup> instructionSet = new ArrayList<InstructionGroup>();
 		
 		/* Initialise ISA. N.B: BasicCore has a register machine ISA */
         // Instructions with 0 operands
