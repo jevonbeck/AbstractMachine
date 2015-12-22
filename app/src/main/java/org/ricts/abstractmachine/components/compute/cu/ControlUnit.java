@@ -14,21 +14,13 @@ public class ControlUnit implements ControlUnitInterface {
     private ControlUnitState fetch, execute, halt;
 
     public ControlUnit(RegisterPort instrPtr, RegisterPort instruction, ComputeCoreInterface core,
+                       ReadPort instructionCache, MemoryPort dataMemory, ControlUnitInterface cu){
+        init(instrPtr, instruction, core, instructionCache, dataMemory, cu);
+    }
+
+    public ControlUnit(RegisterPort instrPtr, RegisterPort instruction, ComputeCoreInterface core,
                        ReadPort instructionCache, MemoryPort dataMemory){
-        pc = instrPtr;
-        ir = instruction;
-        mainCore = core;
-        fsm = new FiniteStateMachine();
-
-        // setup instruction cycle
-        fetch = new ControlUnitFetchState(pc, instructionCache, ir);
-        execute = new ControlUnitExecuteState(ir, mainCore, dataMemory, this);
-        halt = new ControlUnitHaltState();
-
-        fetch.setNextState(execute);
-        execute.setNextState(fetch);
-
-        setToFetchState();
+        init(instrPtr, instruction, core, instructionCache, dataMemory, this);
     }
 
     @Override
@@ -47,13 +39,14 @@ public class ControlUnit implements ControlUnitInterface {
     }
 
     @Override
+    public void setToHaltState() {
+        fsm.setCurrentState(halt);
+    }
+
+    @Override
     public void performNextAction(){
         fsm.doCurrentStateAction();
         fsm.goToNextState();
-
-        if(terminatingCondition()){
-            fsm.setCurrentState(halt);
-        }
     }
 
     @Override
@@ -83,5 +76,23 @@ public class ControlUnit implements ControlUnitInterface {
     private boolean terminatingCondition(){
         // if last executed instruction can cause ComputeCore to halt
         return mainCore.isHaltInstruction(ir.read()) && fsm.currentState() == fetch;
+    }
+
+    private void init(RegisterPort instrPtr, RegisterPort instruction, ComputeCoreInterface core,
+                      ReadPort instructionCache, MemoryPort dataMemory, ControlUnitInterface cu){
+        pc = instrPtr;
+        ir = instruction;
+        mainCore = core;
+        fsm = new FiniteStateMachine();
+
+        // setup instruction cycle
+        fetch = new ControlUnitFetchState(pc, instructionCache, ir);
+        execute = new ControlUnitExecuteState(ir, mainCore, dataMemory, cu);
+        halt = new ControlUnitHaltState();
+
+        fetch.setNextState(execute);
+        execute.setNextState(fetch);
+
+        setToFetchState();
     }
 }

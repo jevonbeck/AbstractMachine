@@ -17,6 +17,7 @@ public abstract class DeviceView extends RelativeLayout {
 
     protected abstract View createPinView(Context context, int pinPosition);
     protected abstract View createMainView(Context context, int pinPosition);
+    protected abstract LayoutParams createMainViewLayoutParams();
 
     /** Standard Constructors **/
     public DeviceView(Context context) {
@@ -36,8 +37,7 @@ public abstract class DeviceView extends RelativeLayout {
         a.recycle();
 
         /*** create children and determine layouts & positions based on attributes ***/
-        LayoutParams lpMainView = new LayoutParams(
-                LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+        LayoutParams lpMainView = createMainViewLayoutParams();
 
         LayoutParams lpPinView = new LayoutParams(
                 LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);

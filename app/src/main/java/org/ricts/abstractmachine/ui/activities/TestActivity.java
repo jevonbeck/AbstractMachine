@@ -7,6 +7,7 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import org.ricts.abstractmachine.R;
+import org.ricts.abstractmachine.components.interfaces.MemoryPort;
 import org.ricts.abstractmachine.components.storage.RAM;
 import org.ricts.abstractmachine.devices.compute.core.BasicScalar;
 import org.ricts.abstractmachine.devices.compute.core.BasicScalarEnums;
@@ -103,7 +104,12 @@ public class TestActivity extends Activity {
         muxView.initMux(1, memory.dataWidth(), memory.addressWidth());
         muxView.setOutputSource(memory);
 
-        MemoryPortView [] muxInputs = muxView.getInputs();
+        View [] temp = muxView.getInputs();
+        MemoryPortView muxInputs[] =  new MemoryPortView[temp.length];
+        for(int x=0; x != muxInputs.length; ++x){
+            muxInputs[x] = (MemoryPortView) temp[x];
+        }
+
         MemoryPortView instructionCache = muxInputs[MuxInputIds.INS_MEM.ordinal()];
         MemoryPortView dataMemory = muxInputs[MuxInputIds.DATA_MEM.ordinal()];
 
@@ -156,5 +162,4 @@ public class TestActivity extends Activity {
         sysClock += result;
         sysClockTextView.setText(String.valueOf(sysClock));
     }
-
 }

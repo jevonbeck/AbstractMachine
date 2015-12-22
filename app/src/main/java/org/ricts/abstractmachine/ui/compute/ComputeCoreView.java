@@ -2,6 +2,7 @@ package org.ricts.abstractmachine.ui.compute;
 
 import android.content.Context;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 import android.view.animation.Animation;
 import android.widget.RelativeLayout;
@@ -21,6 +22,8 @@ import org.ricts.abstractmachine.ui.device.MultiPinView;
  * Created by Jevon on 18/12/2015.
  */
 public class ComputeCoreView extends DeviceView implements ComputeCoreInterface {
+    private static final String TAG = "ComputeCoreView";
+
     private ComputeCore mainCore;
 
     private MainBodyView mainBody;
@@ -51,21 +54,56 @@ public class ComputeCoreView extends DeviceView implements ComputeCoreInterface 
     }
 
     @Override
-    public void executeInstruction(final int instruction, MemoryPort dataMemory, final ControlUnitInterface cu) {
+    protected LayoutParams createMainViewLayoutParams() {
+        return new LayoutParams(
+                LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
+    }
+
+    @Override
+    public void executeInstruction(final int instruction, final MemoryPort dataMemory,
+                                   final ControlUnitInterface cu) {
+        final boolean isDataMemInstruction = mainCore.isDataMemoryInstruction(instruction);
+        final boolean isHaltInstruction = mainCore.isHaltInstruction(instruction);
+
+        // N.B: In general, data memory instructions should NOT update PC,
+        // so no harm reading PC again if data memory instruction is not executed
         final int pcPreExecute = cu.getPC();
-        mainCore.executeInstruction(instruction, dataMemory, cu);
+        if( !(isDataMemInstruction || isHaltInstruction) ){ // don't execute instruction yet, since this animates UI
+            mainCore.executeInstruction(instruction, dataMemory, cu);
+        }
         final int pcPostExecute = cu.getPC();
 
-        pins.setExecuteResponder(new PinsView.ExecuteResponder(){
+        pins.setHaltResponder(new PinsView.HaltResponder() {
+            @Override
+            public void onHaltCompleted() {
+                // perform halt action
+                mainCore.executeInstruction(instruction, dataMemory, cu);
+            }
+        });
+
+        pins.setExecuteResponder(new PinsView.ExecuteResponder() {
             @Override
             public void onExecuteCompleted() {
+                // first animation [executeInstruction()] ends here!
                 mainBody.setText(mainCore.instrString(instruction));
+
+                /** Start one of these animations if applicable (they are mutually exclusive) **/
+                if(isHaltInstruction){
+                    pins.setToHalt();
+                }
+
+                if (isDataMemInstruction /*|| isHaltInstruction*/) {
+                    // perform data memory animation
+                    mainCore.executeInstruction(instruction, dataMemory, cu);
+                }
 
                 if (pcPreExecute != pcPostExecute) {
                     pins.updatePC(pcPostExecute);
                 }
             }
         });
+
+        // actually begin the animation
         pins.executeInstruction(instruction);
     }
 
@@ -118,6 +156,8 @@ public class ComputeCoreView extends DeviceView implements ComputeCoreInterface 
         private int instructionWidth, instructionAddrWidth;
         private UpdateResponder updateResponder;
         private ExecuteResponder executeResponder;
+        private HaltResponder haltResponder;
+
         private int startDelay;
 
         public interface ExecuteResponder {
@@ -126,6 +166,10 @@ public class ComputeCoreView extends DeviceView implements ComputeCoreInterface 
 
         public interface UpdateResponder {
             void onUpdatePcCompleted();
+        }
+
+        public interface HaltResponder {
+            void onHaltCompleted();
         }
 
         protected enum PinNames{
@@ -159,7 +203,7 @@ public class ComputeCoreView extends DeviceView implements ComputeCoreInterface 
             setPinData(pinData);
 
             /*** Setup other vars ***/
-            startDelay = (int) (getDelay(1) * 0.5);
+            startDelay = (int) (0.25 * getDelay(1));
         }
 
         public void initParams(int iWidth, int iAddrWidth){
@@ -170,6 +214,10 @@ public class ComputeCoreView extends DeviceView implements ComputeCoreInterface 
             pinArray[PinNames.DATA.ordinal()].dataWidth = instructionWidth;
         }
 
+        public void setExecuteResponder(ExecuteResponder execResponder) {
+            executeResponder = execResponder;
+        }
+
         public void executeInstruction(int instruction){
             // Setup correct data in pin UI
             DevicePin pin = pinArray[PinNames.COMMAND.ordinal()];
@@ -177,6 +225,7 @@ public class ComputeCoreView extends DeviceView implements ComputeCoreInterface 
             pin.direction = inDirection;
             pin.action = DevicePin.PinAction.MOVING;
             pin.startBehaviour = DevicePin.AnimStartBehaviour.IMMEDIATE;
+            pin.animListener = null;
 
             pin = pinArray[PinNames.DATA.ordinal()];
             pin.data = Device.formatNumberInHex(instruction, instructionWidth);
@@ -205,10 +254,6 @@ public class ComputeCoreView extends DeviceView implements ComputeCoreInterface 
             updateView(); // Animate pin UI
         }
 
-        public void setExecuteResponder(ExecuteResponder execResponder) {
-            executeResponder = execResponder;
-        }
-
         public void setUpdateResponder(UpdateResponder responder){
             updateResponder = responder;
         }
@@ -221,6 +266,7 @@ public class ComputeCoreView extends DeviceView implements ComputeCoreInterface 
             pin.action = DevicePin.PinAction.MOVING;
             pin.startBehaviour = DevicePin.AnimStartBehaviour.DELAY;
             pin.animationDelay = startDelay;
+            pin.animListener = null;
 
             pin = pinArray[PinNames.DATA.ordinal()];
             pin.data = Device.formatNumberInHex(pcValue, instructionAddrWidth);
@@ -246,6 +292,45 @@ public class ComputeCoreView extends DeviceView implements ComputeCoreInterface 
 
                 }
             };
+
+            updateView(); // Animate pin UI
+        }
+
+        public void setHaltResponder(HaltResponder responder){
+            haltResponder = responder;
+        }
+
+        public void setToHalt(){
+            // Setup correct data in pin UI
+            DevicePin pin = pinArray[PinNames.COMMAND.ordinal()];
+            pin.data = "setHalt";
+            pin.direction = outDirection;
+            pin.action = DevicePin.PinAction.MOVING;
+            pin.startBehaviour = DevicePin.AnimStartBehaviour.DELAY;
+            pin.animationDelay = startDelay;
+            pin.animListener = new Animation.AnimationListener(){
+                @Override
+                public void onAnimationEnd(Animation animation) {
+                    if(haltResponder != null){
+                        haltResponder.onHaltCompleted();
+                    }
+                }
+
+                @Override
+                public void onAnimationStart(Animation animation) {
+
+                }
+
+                @Override
+                public void onAnimationRepeat(Animation animation) {
+
+                }
+            };
+
+            pin = pinArray[PinNames.DATA.ordinal()];
+            pin.action = DevicePin.PinAction.STATIONARY;
+            pin.startBehaviour = DevicePin.AnimStartBehaviour.IMMEDIATE;
+            pin.animListener = null;
 
             updateView(); // Animate pin UI
         }
@@ -282,14 +367,12 @@ public class ComputeCoreView extends DeviceView implements ComputeCoreInterface 
             instructionView.setBackgroundColor(context.getResources().getColor(R.color.test_color2));
 
             /*** determine children layouts and positions ***/
-            int viewWidth = (int) (80 * scaleFactor);
-
             LayoutParams lpInstructionLabel = new LayoutParams(
                     LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
             addView(instructionLabel, lpInstructionLabel);
 
             LayoutParams lpInstructionView = new LayoutParams(
-                    viewWidth, LayoutParams.WRAP_CONTENT);
+                    LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
             lpInstructionView.addRule(RelativeLayout.RIGHT_OF, instructionLabel.getId());
             lpInstructionView.addRule(RelativeLayout.ALIGN_TOP, instructionLabel.getId());
             addView(instructionView, lpInstructionView);

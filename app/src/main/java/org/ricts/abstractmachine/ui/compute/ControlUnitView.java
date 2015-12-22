@@ -71,7 +71,7 @@ public class ControlUnitView extends RelativeLayout implements ControlUnitInterf
         stateView.setBackgroundColor(context.getResources().getColor(R.color.test_color2));
 
         /*** determine children layouts and positions ***/
-        int viewWidth = (int) (110 * scaleFactor);
+        int viewWidth = (int) (100 * scaleFactor);
 
         RelativeLayout.LayoutParams lpPcLabel = new RelativeLayout.LayoutParams(
                 RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
@@ -121,6 +121,12 @@ public class ControlUnitView extends RelativeLayout implements ControlUnitInterf
     }
 
     @Override
+    public void setToHaltState() {
+        cu.setToHaltState();
+        updateStateView();
+    }
+
+    @Override
     public void performNextAction() {
         cu.performNextAction();
         updateStateView();
@@ -152,7 +158,7 @@ public class ControlUnitView extends RelativeLayout implements ControlUnitInterf
     }
 
     public void initCU(ComputeCoreInterface core, ReadPort instructionCache, MemoryPort dataMemory){
-        cu = new ControlUnit(pc,  ir, core, instructionCache, dataMemory);
+        cu = new ControlUnit(pc,  ir, core, instructionCache, dataMemory, this);
         pc.setDataWidth(core.iAddrWidth());
         ir.setDataWidth(core.instrWidth());
 

@@ -10,6 +10,7 @@ public interface ControlUnitInterface {
 
     void setToFetchState();
     void setToExecuteState();
+    void setToHaltState();
     boolean isAboutToExecute();
 
     void performNextAction();

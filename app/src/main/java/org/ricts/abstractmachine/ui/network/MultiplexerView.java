@@ -11,7 +11,6 @@ import android.widget.RelativeLayout;
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.devices.Device;
 import org.ricts.abstractmachine.ui.device.DevicePin;
-import org.ricts.abstractmachine.ui.device.MultiPinView;
 import org.ricts.abstractmachine.ui.device.RightAngleTriangleView;
 import org.ricts.abstractmachine.ui.utils.UiUtils;
 
@@ -19,9 +18,9 @@ import org.ricts.abstractmachine.ui.utils.UiUtils;
  * Created by Jevon on 07/06/2015.
  */
 public abstract class MultiplexerView extends RelativeLayout {
-    public interface PinTrigger{
+    public interface InputReference {
         boolean isSelected();
-        void triggerPin();
+        void triggerSelectPinAnimation();
     }
 
     protected View [] inputPins;
@@ -35,11 +34,11 @@ public abstract class MultiplexerView extends RelativeLayout {
     private DevicePin selectPinData;
 
     private int selectWidth, selMask, currentSel;
-    private static final int dividerThickness = 30;
+    private static final int dividerDefaultThickness = 30;
 
-    protected abstract MultiPinView createPinView(Context context, int pinPosition);
+    protected abstract View createPinView(Context context, int pinPosition);
     protected abstract void initOutputPinView(View pinView, Integer... pinWidths);
-    protected abstract void initInputPinView(View pinView, PinTrigger pinTrigger, Integer... pinWidths);
+    protected abstract void initInputPinView(View pinView, InputReference pinTrigger, Integer... pinWidths);
 
     /** Standard Constructors **/
     public MultiplexerView(Context context) {
@@ -55,37 +54,26 @@ public abstract class MultiplexerView extends RelativeLayout {
         currentSel = 0;
 
         /*** extract XML attributes ***/
-        TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.MemoryPortMultiplexerView);
-        int outputPosition = a.getInt(R.styleable.MemoryPortMultiplexerView_outputPosition, 1);
-        int selectPosition = a.getInt(R.styleable.MemoryPortMultiplexerView_selectPosition, 0);
+        TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.MultiplexerView);
+        int outputPosition = a.getInt(R.styleable.MultiplexerView_outputPosition, 1);
+        int selectPosition = a.getInt(R.styleable.MultiplexerView_selectPosition, 0);
+        int dividerThickness = a.getDimensionPixelSize(R.styleable.MultiplexerView_dividerThickness,
+                dividerDefaultThickness);
         a.recycle();
 
         inputsPosition = getInputsPosition(outputPosition);
 
         /*** create children ***/
         inputPinsLayout = new LinearLayout(context);
-        inputPinsLayout.setId(R.id.MemoryPortMultiplexerView_input_pins);
+        inputPinsLayout.setId(R.id.MultiplexerView_input_pins);
         inputPinsLayout.setShowDividers(LinearLayout.SHOW_DIVIDER_MIDDLE);
-        ShapeDrawable inputsDivider = new ShapeDrawable();
-        inputsDivider.getPaint().setColor(context.getResources().getColor(android.R.color.transparent));
-        switch (inputsPosition){
-            case 2: // top
-            case 3: // bottom
-                inputsDivider.setIntrinsicWidth(dividerThickness);
-                break;
-            case 0: // left
-            case 1: // right
-            default:
-                inputsDivider.setIntrinsicHeight(dividerThickness);
-                break;
-        }
-        inputPinsLayout.setDividerDrawable(inputsDivider);
+        setDividerThickness(dividerThickness);
 
         outputPins = createPinView(context, inputsPosition);
-        outputPins.setId(R.id.MemoryPortMultiplexerView_output_pins);
+        outputPins.setId(R.id.MultiplexerView_output_pins);
 
         middle = new View(context);
-        middle.setId(R.id.MemoryPortMultiplexerView_middle);
+        middle.setId(R.id.MultiplexerView_middle);
         middle.setBackgroundColor(context.getResources().getColor(R.color.mux_fill_color));
 
         selectPinData = new DevicePin();
@@ -165,10 +153,10 @@ public abstract class MultiplexerView extends RelativeLayout {
                 }
                 break;
         }
-        firstTriangle.setId(R.id.MemoryPortMultiplexerView_first_triangle);
+        firstTriangle.setId(R.id.MultiplexerView_first_triangle);
         firstTriangle.setFillColour(R.color.mux_fill_color);
 
-        lastTriangle.setId(R.id.MemoryPortMultiplexerView_last_triangle);
+        lastTriangle.setId(R.id.MultiplexerView_last_triangle);
         lastTriangle.setFillColour(R.color.mux_fill_color);
 
         /*** determine children layouts & positions based on attributes ***/
@@ -289,18 +277,19 @@ public abstract class MultiplexerView extends RelativeLayout {
         int triangleMinDimension = Math.max(firstTriangle.getMinPinDimension(),
                 lastTriangle.getMinPinDimension());
 
+        int padding = 20;
         int difference, triangleW, triangleH;
         switch (inputsPosition){
             case 2: // top
             case 3: // bottom
-                difference = Math.abs(inputPinsLayout.getMeasuredWidth() - outputPinsW);
+                difference = Math.abs(inputPinsLayout.getMeasuredWidth() + padding - outputPinsW);
                 triangleW = Math.max(difference / 2, triangleMinDimension);
                 triangleH = outputPinsH;
                 break;
             case 0: // left
             case 1: // right
             default:
-                difference = Math.abs(inputPinsLayout.getMeasuredHeight() - outputPinsH);
+                difference = Math.abs(inputPinsLayout.getMeasuredHeight() + padding - outputPinsH);
                 triangleW = outputPinsW;
                 triangleH = Math.max(difference / 2, triangleMinDimension);
                 break;
@@ -346,6 +335,23 @@ public abstract class MultiplexerView extends RelativeLayout {
         return inputPins;
     }
 
+    public void setDividerThickness(int thickness){
+        ShapeDrawable inputsDivider = new ShapeDrawable();
+        switch (inputsPosition){
+            case 2: // top
+            case 3: // bottom
+                inputsDivider.setIntrinsicWidth(thickness);
+                break;
+            case 0: // left
+            case 1: // right
+            default:
+                inputsDivider.setIntrinsicHeight(thickness);
+                break;
+        }
+        inputsDivider.getPaint().setColor(getContext().getResources().getColor(android.R.color.transparent));
+        inputPinsLayout.setDividerDrawable(inputsDivider);
+    }
+
     protected void init(int selW, Integer... pinWidths){
         selectWidth = selW;
         selMask = (1 << selectWidth) - 1; // bit mask of width selectWidth
@@ -359,14 +365,14 @@ public abstract class MultiplexerView extends RelativeLayout {
         inputPins = new View[(int) Math.pow(2,selectWidth)];
         for(int x=0; x < inputPins.length; ++x){
             final int index = x;
-            PinTrigger pinActionTrigger = new PinTrigger() {
+            InputReference pinActionTrigger = new InputReference() {
                 @Override
                 public boolean isSelected() {
                     return currentSel == index;
                 }
 
                 @Override
-                public void triggerPin() {
+                public void triggerSelectPinAnimation() {
                     if(isSelected()){
                         pinTriangle.setPinData(selectPinData);
                     }

@@ -18,7 +18,7 @@ public class MemoryPortMultiplexerView extends MultiplexerView {
     }
 
     @Override
-    protected MultiPinView createPinView(Context context, int pinPosition) {
+    protected View createPinView(Context context, int pinPosition) {
         return new MemoryPortView(context, DeviceView.getDefaultAttributeSet(context, pinPosition));
     }
 
@@ -33,7 +33,7 @@ public class MemoryPortMultiplexerView extends MultiplexerView {
     }
 
     @Override
-    protected void initInputPinView(View pinView, final PinTrigger pinTrigger, Integer... pinWidths) {
+    protected void initInputPinView(View pinView, final InputReference input, Integer... pinWidths) {
         MemoryPortView memoryPortPins =  (MemoryPortView) pinView;
         memoryPortPins.initParams(pinWidths[WidthIndex.DATA.ordinal()],
                 pinWidths[WidthIndex.ADDRESS.ordinal()]);
@@ -43,8 +43,8 @@ public class MemoryPortMultiplexerView extends MultiplexerView {
         memoryPortPins.setSource(new MemoryPort() {
             @Override
             public int read(int address) {
-                if (pinTrigger.isSelected()) {
-                    pinTrigger.triggerPin();
+                if (input.isSelected()) {
+                    input.triggerSelectPinAnimation();
                     return memOutputPins.read(address);
                 }
                 return -1;
@@ -57,8 +57,8 @@ public class MemoryPortMultiplexerView extends MultiplexerView {
 
             @Override
             public void write(int address, int data) {
-                if (pinTrigger.isSelected()) {
-                    pinTrigger.triggerPin();
+                if (input.isSelected()) {
+                    input.triggerSelectPinAnimation();
                     memOutputPins.write(address, data);
                 }
             }

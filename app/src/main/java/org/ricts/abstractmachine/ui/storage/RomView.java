@@ -5,6 +5,7 @@ import java.util.List;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.View;
+import android.widget.RelativeLayout;
 
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.interfaces.ReadPort;
@@ -70,6 +71,11 @@ public class RomView extends DeviceView implements ReadPort {
         return ramView;
     }
 
+    @Override
+    protected LayoutParams createMainViewLayoutParams() {
+        return new LayoutParams(
+                LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+    }
 
     @Override
     public int read(int address) {

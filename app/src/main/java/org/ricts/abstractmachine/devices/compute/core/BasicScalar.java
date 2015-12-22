@@ -209,6 +209,23 @@ public class BasicScalar extends ComputeCore {
     }
 
     @Override
+    public boolean isDataMemInstr(String groupName, int enumOrdinal) {
+        if (groupName.equals(BasicScalarEnums.DataMemOps.enumName())) {
+            BasicScalarEnums.DataMemOps enumOp = BasicScalarEnums.DataMemOps.decode(enumOrdinal);
+
+            return enumOp.equals(BasicScalarEnums.DataMemOps.LOADM) ||
+                    enumOp.equals(BasicScalarEnums.DataMemOps.STOREM);
+        }
+        return false;
+    }
+
+    @Override
+    protected boolean isHaltInstr(String groupName, int enumOrdinal) {
+        return groupName.equals(BasicScalarEnums.NoOperands.enumName()) &&
+                BasicScalarEnums.NoOperands.decode(enumOrdinal) == BasicScalarEnums.NoOperands.HALT;
+    }
+
+    @Override
     protected void fetchOpsExecuteInstr(String groupName, int enumOrdinal, int[] operands, MemoryPort dataMemory) {
         if (groupName.equals(BasicScalarEnums.RegBitManip.enumName())) {
             // Instructions with 1 data register and 1 bit-index
@@ -417,7 +434,9 @@ public class BasicScalar extends ComputeCore {
                     intFlagsReg.write(setBitValueAtIndex(InterruptFlags.STACKUFLOW.ordinal(), intFlagsReg.read(), callStack.isEmpty()));
                     break;
                 case NOP: // do nothing
-                default:
+                    break;
+                case HALT: // tell Control Unit to stop execution
+                    cu.setToHaltState();
                     break;
             }
         } else if (groupName.equals(BasicScalarEnums.InstrAddressLiteral.enumName())) {

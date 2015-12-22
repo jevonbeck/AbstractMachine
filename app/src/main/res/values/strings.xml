@@ -38,11 +38,11 @@
     <item name="PinView_background_layout" type="id"/>
     <item name="PinView_pin_name" type="id"/>
     <item name="PinView_signal_text" type="id"/>
-    <item name="MemoryPortMultiplexerView_input_pins" type="id"/>
-    <item name="MemoryPortMultiplexerView_output_pins" type="id"/>
-    <item name="MemoryPortMultiplexerView_middle" type="id"/>
-    <item name="MemoryPortMultiplexerView_first_triangle" type="id"/>
-    <item name="MemoryPortMultiplexerView_last_triangle" type="id"/>
+    <item name="MultiplexerView_input_pins" type="id"/>
+    <item name="MultiplexerView_output_pins" type="id"/>
+    <item name="MultiplexerView_middle" type="id"/>
+    <item name="MultiplexerView_first_triangle" type="id"/>
+    <item name="MultiplexerView_last_triangle" type="id"/>
 
     <!-- Custom View Attributes -->
     <integer name="DeviceView_pin_position_left">0</integer>

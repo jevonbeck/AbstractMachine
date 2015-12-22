@@ -9,7 +9,9 @@
         </attr>
     </declare-styleable>
 
-    <declare-styleable name="MemoryPortMultiplexerView">
+    <declare-styleable name="MultiplexerView">
+        <attr name="dividerThickness" format="dimension"/>
+
         <attr name="outputPosition" format="enum">
             <enum name="left" value="0" />
             <enum name="right" value="1" />

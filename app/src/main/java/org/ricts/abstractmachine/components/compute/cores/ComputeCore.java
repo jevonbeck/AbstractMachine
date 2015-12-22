@@ -27,13 +27,12 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
 	protected Register statusReg;
 	protected Register intEnableReg; // interrupt enable
 	protected Register intFlagsReg; // interrupt flags
-	
-	protected abstract void fetchOpsExecuteInstr(String groupName, int enumOrdinal, int[] operands, MemoryPort dataMemory);
-  
-	protected abstract void updateProgramCounter(String groupName, int enumOrdinal, int[] operands, ControlUnitInterface cu);
-  
-	protected abstract int executionTime(String groupName, int enumOrdinal, MemoryPort dataMemory);
 
+    protected abstract boolean isDataMemInstr(String groupName, int enumOrdinal);
+    protected abstract boolean isHaltInstr(String groupName, int enumOrdinal);
+    protected abstract void fetchOpsExecuteInstr(String groupName, int enumOrdinal, int[] operands, MemoryPort dataMemory);
+	protected abstract void updateProgramCounter(String groupName, int enumOrdinal, int[] operands, ControlUnitInterface cu);
+    protected abstract int executionTime(String groupName, int enumOrdinal, MemoryPort dataMemory);
     protected abstract String insToString(String groupName, int enumOrdinal, int[] operands);
 
 	@Override
@@ -77,6 +76,9 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
 			// update Program Counter based on execution result
 			updateProgramCounter(groupName, enumOrdinal, operands, cu);
 		}
+        else {
+            cu.setToHaltState();
+        }
 	}
 
     @Override
@@ -98,12 +100,39 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
 
     @Override
     public boolean isHaltInstruction(int instruction) {
-        return instruction == 0;
+        int instruct = instruction & instrBitMask;
+        if(instrDecoder.isValidInstruction(instruct)){
+            // decode instruction
+            int decoderIndex = instrDecoder.getDecoderIndex(instruct);
+
+            String groupName = instrDecoder.groupName(decoderIndex);
+            int enumOrdinal = instrDecoder.decode(instruct, decoderIndex);
+
+            // determine if instruction halts the CPU
+            return isHaltInstr(groupName, enumOrdinal);
+        }
+        return true;
+        //return instruction == 0;
     }
 
     @Override
     public int nopInstruction() {
         return instrDecoder.encode(nopGroupName, nopMneumonic, new int [0]);
+    }
+
+    public boolean isDataMemoryInstruction(int instruction){
+        int instruct = instruction & instrBitMask;
+        if(instrDecoder.isValidInstruction(instruct)){
+            // decode instruction
+            int decoderIndex = instrDecoder.getDecoderIndex(instruct);
+
+            String groupName = instrDecoder.groupName(decoderIndex);
+            int enumOrdinal = instrDecoder.decode(instruct, decoderIndex);
+
+            // determine if instruction accesses data memory
+            return isDataMemInstr(groupName, enumOrdinal);
+        }
+        return false;
     }
 
     public String instrString(int instruction) {
@@ -123,7 +152,7 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
             // print string version of instruction
             return  insToString(groupName, enumOrdinal, operands);
         }
-        return null;
+        return "Invalid!";
     }
 
     public int encodeInstruction(String iGroupName, String iMneumonic, int [] operands) {
