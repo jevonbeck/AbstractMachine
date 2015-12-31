@@ -1,25 +1,31 @@
 package org.ricts.abstractmachine.ui.activities;
 
-import android.app.Activity;
 import android.os.Bundle;
-import android.util.Log;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.ViewPager;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import org.ricts.abstractmachine.R;
+import org.ricts.abstractmachine.components.compute.cores.ComputeCore;
+import org.ricts.abstractmachine.components.storage.RAM;
 import org.ricts.abstractmachine.devices.compute.core.BasicScalar;
 import org.ricts.abstractmachine.devices.compute.core.BasicScalarEnums;
-import org.ricts.abstractmachine.ui.compute.CpuCoreView;
-import org.ricts.abstractmachine.ui.storage.RamView;
+import org.ricts.abstractmachine.ui.fragments.VonNeumannActivityFragment;
+import org.ricts.abstractmachine.ui.fragments.VonNeumannCoreFragment;
+import org.ricts.abstractmachine.ui.fragments.VonNeumannSystemFragment;
 
 import java.util.ArrayList;
 
-public class VonNeumannActivity extends Activity {
+public class VonNeumannActivity extends AppCompatActivity implements VonNeumannActivityFragment.StepActionListener {
     private static final String TAG = "VonNeumannActivity";
 
-    private CpuCoreView cpu;
+    private ViewPager pager;
     private TextView sysClockTextView;
     private int sysClock; // system clock
 
@@ -39,22 +45,6 @@ public class VonNeumannActivity extends Activity {
 
         BasicScalar core = new BasicScalar(byteMultiplierWidth, dAdWidth, iAdWidth,
                 stkAdWidth,dRegAdWidth, dAdrRegAdWidth, iAdrRegAdWidth);
-
-        RamView memory = (RamView) findViewById(R.id.memory);
-
-        cpu = (CpuCoreView) findViewById(R.id.cpuView);
-
-        sysClockTextView = (TextView) findViewById(R.id.sysClockText);
-
-        Button advanceButton = (Button) findViewById(R.id.stepButton);
-        advanceButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View arg0) {
-                advanceTime();
-            }
-        });
-
-        memory.initMemory(core.instrWidth(), core.iAddrWidth(), 10);
 
         ArrayList<Integer> memData = new ArrayList<Integer>();
         int [] operands;
@@ -101,22 +91,84 @@ public class VonNeumannActivity extends Activity {
         memData.add(core.encodeInstruction(BasicScalarEnums.DataMemOps.enumName(),
                 BasicScalarEnums.DataMemOps.STOREM.name(), operands));
 
-        memory.setMemoryData(memData, 0);
-        cpu.initCpu(core, memory);
+        RAM memory = new RAM(core.instrWidth(), core.iAddrWidth(), 10);
+        memory.setData(memData, 0);
 
-        Log.d(TAG, "instruction width = " + core.instrWidth());
-        Toast.makeText(this, "instruction width = " + core.instrWidth(), Toast.LENGTH_SHORT).show();
+        Button advanceButton = (Button) findViewById(R.id.stepButton);
+        advanceButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View arg0) {
+                advanceTime();
+            }
+        });
 
         sysClock = 0;
+        sysClockTextView = (TextView) findViewById(R.id.sysClockText);
+        sysClockTextView.setText(String.valueOf(sysClock));
 
-        sysClockTextView.setText(""+sysClock);
+        pager = (ViewPager) findViewById(R.id.pager);
+        pager.setAdapter(new SystemViewAdapter(getSupportFragmentManager(), core, memory));
     }
 
     private void advanceTime(){
-        int result = cpu.nextActionTransitionTime();
-        cpu.triggerNextAction(); // perform action for 'currentState' and go to next state
+        VonNeumannActivityFragment fragment = (VonNeumannActivityFragment)
+                getSupportFragmentManager().findFragmentByTag("android:switcher:" +
+                        R.id.pager + ":" + pager.getCurrentItem());
 
-        sysClock += result;
-        sysClockTextView.setText(""+sysClock);
+        if(fragment != null) {
+            int result = fragment.nextActionTransitionTime();
+            fragment.triggerNextAction();
+
+            sysClock += result;
+            sysClockTextView.setText(String.valueOf(sysClock));
+        }
+        else {
+            Toast.makeText(this, "no fragment!", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    public void onStepActionCompleted() {
+
+    }
+
+    private static class SystemViewAdapter extends FragmentPagerAdapter {
+        private ComputeCore mainCore;
+        private RAM mainMemory;
+
+        public SystemViewAdapter(FragmentManager fm, ComputeCore core, RAM memory) {
+            super(fm);
+            mainCore = core;
+            mainMemory = memory;
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            switch (position){
+                case 0:
+                    return VonNeumannSystemFragment.newInstance(mainCore, mainMemory);
+                case 1:
+                    return VonNeumannCoreFragment.newInstance(mainCore, mainMemory);
+                default:
+                    return null;
+            }
+        }
+
+        @Override
+        public int getCount() {
+            return 2;
+        }
+
+        @Override
+        public String getPageTitle(int position){
+            switch (position){
+                case 0:
+                    return "System";
+                case 1:
+                    return "Core";
+                default:
+                    return null;
+            }
+        }
     }
 }

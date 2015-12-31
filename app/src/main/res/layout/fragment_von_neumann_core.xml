@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:custom="http://schemas.android.com/apk/res-auto"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent">
+
+    <View
+        android:id="@+id/cuExtension"
+        android:layout_width="300dp"
+        android:layout_height="50dp"
+        android:layout_alignRight="@+id/control_unit"
+        android:background="@color/reg_data_unselected"
+        />
+
+    <view
+        class="org.ricts.abstractmachine.ui.network.MemoryPortMultiplexerView"
+        android:id="@+id/mux"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/cuExtension"
+        custom:dividerThickness="70dp"
+        custom:outputPosition = "left"
+        custom:selectPosition = "firstEdge"
+        />
+
+    <view
+        class="org.ricts.abstractmachine.ui.compute.ControlUnitView"
+        android:id="@+id/control_unit"
+        android:layout_width="wrap_content"
+        android:layout_height="140dp"
+        android:layout_below="@id/cuExtension"
+        android:layout_toRightOf="@+id/mux"
+        />
+
+    <view
+        class="org.ricts.abstractmachine.ui.compute.ComputeCoreView"
+        android:id="@+id/core"
+        android:layout_width="match_parent"
+        android:layout_height="190dp"
+        android:layout_toRightOf="@+id/mux"
+        android:layout_below="@+id/control_unit"
+        custom:pinPosition="top"
+        />
+</RelativeLayout>

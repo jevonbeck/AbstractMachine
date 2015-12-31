@@ -43,6 +43,8 @@
     <item name="MultiplexerView_middle" type="id"/>
     <item name="MultiplexerView_first_triangle" type="id"/>
     <item name="MultiplexerView_last_triangle" type="id"/>
+    <item name="VonNeumannSystemFragment_main_view" type="id"/>
+    <item name="VonNeumannCoreFragment_main_view" type="id"/>
 
     <!-- Custom View Attributes -->
     <integer name="DeviceView_pin_position_left">0</integer>
@@ -56,5 +58,8 @@
     <integer name="RightAngleTriangleView_pinOrientation_none">0</integer>
     <integer name="RightAngleTriangleView_pinOrientation_horizontal">1</integer>
     <integer name="RightAngleTriangleView_pinOrientation_vertical">2</integer>
+    <string name="title_activity_von_neu_frag">VonNeuFragActivity</string>
 
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
