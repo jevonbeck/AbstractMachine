@@ -13,20 +13,17 @@ import org.ricts.abstractmachine.devices.compute.core.BasicScalar;
 import org.ricts.abstractmachine.devices.compute.core.BasicScalarEnums;
 import org.ricts.abstractmachine.ui.compute.ComputeCoreView;
 import org.ricts.abstractmachine.ui.compute.ControlUnitView;
+import org.ricts.abstractmachine.ui.compute.CpuCoreView;
 import org.ricts.abstractmachine.ui.storage.MemoryPortView;
 import org.ricts.abstractmachine.ui.network.MemoryPortMultiplexerView;
+import org.ricts.abstractmachine.ui.storage.RamView;
 import org.ricts.abstractmachine.ui.storage.ReadPortView;
 
 import java.util.ArrayList;
 
 public class TestActivity extends Activity {
+    private CpuCoreView cpu;
 
-    private enum MuxInputIds{
-        INS_MEM, DATA_MEM
-    }
-
-    private ControlUnitView cuView;
-    private MemoryPortMultiplexerView muxView;
     private TextView sysClockTextView;
     private int sysClock; // system clock
 
@@ -95,48 +92,17 @@ public class TestActivity extends Activity {
         RAM memory = new RAM(core.instrWidth(), core.iAddrWidth(), 10);
         memory.setData(memData, 0);
 
+        // Setup Main UI
+        RamView memoryView = (RamView) findViewById(R.id.memory);
+        memoryView.setDataSource(memory);
 
+        cpu = (CpuCoreView) findViewById(R.id.cpuView);
+        //cpu.initCpu(core, memoryView);
+
+        // Advance UI Setup
         sysClock = 0;
         sysClockTextView = (TextView) findViewById(R.id.sysClockText);
         sysClockTextView.setText(String.valueOf(sysClock));
-
-        muxView = (MemoryPortMultiplexerView) findViewById(R.id.mux);
-        muxView.initMux(1, memory.dataWidth(), memory.addressWidth());
-        muxView.setOutputSource(memory);
-
-        View [] temp = muxView.getInputs();
-        MemoryPortView muxInputs[] =  new MemoryPortView[temp.length];
-        for(int x=0; x != muxInputs.length; ++x){
-            muxInputs[x] = (MemoryPortView) temp[x];
-        }
-
-        MemoryPortView instructionCache = muxInputs[MuxInputIds.INS_MEM.ordinal()];
-        MemoryPortView dataMemory = muxInputs[MuxInputIds.DATA_MEM.ordinal()];
-
-        ComputeCoreView coreView = (ComputeCoreView) findViewById(R.id.core);
-        coreView.setComputeCore(core);
-
-        cuView = (ControlUnitView) findViewById(R.id.control_unit);
-        cuView.initCU(coreView, instructionCache, dataMemory);
-
-        coreView.setUpdatePcResponder(new ComputeCoreView.PinsView.UpdateResponder() {
-            @Override
-            public void onUpdatePcCompleted() {
-                cuView.updatePcView();
-            }
-        });
-
-        instructionCache.setReadResponder(new ReadPortView.ReadResponder() {
-            @Override
-            public void onReadFinished() {
-                cuView.updateIrView();
-            }
-
-            @Override
-            public void onReadStart() {
-                cuView.updatePcView();
-            }
-        });
 
         Button advanceButton = (Button) findViewById(R.id.stepButton);
         advanceButton.setOnClickListener(new View.OnClickListener() {
@@ -148,16 +114,8 @@ public class TestActivity extends Activity {
     }
 
     private void advanceTime(){
-        int result = cuView.nextActionDuration();
-
-        if(cuView.isAboutToExecute()){
-            muxView.setSelection(MuxInputIds.DATA_MEM.ordinal());
-        }
-        else {
-            muxView.setSelection(MuxInputIds.INS_MEM.ordinal());
-        }
-
-        cuView.performNextAction(); // perform action for 'currentState' and go to next state
+        int result = cpu.nextActionTransitionTime();
+        cpu.triggerNextAction();
 
         sysClock += result;
         sysClockTextView.setText(String.valueOf(sysClock));

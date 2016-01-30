@@ -6,7 +6,6 @@ package org.ricts.abstractmachine.components.compute.cu;
 public class ControlUnitHaltState extends ControlUnitState{
     public ControlUnitHaltState() {
         super("halt");
-        setNextState(this);
     }
 
     @Override

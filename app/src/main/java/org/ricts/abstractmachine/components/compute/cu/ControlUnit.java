@@ -4,121 +4,111 @@ import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
 import org.ricts.abstractmachine.components.interfaces.ControlUnitInterface;
 import org.ricts.abstractmachine.components.interfaces.MemoryPort;
 import org.ricts.abstractmachine.components.interfaces.ReadPort;
-import org.ricts.abstractmachine.components.interfaces.RegisterPort;
+import org.ricts.abstractmachine.components.observables.ObservableRegister;
+import org.ricts.abstractmachine.components.storage.Register;
 
-public class ControlUnit implements ControlUnitInterface {
-    private FiniteStateMachine fsm;
-    private StateEngine engine;
+public class ControlUnit extends FiniteStateMachine implements ControlUnitInterface {
+    private ObservableRegister pc; // Program Counter
+    private ObservableRegister ir; // Instruction Register
 
-    public ControlUnit(){
-        fsm = new FiniteStateMachine();
+    private ControlUnitState fetch, execute, halt;
+    private State nextState = null;
+
+    public ControlUnit(ComputeCoreInterface core, ReadPort instructionCache,
+                       MemoryPort dataMemory){
+        // ObservableRegister is used to be able to view independent internal changes in state
+        pc = new ObservableRegister(new Register(core.iAddrWidth()));
+        ir = new ObservableRegister(new Register(core.instrWidth()));
+
+        // setup instruction cycle
+        fetch = new ControlUnitFetchState(pc, ir, instructionCache);
+        execute = new ControlUnitExecuteState(core, dataMemory, this);
+        halt = new ControlUnitHaltState();
+
+        // initialise
+        setPC(0);
+        setCurrentState(fetch);
     }
 
-    public ControlUnit(RegisterPort instrPtr, RegisterPort instruction,
-                       ComputeCoreInterface core, ReadPort instructionCache,
-                       MemoryPort dataMemory){
-        this();
-        setStateEngine(new StateEngine(instrPtr, instruction, core,
-                instructionCache, dataMemory, this));
+    @Override
+    protected State getNextState(State currentState) {
+        if(nextState != null){ // If normal cycle interrupted ...
+            // ... next state determined by interrupting state
+            currentState = nextState;
+            nextState = null;
+            return currentState;
+        }
+
+        // Otherwise next state determined by current state
+        if(currentState == fetch)
+            return execute;
+        else if(currentState == execute)
+            return fetch;
+
+        return halt;
     }
 
     @Override
     public boolean isAboutToExecute(){
-        return fsm.currentState() == engine.getExecuteState();
+        return currentState() == execute;
     }
 
     @Override
     public void setToFetchState(){
-        fsm.setCurrentState(engine.getFetchState());
+        nextState = fetch;
     }
 
     @Override
     public void setToExecuteState(){
-        fsm.setCurrentState(engine.getExecuteState());
+        nextState = execute;
     }
 
     @Override
     public void setToHaltState() {
-        fsm.setCurrentState(engine.getHaltState());
+        nextState = halt;
     }
 
     @Override
     public void performNextAction(){
-        fsm.doCurrentStateAction();
-        fsm.goToNextState();
+        triggerStateChange();
     }
 
     @Override
     public int nextActionDuration(){ // in clock cycles
-        return ((ControlUnitState) fsm.currentState()).actionDuration();
+        return ((ControlUnitState) currentState()).actionDuration();
     }
 
     @Override
     public int getPC(){
-        return engine.pcRead();
+        return pc.read();
+    }
+
+    @Override
+    public int getIR() {
+        return ir.read();
     }
 
     @Override
     public void setPC(int currentPC){
-        engine.pcWrite(currentPC);
+        pc.write(currentPC);
     }
 
     @Override
     public void setIR(int currentIR){
-        engine.irWrite(currentIR);
+        ir.write(currentIR);
     }
 
-    public String getCurrentState(){
-        return fsm.currentState().getName();
-    }
-
-    public void setStateEngine(StateEngine e){
-        engine = e;
+    @Override
+    public void setStartExecFrom(int currentPC){
+        pc.write(currentPC);
         setToFetchState();
     }
 
-    public static class StateEngine{
-        private RegisterPort pc; // Program Counter
-        private RegisterPort ir; // Instruction Register
+    public ObservableRegister getPcReg(){
+        return pc;
+    }
 
-        private ControlUnitState fetch, execute, halt;
-
-        public StateEngine(RegisterPort instrPtr, RegisterPort instruction, ComputeCoreInterface core,
-                           ReadPort instructionCache, MemoryPort dataMemory, ControlUnitInterface cu){
-            pc = instrPtr;
-            ir = instruction;
-
-            // setup instruction cycle
-            fetch = new ControlUnitFetchState(pc, instructionCache, ir);
-            execute = new ControlUnitExecuteState(ir, core, dataMemory, cu);
-            halt = new ControlUnitHaltState();
-
-            fetch.setNextState(execute);
-            execute.setNextState(fetch);
-        }
-
-        public int pcRead(){
-            return pc.read();
-        }
-
-        public void pcWrite(int currentPC){
-            pc.write(currentPC);
-        }
-
-        public void irWrite(int currentIR){
-            ir.write(currentIR);
-        }
-
-        public ControlUnitState getFetchState(){
-            return fetch;
-        }
-
-        public ControlUnitState getExecuteState(){
-            return execute;
-        }
-
-        public ControlUnitState getHaltState(){
-            return halt;
-        }
+    public ObservableRegister getIrReg(){
+        return ir;
     }
 }

@@ -1,16 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    tools:context=".MainActivity">
+                xmlns:custom="http://schemas.android.com/apk/res-auto"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent">
 
-    <TextView
-        android:text="@string/hello_world"
+    <View
+        android:id="@+id/cuExtension"
+        android:layout_width="300dp"
+        android:layout_height="50dp"
+        android:layout_alignRight="@+id/control_unit"
+        android:background="@color/reg_data_unselected"
+        />
+
+    <view
+        class="org.ricts.abstractmachine.ui.network.MemoryPortMultiplexerView"
+        android:id="@+id/mux"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/cuExtension"
+        custom:dividerThickness="70dp"
+        custom:outputPosition = "left"
+        custom:selectPosition = "firstEdge"
+        />
+
+    <view
+        class="org.ricts.abstractmachine.ui.compute.ControlUnitView"
+        android:id="@+id/control_unit"
+        android:layout_width="wrap_content"
+        android:layout_height="140dp"
+        android:layout_below="@id/cuExtension"
+        android:layout_toRightOf="@+id/mux"
+        />
+
+    <view
+        class="org.ricts.abstractmachine.ui.compute.ComputeCoreView"
+        android:id="@+id/core"
+        android:layout_width="match_parent"
+        android:layout_height="190dp"
+        android:layout_toRightOf="@+id/mux"
+        android:layout_below="@+id/control_unit"
+        custom:pinPosition="top"
+        />
+
+    <Button
+        android:id="@+id/stepButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:text="Step forward"
+        />
+    <TextView
+        android:id="@+id/sysClockLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/stepButton"
+        android:layout_alignTop="@id/stepButton"
+        android:text="Time elapsed: "
+        />
+    <TextView
+        android:id="@+id/sysClockText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/sysClockLabel"
+        android:layout_alignTop="@id/sysClockLabel"
+        />
 
 </RelativeLayout>

@@ -435,7 +435,7 @@ public class BasicScalar extends ComputeCore {
             // Instructions with 0 operands
             switch (BasicScalarEnums.NoOperands.decode(enumOrdinal)) {
                 case POP: // cu <-- predefinedStack.pop(); updateUnderflowFlag(); ('return' control-flow construct)
-                    cu.setPC(callStack.pop());
+                    cu.setStartExecFrom(callStack.pop());
                     intFlagsReg.write(setBitValueAtIndex(InterruptFlags.STACKUFLOW.ordinal(), intFlagsReg.read(), callStack.isEmpty()));
                     break;
                 case NOP: // do nothing
@@ -448,14 +448,14 @@ public class BasicScalar extends ComputeCore {
             // Instructions with 1 instruction address literal
             switch (BasicScalarEnums.InstrAddressLiteral.decode(enumOrdinal)) {
                 case JUMP: // cu <-- INSTRLIT ('goto'/'break'/'continue' control-flow construct)
-                    cu.setPC(operands[0]);
+                    cu.setStartExecFrom(operands[0]);
                     break;
             }
         } else if (groupName.equals(BasicScalarEnums.InstrAddressReg.enumName())) {
             // Instructions with 1 instruction address register
             switch (BasicScalarEnums.InstrAddressReg.decode(enumOrdinal)) {
                 case JUMP: // cu <-- IADREG ('goto'/'break'/'continue' control-flow construct)
-                    cu.setPC(instrAddrRegs[operands[0]].read());
+                    cu.setStartExecFrom(instrAddrRegs[operands[0]].read());
                     break;
                 case PUSH: // predefStack.push(IADREG); updateOverflowFlag(); (part of 'function-call' control-flow construct)
                     callStack.push(instrAddrRegs[operands[0]].read());
@@ -488,12 +488,12 @@ public class BasicScalar extends ComputeCore {
             switch (BasicScalarEnums.ConditionalBranchLiteral.decode(enumOrdinal)) {
                 case JUMPIFBC: // IF (!DREG[BITINDEX]) cu <-- IADLITERAL ('for'/'while'/'if-else' sourceReg[bitIndex])
                     if (!getBitAtIndex(bitIndex, dataRegs[dRegAddr].read())) {
-                        cu.setPC(iAddrLiteral);
+                        cu.setStartExecFrom(iAddrLiteral);
                     }
                     break;
                 case JUMPIFBS: // IF (DREG[BITINDEX]) cu <-- IADLITERAL ('do-while' sourceReg[bitIndex])
                     if (getBitAtIndex(bitIndex, dataRegs[dRegAddr].read())) {
-                        cu.setPC(iAddrLiteral);
+                        cu.setStartExecFrom(iAddrLiteral);
                     }
                     break;
             }
@@ -506,12 +506,12 @@ public class BasicScalar extends ComputeCore {
             switch (BasicScalarEnums.ConditionalBranch.decode(enumOrdinal)) {
                 case JUMPIFBC: // IF (!DREG[BITINDEX]) cu <-- IADREG ('for'/'while'/'if-else' sourceReg[bitIndex])
                     if (!getBitAtIndex(bitIndex, dataRegs[dRegAddr].read())) {
-                        cu.setPC(iAddrRegValue);
+                        cu.setStartExecFrom(iAddrRegValue);
                     }
                     break;
                 case JUMPIFBS: // IF (DREG[BITINDEX]) cu <-- IADREG ('do-while' sourceReg[bitIndex])
                     if (getBitAtIndex(bitIndex, dataRegs[dRegAddr].read())) {
-                        cu.setPC(iAddrRegValue);
+                        cu.setStartExecFrom(iAddrRegValue);
                     }
                     break;
             }

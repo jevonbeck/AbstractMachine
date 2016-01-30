@@ -7,9 +7,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import org.ricts.abstractmachine.components.compute.cores.ComputeCore;
+import org.ricts.abstractmachine.components.observables.ObservableComputeCore;
+import org.ricts.abstractmachine.components.compute.cu.ControlUnit;
 import org.ricts.abstractmachine.components.interfaces.ThreadProcessingUnit;
-import org.ricts.abstractmachine.components.storage.RAM;
+import org.ricts.abstractmachine.components.observables.ObservableControlUnit;
+import org.ricts.abstractmachine.components.observables.ObservableRAM;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -18,8 +20,9 @@ import org.ricts.abstractmachine.components.storage.RAM;
  * to handle interaction events.
  */
 public class VonNeumannActivityFragment extends Fragment implements ThreadProcessingUnit {
-    protected ComputeCore mainCore;
-    protected RAM mainMemory;
+    protected ObservableComputeCore mainCore;
+    protected ObservableRAM mainMemory;
+    protected ObservableControlUnit controlUnit;
 
     private StepActionListener mListener;
 
@@ -97,9 +100,11 @@ public class VonNeumannActivityFragment extends Fragment implements ThreadProces
         void onStepActionCompleted();
     }
 
-    public void init(ComputeCore core, RAM memData, int id){
+    public void init(ObservableComputeCore core, ObservableRAM memData,
+                     ObservableControlUnit fsmData, int id){
         mainCore = core;
         mainMemory = memData;
+        controlUnit = fsmData;
         layoutId = id;
     }
 }

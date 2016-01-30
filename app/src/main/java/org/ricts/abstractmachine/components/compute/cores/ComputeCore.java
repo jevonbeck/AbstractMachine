@@ -1,6 +1,6 @@
 package org.ricts.abstractmachine.components.compute.cores;
 
-import org.ricts.abstractmachine.components.devices.Device;
+import org.ricts.abstractmachine.components.devicetype.Device;
 import org.ricts.abstractmachine.components.compute.isa.IsaDecoder;
 import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
 import org.ricts.abstractmachine.components.interfaces.ControlUnitInterface;

@@ -32,9 +32,14 @@
     <item name="DeviceView_pin_view" type="id"/>
     <item name="ControlUnitView_pc_label" type="id"/>
     <item name="ControlUnitView_ir_label" type="id"/>
+    <item name="ControlUnitView_pc_view" type="id"/>
     <item name="ControlUnitView_ir_view" type="id"/>
+    <item name="ControlUnitView_fsm_view" type="id"/>
     <item name="ControlUnitView_state_label" type="id"/>
     <item name="ComputeCoreView_instruction_label" type="id"/>
+    <item name="CpuCoreView_pc_view" type="id"/>
+    <item name="CpuCoreView_ir_view" type="id"/>
+    <item name="CpuCoreView_fsm_view" type="id"/>
     <item name="PinView_background_layout" type="id"/>
     <item name="PinView_pin_name" type="id"/>
     <item name="PinView_signal_text" type="id"/>

@@ -7,9 +7,10 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import org.ricts.abstractmachine.R;
-import org.ricts.abstractmachine.components.compute.cores.ComputeCore;
-import org.ricts.abstractmachine.components.compute.cu.ControlUnit;
+import org.ricts.abstractmachine.components.observables.ObservableComputeCore;
 import org.ricts.abstractmachine.components.interfaces.ThreadProcessingUnit;
+import org.ricts.abstractmachine.components.observables.ObservableControlUnit;
+import org.ricts.abstractmachine.components.observables.ObservableRegister;
 import org.ricts.abstractmachine.ui.storage.RamView;
 import org.ricts.abstractmachine.ui.storage.ReadPortView;
 import org.ricts.abstractmachine.ui.storage.RegDataView;
@@ -20,10 +21,10 @@ import org.ricts.abstractmachine.ui.storage.RegDataView;
 public class CpuCoreView extends RelativeLayout implements ThreadProcessingUnit {
     private RegDataView pc; // Program Counter
     private RegDataView ir; // Instruction Register
-    private TextView stateView, instructionView;
+    private FSMView stateView;
+    private InstructionView instructionView;
 
-    private ControlUnit cu; // Control Unit
-    private ComputeCore mainCore;
+    private ObservableControlUnit controlUnit;
 
     /** Standard Constructors **/
     public CpuCoreView(Context context) {
@@ -38,20 +39,19 @@ public class CpuCoreView extends RelativeLayout implements ThreadProcessingUnit 
         super(context, attrs, defStyle);
 
         float scaleFactor = context.getResources().getDisplayMetrics().density;
-        /*** init properties ***/
+        /*** setSelectWidth properties ***/
         setBackgroundColor(context.getResources().getColor(R.color.reg_data_unselected));
         int padding = (int) (10 * scaleFactor);
         setPadding(padding, padding, padding, padding);
 
         /*** create children ***/
         pc = new RegDataView(context);
+        pc.setId(R.id.CpuCoreView_pc_view);
         pc.setBackgroundColor(context.getResources().getColor(R.color.test_color));
-        pc.setTextColor(context.getResources().getColor(android.R.color.white));
 
         ir = new RegDataView(context);
-        ir.setId(R.id.ControlUnitView_ir_view);
+        ir.setId(R.id.CpuCoreView_ir_view);
         ir.setBackgroundColor(context.getResources().getColor(R.color.test_color));
-        ir.setTextColor(context.getResources().getColor(android.R.color.white));
 
         TextView pcLabel = new TextView(context);
         pcLabel.setId(R.id.ControlUnitView_pc_label);
@@ -70,8 +70,8 @@ public class CpuCoreView extends RelativeLayout implements ThreadProcessingUnit 
         stateLabel.setTextColor(context.getResources().getColor(android.R.color.white));
         stateLabel.setText(context.getResources().getText(R.string.control_unit_state_label));
 
-        stateView = new TextView(context);
-        stateView.setTextColor(context.getResources().getColor(android.R.color.white));
+        stateView = new FSMView(context);
+        stateView.setId(R.id.CpuCoreView_fsm_view);
         stateView.setBackgroundColor(context.getResources().getColor(R.color.test_color2));
 
         TextView instructionLabel = new TextView(context);
@@ -79,8 +79,7 @@ public class CpuCoreView extends RelativeLayout implements ThreadProcessingUnit 
         instructionLabel.setTextColor(context.getResources().getColor(android.R.color.white));
         instructionLabel.setText(context.getResources().getText(R.string.decoded_instruction_label));
 
-        instructionView = new TextView(context);
-        instructionView.setTextColor(context.getResources().getColor(android.R.color.white));
+        instructionView = new InstructionView(context);
         instructionView.setBackgroundColor(context.getResources().getColor(R.color.test_color2));
 
 
@@ -134,12 +133,25 @@ public class CpuCoreView extends RelativeLayout implements ThreadProcessingUnit 
         addView(instructionView, lpInstructionView);
     }
 
-    public void initCpu(ComputeCore core, RamView mainMemory){
-        mainCore = core;
+    public void initCpu(ObservableComputeCore core, ObservableControlUnit cu, RamView mainMemory){
+        controlUnit = cu;
+        ObservableRegister obsPC = controlUnit.getType().getPcReg();
+        ObservableRegister obsIR = controlUnit.getType().getIrReg();
 
-        pc.setDataWidth(mainCore.iAddrWidth());
-        ir.setDataWidth(mainCore.instrWidth());
+        /** Add observers to observables **/
+        controlUnit.addObserver(stateView);
+        obsPC.addObserver(pc);
+        obsIR.addObserver(ir);
+        core.addObserver(instructionView);
+
+        /** init displayable values **/
+        stateView.update(controlUnit, null);
+        pc.update(obsPC, null);
+        ir.setUpdateImmediately(true);
+        ir.update(obsIR, null);
         ir.setUpdateImmediately(false);
+
+        /** setup callback behaviour **/
         mainMemory.setReadResponder(new ReadPortView.ReadResponder() {
             @Override
             public void onReadFinished() {
@@ -151,31 +163,21 @@ public class CpuCoreView extends RelativeLayout implements ThreadProcessingUnit 
 
             }
         });
-
-        cu = new ControlUnit(pc, ir, mainCore, mainMemory, mainMemory);
-
-        setStartExecFrom(0);
     }
 
     @Override
     public void setStartExecFrom(int currentPC){
-        pc.write(currentPC);
-        cu.setToFetchState();
-        stateView.setText(cu.getCurrentState());
+        // FIXME!!!
+        controlUnit.getType().setStartExecFrom(currentPC);
     }
 
     @Override
     public int nextActionTransitionTime(){
-        return cu.nextActionDuration();
+        return controlUnit.nextActionDuration();
     }
 
     @Override
     public void triggerNextAction(){
-        cu.performNextAction(); // perform action for 'currentState' and go to next state
-        stateView.setText(cu.getCurrentState());
-
-        if(!cu.isAboutToExecute()){
-            instructionView.setText(mainCore.instrString(ir.read()));
-        }
+        controlUnit.performNextAction(); // perform action for 'currentState' and go to next state
     }
 }

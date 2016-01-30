@@ -14,6 +14,8 @@ import org.ricts.abstractmachine.ui.storage.RamView;
 public class MemoryPortMultiplexerTutorialActivity extends AppCompatActivity {
     private EditText addressEdit, dataEdit, selectEdit;
 
+    // FIXME!!!
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -23,8 +25,8 @@ public class MemoryPortMultiplexerTutorialActivity extends AppCompatActivity {
         memory.initMemory(8, 3, 10);
 
         final MemoryPortMultiplexerView mux = (MemoryPortMultiplexerView) findViewById(R.id.mux);
-        mux.initMux(1, 8, 3);
-        mux.setOutputSource(memory);
+        mux.setSelectWidth(1);
+        //mux.setOutputSource(memory);
 
         View [] temp = mux.getInputs();
         final MemoryPortView inputs[] =  new MemoryPortView[temp.length];
@@ -41,7 +43,7 @@ public class MemoryPortMultiplexerTutorialActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 mux.setSelection(getSelect());
-                inputs[mux.getSelection()].read(getAddress());
+                //inputs[mux.getSelection()].read(getAddress());
             }
         });
 
@@ -50,7 +52,7 @@ public class MemoryPortMultiplexerTutorialActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 mux.setSelection(getSelect());
-                inputs[mux.getSelection()].write(getAddress(), getData());
+                //inputs[mux.getSelection()].write(getAddress(), getData());
             }
         });
     }

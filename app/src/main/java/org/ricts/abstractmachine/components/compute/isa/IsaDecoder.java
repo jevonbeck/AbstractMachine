@@ -2,7 +2,7 @@ package org.ricts.abstractmachine.components.compute.isa;
 
 import java.util.ArrayList;
 
-import org.ricts.abstractmachine.components.devices.Device;
+import org.ricts.abstractmachine.components.devicetype.Device;
 
 public class IsaDecoder extends Device {
 	private ArrayList<InstructionGroupDecoder> instructionDecoders;

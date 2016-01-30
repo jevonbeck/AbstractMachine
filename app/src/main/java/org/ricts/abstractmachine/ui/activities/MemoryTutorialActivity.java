@@ -6,6 +6,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import org.ricts.abstractmachine.R;
+import org.ricts.abstractmachine.components.observables.ObservableRAM;
+import org.ricts.abstractmachine.components.storage.RAM;
 import org.ricts.abstractmachine.ui.storage.RamView;
 
 public class MemoryTutorialActivity extends Activity {
@@ -17,9 +19,12 @@ public class MemoryTutorialActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.memory_tutorial);
-				
+
+        final ObservableRAM ram = new ObservableRAM(new RAM(8, 3, 10));
+
 		memory = (RamView) findViewById(R.id.memory);
-		memory.initMemory(8, 3, 10);
+		//memory.initMemory(8, 3, 10);
+        memory.setDataSource(ram.getType());
 		
 		addressEdit = (EditText) findViewById(R.id.addressEdit); 
 		dataEdit = (EditText) findViewById(R.id.dataEdit); 
@@ -28,7 +33,8 @@ public class MemoryTutorialActivity extends Activity {
 		readButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				memory.read(getAddress());
+				//memory.read(getAddress());
+                ram.read(getAddress());
 			}
 		});
 		
@@ -37,9 +43,12 @@ public class MemoryTutorialActivity extends Activity {
 		writeButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				memory.write(getAddress(), getData()); 
-			}
+				//memory.write(getAddress(), getData());
+                ram.write(getAddress(), getData());
+            }
 		});
+
+        ram.addObserver(memory);
 	}
 	
 	private int getAddress(){

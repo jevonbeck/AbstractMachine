@@ -4,21 +4,21 @@ import org.ricts.abstractmachine.components.interfaces.ReadPort;
 import org.ricts.abstractmachine.components.interfaces.RegisterPort;
 
 public class ControlUnitFetchState extends ControlUnitState{
-    private RegisterPort PC; // Program Counter
-    private RegisterPort IR; // Instruction Register
     private ReadPort instructionCache;
+    private RegisterPort pc; // Program Counter
+    private RegisterPort ir; // Instruction Register
 
-    public ControlUnitFetchState(RegisterPort nextInstrAddr, ReadPort iCache, RegisterPort currentInstr){
+    public ControlUnitFetchState(RegisterPort instrAddr, RegisterPort instr, ReadPort iCache){
         super("fetch");
-        PC = nextInstrAddr;
+        pc = instrAddr;
+        ir = instr;
         instructionCache = iCache;
-        IR = currentInstr;
     }
 
     @Override
     public void performAction(){
-        IR.write(instructionCache.read(PC.read())); // IR = iCache[PC]
-        PC.write(PC.read() + 1); // PC += 1
+        ir.write(instructionCache.read(pc.read())); // IR = iCache[PC]
+        pc.write(pc.read() + 1); // PC += 1
     }
 
     @Override

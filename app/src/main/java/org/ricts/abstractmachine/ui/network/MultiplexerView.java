@@ -9,7 +9,7 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
 import org.ricts.abstractmachine.R;
-import org.ricts.abstractmachine.components.devices.Device;
+import org.ricts.abstractmachine.components.devicetype.Device;
 import org.ricts.abstractmachine.ui.device.DevicePin;
 import org.ricts.abstractmachine.ui.device.RightAngleTriangleView;
 import org.ricts.abstractmachine.ui.utils.UiUtils;
@@ -18,13 +18,9 @@ import org.ricts.abstractmachine.ui.utils.UiUtils;
  * Created by Jevon on 07/06/2015.
  */
 public abstract class MultiplexerView extends RelativeLayout {
-    public interface InputReference {
-        boolean isSelected();
-        void triggerSelectPinAnimation();
-    }
-
     protected View [] inputPins;
     protected View outputPins;
+    protected int currentSel;
 
     private LinearLayout inputPinsLayout;
     private RightAngleTriangleView firstTriangle, lastTriangle, pinTriangle;
@@ -33,12 +29,12 @@ public abstract class MultiplexerView extends RelativeLayout {
     private int inputsPosition;
     private DevicePin selectPinData;
 
-    private int selectWidth, selMask, currentSel;
+    private int selectWidth, selMask;
     private static final int dividerDefaultThickness = 30;
 
     protected abstract View createPinView(Context context, int pinPosition);
-    protected abstract void initOutputPinView(View pinView, Integer... pinWidths);
-    protected abstract void initInputPinView(View pinView, InputReference pinTrigger, Integer... pinWidths);
+    protected abstract void initOutputPinView(View pinView);
+    protected abstract void initInputPinView(View pinView);
 
     /** Standard Constructors **/
     public MultiplexerView(Context context) {
@@ -335,6 +331,10 @@ public abstract class MultiplexerView extends RelativeLayout {
         return inputPins;
     }
 
+    public View getOutput(){
+        return outputPins;
+    }
+
     public void setDividerThickness(int thickness){
         ShapeDrawable inputsDivider = new ShapeDrawable();
         switch (inputsPosition){
@@ -352,37 +352,26 @@ public abstract class MultiplexerView extends RelativeLayout {
         inputPinsLayout.setDividerDrawable(inputsDivider);
     }
 
-    protected void init(int selW, Integer... pinWidths){
+    public void setSelectWidth(int selW){
         selectWidth = selW;
         selMask = (1 << selectWidth) - 1; // bit mask of width selectWidth
         selectPinData.dataWidth = selectWidth;
 
         inputPinsLayout.removeAllViewsInLayout();
 
-        initOutputPinView(outputPins, pinWidths);
+        initOutputPinView(outputPins);
 
         Context c = getContext();
         inputPins = new View[(int) Math.pow(2,selectWidth)];
         for(int x=0; x < inputPins.length; ++x){
-            final int index = x;
-            InputReference pinActionTrigger = new InputReference() {
-                @Override
-                public boolean isSelected() {
-                    return currentSel == index;
-                }
-
-                @Override
-                public void triggerSelectPinAnimation() {
-                    if(isSelected()){
-                        pinTriangle.setPinData(selectPinData);
-                    }
-                }
-            };
-
             inputPins[x] = createPinView(c, inputsPosition);
-            initInputPinView(inputPins[x], pinActionTrigger, pinWidths);
+            initInputPinView(inputPins[x]);
             inputPinsLayout.addView(inputPins[x], x);
         }
+    }
+
+    protected void animateSelectPin(){
+        pinTriangle.setPinData(selectPinData);
     }
 
     private int getInputsPosition(int ouputPosition){

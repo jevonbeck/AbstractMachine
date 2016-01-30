@@ -9,24 +9,34 @@ import android.widget.TextView;
 
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.compute.cores.ComputeCore;
-import org.ricts.abstractmachine.components.devices.Device;
-import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
+import org.ricts.abstractmachine.components.observables.ObservableComputeCore;
+import org.ricts.abstractmachine.components.devicetype.Device;
 import org.ricts.abstractmachine.components.interfaces.ControlUnitInterface;
-import org.ricts.abstractmachine.components.interfaces.MemoryPort;
 import org.ricts.abstractmachine.ui.device.DevicePin;
 import org.ricts.abstractmachine.ui.device.DeviceView;
 import org.ricts.abstractmachine.ui.device.MultiPinView;
 
+import java.util.Observable;
+import java.util.Observer;
+
 /**
  * Created by Jevon on 18/12/2015.
  */
-public class ComputeCoreView extends DeviceView implements ComputeCoreInterface {
+public class ComputeCoreView extends DeviceView implements Observer {
     private static final String TAG = "ComputeCoreView";
 
-    private ComputeCore mainCore;
+    public interface HaltResponder {
+        void onHaltCompleted();
+    }
+
+    public interface MemoryCommandResponder {
+        void onMemoryCommandIssued();
+    }
 
     private MainBodyView mainBody;
     private PinsView pins;
+    private MemoryCommandResponder memoryCommandResponder;
+    private HaltResponder haltResponder;
 
     public ComputeCoreView(Context context) {
         this(context, null);
@@ -59,92 +69,80 @@ public class ComputeCoreView extends DeviceView implements ComputeCoreInterface 
     }
 
     @Override
-    public void executeInstruction(final int instruction, final MemoryPort dataMemory,
-                                   final ControlUnitInterface cu) {
-        final boolean isDataMemInstruction = mainCore.isDataMemoryInstruction(instruction);
-        final boolean isHaltInstruction = mainCore.isHaltInstruction(instruction);
+    public void update(Observable observable, Object o) {
+        if(observable instanceof ObservableComputeCore &&
+                o != null && o instanceof ObservableComputeCore.ExecuteParams) {
+            ComputeCore mainCore = (ComputeCore) ((ObservableComputeCore) observable).getType();
+            ObservableComputeCore.ExecuteParams params = (ObservableComputeCore.ExecuteParams) o;
+            int instruction = params.getInstruction();
+            ControlUnitInterface controlUnit = params.getControlUnit();
+            int pcPreExecute = params.getPcPreExecute();
+            int pcPostExecute = controlUnit.getPC();
 
-        // N.B: In general, data memory instructions should NOT update PC,
-        // so no harm reading PC again if data memory instruction is not executed
-        final int pcPreExecute = cu.getPC();
-        if( !(isDataMemInstruction || isHaltInstruction) ){ // don't execute instruction yet, since this animates UI
-            mainCore.executeInstruction(instruction, dataMemory, cu);
+            final boolean isDataMemInstruction = mainCore.isDataMemoryInstruction(instruction);
+            final boolean isHaltInstruction = mainCore.isHaltInstruction(instruction);
+            final String pcPostExecuteString = Device.formatNumberInHex(pcPostExecute, mainCore.iAddrWidth());
+            final boolean updatePC = pcPreExecute != pcPostExecute;
+
+            pins.setCommandResponder(new PinsView.CommandOnlyResponder() {
+                @Override
+                public void onCommandCompleted() {
+                    if(isDataMemInstruction){
+                        if(memoryCommandResponder != null) {
+                            memoryCommandResponder.onMemoryCommandIssued();
+                        }
+                    }
+                    else if(isHaltInstruction){
+                        if(haltResponder != null) {
+                            haltResponder.onHaltCompleted();
+                        }
+                    }
+                }
+            });
+
+            pins.setExecuteResponder(new PinsView.ExecuteResponder() {
+                @Override
+                public void onExecuteCompleted() {
+                    // first animation [executeInstruction()] ends here!
+                    mainBody.updateInstructionView();
+
+                    /** Start one of these animations if applicable (they are mutually exclusive) **/
+                    if(isHaltInstruction){
+                        pins.sendCommandOnly("setHalt");
+                    }
+                    else if(isDataMemInstruction){
+                        pins.sendCommandOnly("getMem");
+                    }
+
+                    if (updatePC) {
+                        pins.updatePC(pcPostExecuteString);
+                    }
+                }
+            });
+
+            // actually begin the animation
+            pins.executeInstruction(Device.formatNumberInHex(instruction, mainCore.instrWidth()));
         }
-        final int pcPostExecute = cu.getPC();
-
-        pins.setCommandResponder(new PinsView.CommandOnlyResponder() {
-            @Override
-            public void onCommandCompleted() {
-                // perform halt OR data memory action
-                mainCore.executeInstruction(instruction, dataMemory, cu);
-            }
-        });
-
-        pins.setExecuteResponder(new PinsView.ExecuteResponder() {
-            @Override
-            public void onExecuteCompleted() {
-                // first animation [executeInstruction()] ends here!
-                mainBody.setText(mainCore.instrString(instruction));
-
-                /** Start one of these animations if applicable (they are mutually exclusive) **/
-                if(isHaltInstruction){
-                    pins.sendCommandOnly("setHalt");
-                }
-                else if(isDataMemInstruction){
-                    pins.sendCommandOnly("getMem");
-                }
-
-                if (pcPreExecute != pcPostExecute) {
-                    pins.updatePC(pcPostExecute);
-                }
-            }
-        });
-
-        // actually begin the animation
-        pins.executeInstruction(instruction);
     }
 
-    @Override
-    public int instrExecTime(int instruction, MemoryPort dataMemory) {
-        return mainCore.instrExecTime(instruction, dataMemory);
+    public void initCore(ObservableComputeCore core){
+        core.addObserver(mainBody);
+        core.addObserver(this);
     }
 
-    @Override
-    public int nopInstruction() {
-        return mainCore.nopInstruction();
+    public void setUpdatePcResponder(PinsView.UpdateResponder updateResponder){
+        pins.setUpdateResponder(updateResponder);
     }
 
-    @Override
-    public int dAddrWidth() {
-        return mainCore.dAddrWidth();
+    public void setHaltCommandResponder(HaltResponder responder){
+        haltResponder = responder;
     }
 
-    @Override
-    public int instrWidth() {
-        return mainCore.instrWidth();
-    }
-
-    @Override
-    public int iAddrWidth() {
-        return mainCore.iAddrWidth();
-    }
-
-    @Override
-    public int dataWidth() {
-        return mainCore.dataWidth();
-    }
-
-    public void setComputeCore(ComputeCore core){
-        mainCore = core;
-        pins.initParams(mainCore.instrWidth(), mainCore.iAddrWidth());
-    }
-
-    public void setUpdatePcResponder(PinsView.UpdateResponder responder){
-        pins.setUpdateResponder(responder);
+    public void setMemoryCommandResponder(MemoryCommandResponder responder){
+        memoryCommandResponder = responder;
     }
 
     public static class PinsView extends MultiPinView {
-        private int instructionWidth, instructionAddrWidth;
         private UpdateResponder updateResponder;
         private ExecuteResponder executeResponder;
         private CommandOnlyResponder cmdResponder;
@@ -197,19 +195,11 @@ public class ComputeCoreView extends DeviceView implements ComputeCoreInterface 
             startDelay = (int) (0.25 * getDelay(1));
         }
 
-        public void initParams(int iWidth, int iAddrWidth){
-            instructionWidth = iWidth;
-            instructionAddrWidth = iAddrWidth;
-
-            pinArray[PinNames.COMMAND.ordinal()].dataWidth = instructionWidth;
-            pinArray[PinNames.DATA.ordinal()].dataWidth = instructionWidth;
-        }
-
         public void setExecuteResponder(ExecuteResponder execResponder) {
             executeResponder = execResponder;
         }
 
-        public void executeInstruction(int instruction){
+        public void executeInstruction(String instruction){
             // Setup correct data in pin UI
             DevicePin pin = pinArray[PinNames.COMMAND.ordinal()];
             pin.data = "execute";
@@ -219,7 +209,7 @@ public class ComputeCoreView extends DeviceView implements ComputeCoreInterface 
             pin.animListener = null;
 
             pin = pinArray[PinNames.DATA.ordinal()];
-            pin.data = Device.formatNumberInHex(instruction, instructionWidth);
+            pin.data = instruction;
             pin.direction = inDirection;
             pin.action = DevicePin.PinAction.MOVING;
             pin.startBehaviour = DevicePin.AnimStartBehaviour.IMMEDIATE;
@@ -249,7 +239,7 @@ public class ComputeCoreView extends DeviceView implements ComputeCoreInterface 
             updateResponder = responder;
         }
 
-        public void updatePC(int pcValue){
+        public void updatePC(String pcValue){
             // Setup correct data in pin UI
             DevicePin pin = pinArray[PinNames.COMMAND.ordinal()];
             pin.data = "setPC";
@@ -260,7 +250,7 @@ public class ComputeCoreView extends DeviceView implements ComputeCoreInterface 
             pin.animListener = null;
 
             pin = pinArray[PinNames.DATA.ordinal()];
-            pin.data = Device.formatNumberInHex(pcValue, instructionAddrWidth);
+            pin.data = pcValue;
             pin.direction = outDirection;
             pin.action = DevicePin.PinAction.MOVING;
             pin.startBehaviour = DevicePin.AnimStartBehaviour.DELAY;
@@ -327,8 +317,8 @@ public class ComputeCoreView extends DeviceView implements ComputeCoreInterface 
         }
     }
 
-    private static class MainBodyView extends RelativeLayout{
-        private TextView instructionView;
+    private static class MainBodyView extends RelativeLayout implements Observer{
+        private InstructionView instructionView;
 
         public MainBodyView(Context context) {
             this(context, null);
@@ -342,7 +332,7 @@ public class ComputeCoreView extends DeviceView implements ComputeCoreInterface 
             super(context, attrs, defStyleAttr);
 
             float scaleFactor = context.getResources().getDisplayMetrics().density;
-            /*** init properties ***/
+            /*** setSelectWidth properties ***/
             setBackgroundColor(context.getResources().getColor(R.color.reg_data_unselected));
             int padding = (int) (10 * scaleFactor);
             setPadding(padding, padding, padding, padding);
@@ -353,8 +343,8 @@ public class ComputeCoreView extends DeviceView implements ComputeCoreInterface 
             instructionLabel.setTextColor(context.getResources().getColor(android.R.color.white));
             instructionLabel.setText(context.getResources().getText(R.string.decoded_instruction_label));
 
-            instructionView = new TextView(context);
-            instructionView.setTextColor(context.getResources().getColor(android.R.color.white));
+            instructionView = new InstructionView(context);
+            instructionView.setUpdateImmediately(false);
             instructionView.setBackgroundColor(context.getResources().getColor(R.color.test_color2));
 
             /*** determine children layouts and positions ***/
@@ -369,8 +359,13 @@ public class ComputeCoreView extends DeviceView implements ComputeCoreInterface 
             addView(instructionView, lpInstructionView);
         }
 
-        public void setText(CharSequence text){
-            instructionView.setText(text);
+        public void updateInstructionView(){
+            instructionView.updateDisplayText();
+        }
+
+        @Override
+        public void update(Observable observable, Object o) {
+            instructionView.update(observable, o);
         }
     }
 }

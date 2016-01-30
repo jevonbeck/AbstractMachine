@@ -12,7 +12,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import org.ricts.abstractmachine.R;
-import org.ricts.abstractmachine.components.compute.cores.ComputeCore;
+import org.ricts.abstractmachine.components.observables.ObservableComputeCore;
+import org.ricts.abstractmachine.components.compute.cu.ControlUnit;
+import org.ricts.abstractmachine.components.observables.ObservableControlUnit;
+import org.ricts.abstractmachine.components.observables.ObservableRAM;
+import org.ricts.abstractmachine.components.observables.ObservableRegister;
 import org.ricts.abstractmachine.components.storage.RAM;
 import org.ricts.abstractmachine.devices.compute.core.BasicScalar;
 import org.ricts.abstractmachine.devices.compute.core.BasicScalarEnums;
@@ -94,6 +98,11 @@ public class VonNeumannActivity extends AppCompatActivity implements VonNeumannA
         RAM memory = new RAM(core.instrWidth(), core.iAddrWidth(), 10);
         memory.setData(memData, 0);
 
+        ObservableComputeCore mainCore = new ObservableComputeCore<BasicScalar>(core);
+        ObservableRAM observableRAM = new ObservableRAM(memory);
+        ObservableControlUnit fsm = new ObservableControlUnit(
+                new ControlUnit(mainCore, observableRAM, observableRAM));
+
         Button advanceButton = (Button) findViewById(R.id.stepButton);
         advanceButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -107,7 +116,8 @@ public class VonNeumannActivity extends AppCompatActivity implements VonNeumannA
         sysClockTextView.setText(String.valueOf(sysClock));
 
         pager = (ViewPager) findViewById(R.id.pager);
-        pager.setAdapter(new SystemViewAdapter(getSupportFragmentManager(), core, memory));
+        pager.setAdapter(new SystemViewAdapter(getSupportFragmentManager(),
+                mainCore, observableRAM, fsm));
     }
 
     private void advanceTime(){
@@ -133,22 +143,27 @@ public class VonNeumannActivity extends AppCompatActivity implements VonNeumannA
     }
 
     private static class SystemViewAdapter extends FragmentPagerAdapter {
-        private ComputeCore mainCore;
-        private RAM mainMemory;
+        private static final String TAG = "SystemViewAdapter";
 
-        public SystemViewAdapter(FragmentManager fm, ComputeCore core, RAM memory) {
+        private ObservableComputeCore mainCore;
+        private ObservableRAM mainMemory;
+        private ObservableControlUnit cu;
+
+        public SystemViewAdapter(FragmentManager fm, ObservableComputeCore core, ObservableRAM memory,
+                                 ObservableControlUnit fsmData) {
             super(fm);
             mainCore = core;
             mainMemory = memory;
+            cu = fsmData;
         }
 
         @Override
         public Fragment getItem(int position) {
             switch (position){
                 case 0:
-                    return VonNeumannSystemFragment.newInstance(mainCore, mainMemory);
+                    return VonNeumannSystemFragment.newInstance(mainCore, mainMemory, cu);
                 case 1:
-                    return VonNeumannCoreFragment.newInstance(mainCore, mainMemory);
+                    return VonNeumannCoreFragment.newInstance(mainCore, mainMemory, cu);
                 default:
                     return null;
             }

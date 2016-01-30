@@ -4,10 +4,14 @@ import android.support.v4.app.Fragment;
 import android.view.View;
 
 import org.ricts.abstractmachine.R;
-import org.ricts.abstractmachine.components.compute.cores.ComputeCore;
-import org.ricts.abstractmachine.components.storage.RAM;
+import org.ricts.abstractmachine.components.observables.ObservableComputeCore;
+import org.ricts.abstractmachine.components.compute.cu.ControlUnit;
+import org.ricts.abstractmachine.components.observables.ObservableControlUnit;
+import org.ricts.abstractmachine.components.observables.ObservableRAM;
 import org.ricts.abstractmachine.ui.compute.CpuCoreView;
+import org.ricts.abstractmachine.ui.compute.FSMView;
 import org.ricts.abstractmachine.ui.storage.RamView;
+import org.ricts.abstractmachine.ui.storage.RegDataView;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -18,32 +22,34 @@ import org.ricts.abstractmachine.ui.storage.RamView;
  * create an instance of this fragment.
  */
 public class VonNeumannSystemFragment extends VonNeumannActivityFragment {
-    private CpuCoreView cpu;
-
     @Override
     protected void initView(View mainView){
         mainView.setId(R.id.VonNeumannSystemFragment_main_view);
 
         RamView memory = (RamView) mainView.findViewById(R.id.memory);
-        memory.setDataSource(mainMemory);
+        memory.setDataSource(mainMemory.getType());
 
-        cpu = (CpuCoreView) mainView.findViewById(R.id.cpuView);
-        cpu.initCpu(mainCore, memory);
+        CpuCoreView cpu = (CpuCoreView) mainView.findViewById(R.id.cpuView);
+        cpu.initCpu(mainCore, controlUnit, memory);
+
+        /** Add observers to observables **/
+        mainMemory.addObserver(memory);
     }
 
     @Override
     public int nextActionTransitionTime() {
-        return cpu.nextActionTransitionTime();
+        return controlUnit.nextActionDuration();
     }
 
     @Override
     public void triggerNextAction() {
-        cpu.triggerNextAction(); // perform action for 'currentState' and go to next state
+        controlUnit.performNextAction(); // perform action for 'currentState' and go to next state
     }
 
     @Override
     public void setStartExecFrom(int currentPC){
-        cpu.setStartExecFrom(currentPC);
+        // FIXME!!!
+        controlUnit.setPC(currentPC);
     }
 
     public VonNeumannSystemFragment() {
@@ -58,9 +64,10 @@ public class VonNeumannSystemFragment extends VonNeumannActivityFragment {
      * @param memData System memory
      * @return A new instance of fragment VonNeumannSystemFragment.
      */
-    public static VonNeumannSystemFragment newInstance(ComputeCore core, RAM memData) {
+    public static VonNeumannSystemFragment newInstance(ObservableComputeCore core, ObservableRAM memData,
+                                                       ObservableControlUnit cu) {
         VonNeumannSystemFragment fragment = new VonNeumannSystemFragment();
-        fragment.init(core, memData, R.layout.fragment_von_neumann_system);
+        fragment.init(core, memData, cu, R.layout.fragment_von_neumann_system);
         return fragment;
     }
 }

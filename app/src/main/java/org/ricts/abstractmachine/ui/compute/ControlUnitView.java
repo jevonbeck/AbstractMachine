@@ -12,13 +12,20 @@ import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
 import org.ricts.abstractmachine.components.interfaces.ControlUnitInterface;
 import org.ricts.abstractmachine.components.interfaces.MemoryPort;
 import org.ricts.abstractmachine.components.interfaces.ReadPort;
+import org.ricts.abstractmachine.components.observables.ObservableComputeCore;
+import org.ricts.abstractmachine.components.observables.ObservableControlUnit;
+import org.ricts.abstractmachine.components.observables.ObservableRegister;
+import org.ricts.abstractmachine.ui.storage.MemoryPortView;
+import org.ricts.abstractmachine.ui.storage.ReadPortView;
 import org.ricts.abstractmachine.ui.storage.RegDataView;
 
-public class ControlUnitView extends RelativeLayout implements ControlUnitInterface {
+import java.util.Observable;
+import java.util.Observer;
+
+public class ControlUnitView extends RelativeLayout implements Observer{
     private RegDataView pc; // Program Counter
     private RegDataView ir; // Instruction Register
-    private TextView stateView;
-    private ControlUnit cu;
+    private FSMView stateView; // Control Unit state
 
     public ControlUnitView(Context context) {
         this(context, null);
@@ -32,21 +39,20 @@ public class ControlUnitView extends RelativeLayout implements ControlUnitInterf
         super(context, attrs, defStyle);
 
         float scaleFactor = context.getResources().getDisplayMetrics().density;
-        /*** init properties ***/
+        /*** setSelectWidth properties ***/
         setBackgroundColor(context.getResources().getColor(R.color.reg_data_unselected));
         int padding = (int) (10 * scaleFactor);
         setPadding(padding, padding, padding, padding);
 
         /*** create children ***/
         pc = new RegDataView(context);
+        pc.setId(R.id.ControlUnitView_pc_view);
         pc.setBackgroundColor(context.getResources().getColor(R.color.test_color));
-        pc.setTextColor(context.getResources().getColor(android.R.color.white));
         pc.setUpdateImmediately(false);
 
         ir = new RegDataView(context);
         ir.setId(R.id.ControlUnitView_ir_view);
         ir.setBackgroundColor(context.getResources().getColor(R.color.test_color));
-        ir.setTextColor(context.getResources().getColor(android.R.color.white));
         ir.setUpdateImmediately(false);
 
         TextView pcLabel = new TextView(context);
@@ -66,8 +72,8 @@ public class ControlUnitView extends RelativeLayout implements ControlUnitInterf
         stateLabel.setTextColor(context.getResources().getColor(android.R.color.white));
         stateLabel.setText(context.getResources().getText(R.string.control_unit_state_label));
 
-        stateView = new TextView(context);
-        stateView.setTextColor(context.getResources().getColor(android.R.color.white));
+        stateView = new FSMView(context);
+        stateView.setId(R.id.ControlUnitView_fsm_view);
         stateView.setBackgroundColor(context.getResources().getColor(R.color.test_color2));
 
         /*** determine children layouts and positions ***/
@@ -109,74 +115,72 @@ public class ControlUnitView extends RelativeLayout implements ControlUnitInterf
     }
 
     @Override
-    public void setToFetchState() {
-        cu.setToFetchState();
-        updateStateView();
+    public void update(Observable observable, Object o) {
+        if(observable instanceof ObservableControlUnit){
+            ObservableControlUnit observed = (ObservableControlUnit) observable;
+            ControlUnit controlUnit = observed.getType();
+
+            if(controlUnit.isAboutToExecute()){
+                // update immediately when state changes to 'execute' state
+                stateView.setUpdateImmediately(true);
+                stateView.update(observable, o);
+                stateView.setUpdateImmediately(false);
+            }
+        }
     }
 
-    @Override
-    public void setToExecuteState() {
-        cu.setToExecuteState();
-        updateStateView();
-    }
+    public void initCU(ObservableControlUnit controlUnit, ComputeCoreView coreView,
+                       MemoryPortView instructionCache){
+        ObservableRegister obsPC = controlUnit.getType().getPcReg();
+        ObservableRegister obsIR = controlUnit.getType().getIrReg();
 
-    @Override
-    public void setToHaltState() {
-        cu.setToHaltState();
-        updateStateView();
-    }
+        /** Add observers to observables **/
+        controlUnit.addObserver(stateView);
+        obsPC.addObserver(pc);
+        obsIR.addObserver(ir);
 
-    @Override
-    public void performNextAction() {
-        cu.performNextAction();
-        updateStateView();
-    }
+        /** init displayable values **/
+        stateView.setUpdateImmediately(true);
+        stateView.update(controlUnit, null);
+        stateView.setUpdateImmediately(false);
 
-    @Override
-    public boolean isAboutToExecute() {
-        return cu.isAboutToExecute();
-    }
+        pc.setUpdateImmediately(true);
+        pc.update(obsPC, null);
+        pc.setUpdateImmediately(false);
 
-    @Override
-    public int nextActionDuration(){
-        return cu.nextActionDuration();
-    }
+        ir.setUpdateImmediately(true);
+        ir.update(obsIR, null);
+        ir.setUpdateImmediately(false);
 
-    @Override
-    public int getPC() {
-        return cu.getPC();
-    }
+        /** setup callback behaviour **/
+        instructionCache.setReadResponder(new ReadPortView.ReadResponder() {
+            @Override
+            public void onReadFinished() {
+                ir.updateDisplayText();
+                //pc.setUpdateImmediately(false);
+            }
 
-    @Override
-    public void setPC(int currentPC) {
-        cu.setPC(currentPC);
-    }
+            @Override
+            public void onReadStart() {
+                // TODO: verify working
+                //pc.setUpdateImmediately(true);
+                pc.updateDisplayText();
+            }
+        });
 
-    @Override
-    public void setIR(int currentIR) {
-        cu.setIR(currentIR);
-    }
+        coreView.setUpdatePcResponder(new ComputeCoreView.PinsView.UpdateResponder() {
+            @Override
+            public void onUpdatePcCompleted() {
+                pc.updateDisplayText();
+                //stateView.updateDisplayText();
+            }
+        });
 
-    public void initCU(ComputeCoreInterface core, ReadPort instructionCache, MemoryPort dataMemory){
-        cu = new ControlUnit();
-        cu.setStateEngine(
-                new ControlUnit.StateEngine(pc, ir, core, instructionCache, dataMemory, this));
-
-        pc.setDataWidth(core.iAddrWidth());
-        ir.setDataWidth(core.instrWidth());
-
-        updateStateView();
-    }
-
-    public void updatePcView(){
-        pc.updateDisplayText();
-    }
-
-    public void updateIrView(){
-        ir.updateDisplayText();
-    }
-
-    private void updateStateView(){
-        stateView.setText(cu.getCurrentState());
+        coreView.setHaltCommandResponder(new ComputeCoreView.HaltResponder() {
+            @Override
+            public void onHaltCompleted() {
+                stateView.updateDisplayText();
+            }
+        });
     }
 }
