@@ -9,6 +9,7 @@ import android.widget.TextView;
 
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.devicetype.Device;
+import org.ricts.abstractmachine.components.storage.ROM;
 
 /**
  * Created by Jevon on 20/09/14.
@@ -21,7 +22,7 @@ public class MemoryDataAdapter extends RecyclerView.Adapter<MemoryDataAdapter.Vi
     private int addressWidth;
     private int dataWidth;
 
-    public MemoryDataAdapter(Context c, int resource, int textViewResourceId, int[] data) throws Exception{
+    public MemoryDataAdapter(Context c, int resource, int textViewResourceId, ROM rom) throws Exception{
         super();
 
         View testView = View.inflate(c, resource, null);
@@ -34,7 +35,9 @@ public class MemoryDataAdapter extends RecyclerView.Adapter<MemoryDataAdapter.Vi
         else {
             mViewType = resource;
             textViewID = textViewResourceId;
-            memoryArray = data;
+            memoryArray = rom.dataArray();
+            dataWidth = rom.dataWidth();
+            addressWidth = rom.addressWidth();
         }
     }
 
@@ -64,11 +67,6 @@ public class MemoryDataAdapter extends RecyclerView.Adapter<MemoryDataAdapter.Vi
     @Override
     public int getItemCount() {
         return memoryArray.length;
-    }
-
-    public void setMemoryParams(int dWidth, int aWidth){
-        dataWidth = dWidth;
-        addressWidth = aWidth;
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
