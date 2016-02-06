@@ -1,33 +1,25 @@
 package org.ricts.abstractmachine.components.compute.cu;
 
-public class FiniteStateMachine {	// 'Context'	
+import org.ricts.abstractmachine.components.interfaces.FSMInterface;
+
+public abstract class FiniteStateMachine implements FSMInterface {	// 'Context'
     private State currentState;
 
-    public FiniteStateMachine(){
+    protected abstract State getNextState(State currentState);
 
-    }
-
-    public FiniteStateMachine(State initialState){
-        currentState = initialState;
-    }
-
+    @Override
     public State currentState(){
         return currentState;
     }
 
-    public void doCurrentStateAction(){
-        currentState.performAction();
-    }
-
-    // Current state can be specified
-    // allowing fine grained control of nextState transitions
+    @Override
     public void setCurrentState(State state){
         currentState = state;
     }
 
-    // State transitions can be specified in State object
-    // allowing automatic nextState transitions
-    public void goToNextState(){
-        currentState = currentState.nextState();
+    @Override
+    public void triggerStateChange() {
+        currentState.performAction(); // do current state action
+        setCurrentState(getNextState(currentState)); // go to next state
     }
 }

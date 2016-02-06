@@ -1,24 +1,22 @@
 package org.ricts.abstractmachine.components.compute.cu;
 
+import org.ricts.abstractmachine.components.interfaces.ControlUnitInterface;
 import org.ricts.abstractmachine.components.interfaces.ReadPort;
 import org.ricts.abstractmachine.components.interfaces.RegisterPort;
 
 public class ControlUnitFetchState extends ControlUnitState{
-    private RegisterPort PC; // Program Counter
-    private RegisterPort IR; // Instruction Register
     private ReadPort instructionCache;
+    private ControlUnitInterface controlUnit;
 
-    public ControlUnitFetchState(RegisterPort nextInstrAddr, ReadPort iCache, RegisterPort currentInstr){
+    public ControlUnitFetchState(ControlUnitInterface cu, ReadPort iCache){
         super("fetch");
-        PC = nextInstrAddr;
+        controlUnit = cu;
         instructionCache = iCache;
-        IR = currentInstr;
     }
 
     @Override
     public void performAction(){
-        IR.write(instructionCache.read(PC.read())); // IR = iCache[PC]
-        PC.write(PC.read() + 1); // PC += 1
+        controlUnit.fetchInstruction(instructionCache);
     }
 
     @Override

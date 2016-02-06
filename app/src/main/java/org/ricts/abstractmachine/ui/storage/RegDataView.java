@@ -4,73 +4,37 @@ package org.ricts.abstractmachine.ui.storage;
 import android.content.Context;
 import android.graphics.Typeface;
 import android.util.AttributeSet;
-import android.widget.TextView;
-import org.ricts.abstractmachine.components.devices.Device;
-import org.ricts.abstractmachine.components.interfaces.RegisterPort;
+import org.ricts.abstractmachine.components.devicetype.Device;
 import org.ricts.abstractmachine.components.storage.Register;
+import org.ricts.abstractmachine.components.observables.ObservableRegister;
+import org.ricts.abstractmachine.ui.utils.DelayedUpdateTextView;
 
-public class RegDataView extends TextView implements RegisterPort, ReadPortView.ReadResponder {
-	private Register dataReg;
-	private boolean isDelayed;
+import java.util.Observable;
 
-    public RegDataView(Context context) {
+public class RegDataView extends DelayedUpdateTextView {
+	public RegDataView(Context context) {
         this(context, null);
     }
 
     public RegDataView(Context context, AttributeSet attrs) {
-        this(context, attrs, android.R.attr.textViewStyle);
+        this(context, attrs, 0);
     }
 
 	public RegDataView(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
 
-        setTypeface(Typeface.MONOSPACE);
-        setText(Device.formatNumberInHex(0, 1));
-
-        isDelayed = false;
-	}
-	
-	public void setDataWidth(int dataWidth){
-		dataReg = new Register(dataWidth);
-        updateTextView();
-	}
-
-    public void setRegister(Register r){
-        dataReg = r;
-        updateTextView();
-    }
-	
-	@Override
-	public int read() {
-		return dataReg.read();
-	}
-
-	@Override
-	public void write(int data) {
-		dataReg.write(data);
-		
-		if(!isDelayed){
-            updateTextView();
-		}
-	}
-
-	@Override
-	public void onReadFinished() {
-		updateTextView();
+        mainTextView.setTypeface(Typeface.MONOSPACE);
+        mainTextView.setText(Device.formatNumberInHex(0, 1));
+        mainTextView.setTextColor(context.getResources().getColor(android.R.color.white));
 	}
 
     @Override
-    public void onReadStart() {
+    public void update(Observable observable, Object o) {
+        if(observable instanceof ObservableRegister) {
+            Register dataReg = ((ObservableRegister) observable).getType();
 
+            setUpdateText(Device.formatNumberInHex(dataReg.read(), dataReg.dataWidth()));
+            attemptImmediateTextUpdate();
+        }
     }
-
-    public void setDelayEnable(boolean enable){
-		isDelayed = enable;
-	}
-
-    private void updateTextView(){
-        setText(Device.formatNumberInHex(dataReg.read(), dataReg.dataWidth()));
-    }
-
-
 }

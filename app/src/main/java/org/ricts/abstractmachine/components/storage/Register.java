@@ -1,7 +1,7 @@
 package org.ricts.abstractmachine.components.storage;
 
-import org.ricts.abstractmachine.components.devices.DataDevice;
-import org.ricts.abstractmachine.components.devices.Device;
+import org.ricts.abstractmachine.components.devicetype.DataDevice;
+import org.ricts.abstractmachine.components.devicetype.Device;
 import org.ricts.abstractmachine.components.interfaces.RegisterPort;
 
 public class Register extends Device implements DataDevice, RegisterPort{
@@ -25,5 +25,9 @@ public class Register extends Device implements DataDevice, RegisterPort{
 
     public int dataWidth(){
         return dataWidth;
+    }
+
+    public String dataString(){
+        return formatNumberInHex(dataWord, dataWidth);
     }
 }

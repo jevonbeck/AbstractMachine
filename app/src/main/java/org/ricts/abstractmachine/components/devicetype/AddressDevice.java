@@ -1,4 +1,4 @@
-package org.ricts.abstractmachine.components.devices;
+package org.ricts.abstractmachine.components.devicetype;
 
 public interface AddressDevice {
 	int addressWidth();

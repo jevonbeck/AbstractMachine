@@ -4,26 +4,27 @@ import android.content.Context;
 import android.util.AttributeSet;
 import android.view.animation.Animation;
 
-import org.ricts.abstractmachine.R;
-import org.ricts.abstractmachine.components.devices.Device;
-import org.ricts.abstractmachine.components.interfaces.ReadPort;
+import org.ricts.abstractmachine.components.devicetype.Device;
+import org.ricts.abstractmachine.components.observables.ObservableROM;
+import org.ricts.abstractmachine.components.storage.ROM;
 import org.ricts.abstractmachine.ui.device.DevicePin;
 import org.ricts.abstractmachine.ui.device.MultiPinView;
+
+import java.util.Observable;
+import java.util.Observer;
 
 /**
  * Created by Jevon on 21/08/2015.
  */
-public class ReadPortView extends MultiPinView implements ReadPort {
+public class ReadPortView extends MultiPinView implements Observer {
     public interface ReadResponder{
         void onReadFinished();
         void onReadStart();
     }
 
-    protected int dataWidth, addressWidth;
-    protected int readDelay, startDelay;
+    protected int readDelay;
 
     private ReadResponder readResponder;
-    protected ReadPort rom;
 
     protected enum PinNames{
         COMMAND, ADDRESS, DATA
@@ -66,73 +67,64 @@ public class ReadPortView extends MultiPinView implements ReadPort {
     }
 
     @Override
-    public int read(final int address) {
-        final int readData = rom.read(address);
+    public void update(Observable observable, Object o) {
+        if(observable != null && observable instanceof ObservableROM &&
+                o != null && o instanceof ObservableROM.ReadParams) {
+            ObservableROM observedRom = (ObservableROM) observable;
+            ROM rom = (ROM) observedRom.getType();
 
-        // Setup correct data in pin UI
-        DevicePin pin = pinArray[PinNames.COMMAND.ordinal()];
-        pin.data = "read";
-        pin.direction = inDirection;
-        pin.action = DevicePin.PinAction.MOVING;
-        pin.startBehaviour = DevicePin.AnimStartBehaviour.DELAY;
-        pin.animationDelay = startDelay;
-        pin.animListener = null;
+            final int address = ((ObservableROM.ReadParams) o).getAddress();
+            final int readData = rom.read(address);
+            int dataWidth = rom.dataWidth();
+            int addressWidth = rom.addressWidth();
 
-        pin = pinArray[PinNames.ADDRESS.ordinal()];
-        pin.data = Device.formatNumberInHex(address, addressWidth);
-        pin.direction = inDirection;
-        pin.action = DevicePin.PinAction.MOVING;
-        pin.startBehaviour = DevicePin.AnimStartBehaviour.DELAY;
-        pin.animationDelay = startDelay;
+            // Setup correct data in pin UI
+            DevicePin pin = pinArray[PinNames.COMMAND.ordinal()];
+            pin.data = "read";
+            pin.direction = inDirection;
+            pin.action = DevicePin.PinAction.MOVING;
+            pin.startBehaviour = DevicePin.AnimStartBehaviour.DELAY;
+            pin.animationDelay = startDelay;
+            pin.animListener = null;
 
-        pin = pinArray[PinNames.DATA.ordinal()];
-        pin.data = Device.formatNumberInHex(readData, dataWidth);
-        pin.direction = outDirection;
-        pin.action = DevicePin.PinAction.MOVING;
-        pin.startBehaviour = DevicePin.AnimStartBehaviour.DELAY;
-        pin.animationDelay = startDelay + readDelay;
-        pin.animListener = new Animation.AnimationListener(){
-            @Override
-            public void onAnimationEnd(Animation animation){
-                if(readResponder != null){
-                    readResponder.onReadFinished();
+            pin = pinArray[PinNames.ADDRESS.ordinal()];
+            pin.dataWidth = addressWidth;
+            pin.data = Device.formatNumberInHex(address, addressWidth);
+            pin.direction = inDirection;
+            pin.action = DevicePin.PinAction.MOVING;
+            pin.startBehaviour = DevicePin.AnimStartBehaviour.DELAY;
+            pin.animationDelay = startDelay;
+
+            pin = pinArray[PinNames.DATA.ordinal()];
+            pin.dataWidth = dataWidth;
+            pin.data = Device.formatNumberInHex(readData, dataWidth);
+            pin.direction = outDirection;
+            pin.action = DevicePin.PinAction.MOVING;
+            pin.startBehaviour = DevicePin.AnimStartBehaviour.DELAY;
+            pin.animationDelay = startDelay + readDelay;
+            pin.animListener = new Animation.AnimationListener(){
+                @Override
+                public void onAnimationEnd(Animation animation){
+                    if(readResponder != null){
+                        readResponder.onReadFinished();
+                    }
                 }
-            }
 
-            @Override
-            public void onAnimationRepeat(Animation arg0) {
+                @Override
+                public void onAnimationRepeat(Animation arg0) {
 
-            }
-
-            @Override
-            public void onAnimationStart(Animation arg0) {
-                if(readResponder != null){
-                    readResponder.onReadStart();
                 }
-            }
-        };
 
-        updateView(); // Animate pin UI
+                @Override
+                public void onAnimationStart(Animation arg0) {
+                    if(readResponder != null){
+                        readResponder.onReadStart();
+                    }
+                }
+            };
 
-        return readData; // return actual data to underlying requester
-    }
-
-    @Override
-    public int accessTime() {
-        return rom.accessTime();
-    }
-
-    public void initParams(int dWidth, int aWidth){
-        dataWidth = dWidth;
-        addressWidth = aWidth;
-
-        // update pin data (memoryPins data)
-        pinArray[PinNames.ADDRESS.ordinal()].dataWidth = addressWidth;
-        pinArray[PinNames.DATA.ordinal()].dataWidth = dataWidth;
-    }
-
-    public void setStartDelay(int delayMultiple){
-        startDelay = getDelay(delayMultiple);
+            updateView(); // Animate pin UI
+        }
     }
 
     public void setReadAnimationDelay(int delayMultiple){
@@ -141,13 +133,5 @@ public class ReadPortView extends MultiPinView implements ReadPort {
 
     public void setReadResponder(ReadResponder responder){
         readResponder = responder;
-    }
-
-    public void setSource(ReadPort readSource){
-        rom = readSource;
-    }
-
-    private int getDelay(int multiple){
-        return multiple * getContext().getResources().getInteger(R.integer.pin_sig_trans_time);
     }
 }

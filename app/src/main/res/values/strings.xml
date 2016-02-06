@@ -32,17 +32,24 @@
     <item name="DeviceView_pin_view" type="id"/>
     <item name="ControlUnitView_pc_label" type="id"/>
     <item name="ControlUnitView_ir_label" type="id"/>
+    <item name="ControlUnitView_pc_view" type="id"/>
     <item name="ControlUnitView_ir_view" type="id"/>
+    <item name="ControlUnitView_fsm_view" type="id"/>
     <item name="ControlUnitView_state_label" type="id"/>
     <item name="ComputeCoreView_instruction_label" type="id"/>
+    <item name="CpuCoreView_pc_view" type="id"/>
+    <item name="CpuCoreView_ir_view" type="id"/>
+    <item name="CpuCoreView_fsm_view" type="id"/>
     <item name="PinView_background_layout" type="id"/>
     <item name="PinView_pin_name" type="id"/>
     <item name="PinView_signal_text" type="id"/>
-    <item name="MemoryPortMultiplexerView_input_pins" type="id"/>
-    <item name="MemoryPortMultiplexerView_output_pins" type="id"/>
-    <item name="MemoryPortMultiplexerView_middle" type="id"/>
-    <item name="MemoryPortMultiplexerView_first_triangle" type="id"/>
-    <item name="MemoryPortMultiplexerView_last_triangle" type="id"/>
+    <item name="MultiplexerView_input_pins" type="id"/>
+    <item name="MultiplexerView_output_pins" type="id"/>
+    <item name="MultiplexerView_middle" type="id"/>
+    <item name="MultiplexerView_first_triangle" type="id"/>
+    <item name="MultiplexerView_last_triangle" type="id"/>
+    <item name="VonNeumannSystemFragment_main_view" type="id"/>
+    <item name="VonNeumannCoreFragment_main_view" type="id"/>
 
     <!-- Custom View Attributes -->
     <integer name="DeviceView_pin_position_left">0</integer>
@@ -56,5 +63,8 @@
     <integer name="RightAngleTriangleView_pinOrientation_none">0</integer>
     <integer name="RightAngleTriangleView_pinOrientation_horizontal">1</integer>
     <integer name="RightAngleTriangleView_pinOrientation_vertical">2</integer>
+    <string name="title_activity_von_neu_frag">VonNeuFragActivity</string>
 
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

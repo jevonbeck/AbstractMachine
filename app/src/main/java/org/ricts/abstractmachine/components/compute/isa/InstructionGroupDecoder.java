@@ -1,7 +1,7 @@
 package org.ricts.abstractmachine.components.compute.isa;
 
 import android.util.Log;
-import org.ricts.abstractmachine.components.devices.Device;
+import org.ricts.abstractmachine.components.devicetype.Device;
 
 public class InstructionGroupDecoder extends Device {
 	private static final String TAG = "InstructionGroupDecoder";

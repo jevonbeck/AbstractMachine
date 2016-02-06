@@ -3,7 +3,7 @@ package org.ricts.abstractmachine.devices.compute.core;
 public class BasicScalarEnums {
     //Enum for instructions with 0 operands
     public enum NoOperands {
-        POP, NOP;
+        POP, NOP, HALT;
 
         private static NoOperands[] opcodeArr;
         private static String enumName = "NoOperands";

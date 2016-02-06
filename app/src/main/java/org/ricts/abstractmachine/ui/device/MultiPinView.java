@@ -14,6 +14,7 @@ import org.ricts.abstractmachine.ui.utils.CustomDimenRecyclerView;
 public class MultiPinView extends RelativeLayout {
     protected final DevicePin.PinDirection inDirection, outDirection;
     protected DevicePin[] pinArray;
+    protected int startDelay;
 
     private PinDataAdapter pinAdapter;
     private int pinPosition;
@@ -81,5 +82,13 @@ public class MultiPinView extends RelativeLayout {
 
     public void updateView(){
         pinAdapter.notifyDataSetChanged(); // Animate pin UI
+    }
+
+    public void setStartDelay(int delayMultiple){
+        startDelay = getDelay(delayMultiple);
+    }
+
+    protected int getDelay(int multiple){
+        return multiple * getContext().getResources().getInteger(R.integer.pin_sig_trans_time);
     }
 }

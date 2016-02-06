@@ -6,7 +6,6 @@ import org.ricts.abstractmachine.components.interfaces.ControlUnitInterface;
 import org.ricts.abstractmachine.components.interfaces.ReadPort;
 import org.ricts.abstractmachine.components.interfaces.MemoryPort;
 import org.ricts.abstractmachine.components.interfaces.ThreadProcessingUnit;
-import org.ricts.abstractmachine.components.storage.Register;
 
 public class HarvardCore implements ThreadProcessingUnit{
 	private int nopInstruction; 
@@ -21,14 +20,10 @@ public class HarvardCore implements ThreadProcessingUnit{
        One performs a fetch while the other executes... ALWAYS! */
     
 		// thread unit 1 (TU 1) - initial state = 'fetch'
-        Register pc1 = new Register(core.iAddrWidth()); // Program Counter for TU 1
-        Register ir1 = new Register(core.instrWidth()); // Instruction Register for TU 1
-	    cu1 = new ControlUnit(pc1, ir1, core, instructionCache, dataMemory);
+        cu1 = new ControlUnit(core, instructionCache, dataMemory);
 	        
 	    // thread unit 2 (TU 2) - initial state = 'execute'
-        Register pc2 = new Register(core.iAddrWidth()); // Program Counter for TU 2
-        Register ir2 = new Register(core.instrWidth()); // Instruction Register for TU 2
-	    cu2 = new ControlUnit(pc2, ir2, core, instructionCache, dataMemory); 
+        cu2 = new ControlUnit(core, instructionCache, dataMemory);
 	    
 	    // initialise thread units
 	    setStartExecFrom(0);	
@@ -36,8 +31,7 @@ public class HarvardCore implements ThreadProcessingUnit{
 	
 	@Override
 	public void setStartExecFrom(int currentPC){
-		cu1.setPC(currentPC);
-        cu1.setToFetchState();
+		cu1.setStartExecFrom(currentPC);
 
         cu2.setPC(currentPC + 1);
         cu2.setIR(nopInstruction);

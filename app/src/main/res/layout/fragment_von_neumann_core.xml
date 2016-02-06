@@ -4,13 +4,24 @@
                 android:layout_width="fill_parent"
                 android:layout_height="fill_parent">
 
-    <View
+    <RelativeLayout
         android:id="@+id/cuExtension"
         android:layout_width="300dp"
         android:layout_height="50dp"
         android:layout_alignRight="@+id/control_unit"
         android:background="@color/reg_data_unselected"
-        />
+        android:paddingLeft="38dp"
+        android:paddingBottom="10dp"
+        >
+        <TextView
+            android:id="@+id/muxSelect"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:background="@color/pin_sig_color"
+            android:textColor="@android:color/black"
+            />
+    </RelativeLayout>
 
     <view
         class="org.ricts.abstractmachine.ui.network.MemoryPortMultiplexerView"
@@ -41,28 +52,4 @@
         android:layout_below="@+id/control_unit"
         custom:pinPosition="top"
         />
-
-    <Button
-        android:id="@+id/stepButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:text="Step forward"
-        />
-    <TextView
-        android:id="@+id/sysClockLabel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_toRightOf="@id/stepButton"
-        android:layout_alignTop="@id/stepButton"
-        android:text="Time elapsed: "
-        />
-    <TextView
-        android:id="@+id/sysClockText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_toRightOf="@id/sysClockLabel"
-        android:layout_alignTop="@id/sysClockLabel"
-        />
-
 </RelativeLayout>

@@ -7,12 +7,14 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import org.ricts.abstractmachine.R;
-import org.ricts.abstractmachine.ui.storage.MemoryPortView;
 import org.ricts.abstractmachine.ui.network.MemoryPortMultiplexerView;
+import org.ricts.abstractmachine.ui.storage.MemoryPortView;
 import org.ricts.abstractmachine.ui.storage.RamView;
 
 public class MemoryPortMultiplexerTutorialActivity extends AppCompatActivity {
     private EditText addressEdit, dataEdit, selectEdit;
+
+    // FIXME!!!
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,10 +25,14 @@ public class MemoryPortMultiplexerTutorialActivity extends AppCompatActivity {
         memory.initMemory(8, 3, 10);
 
         final MemoryPortMultiplexerView mux = (MemoryPortMultiplexerView) findViewById(R.id.mux);
-        mux.initMux(1, 8, 3);
-        mux.setOutputSource(memory);
+        mux.setSelectWidth(1);
+        //mux.setOutputSource(memory);
 
-        final MemoryPortView inputs[] =  mux.getInputs();
+        View [] temp = mux.getInputs();
+        final MemoryPortView inputs[] =  new MemoryPortView[temp.length];
+        for(int x=0; x != inputs.length; ++x){
+            inputs[x] = (MemoryPortView) temp[x];
+        }
 
         addressEdit = (EditText) findViewById(R.id.addressEdit);
         dataEdit = (EditText) findViewById(R.id.dataEdit);
@@ -37,7 +43,7 @@ public class MemoryPortMultiplexerTutorialActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 mux.setSelection(getSelect());
-                inputs[mux.getSelection()].read(getAddress());
+                //inputs[mux.getSelection()].read(getAddress());
             }
         });
 
@@ -46,7 +52,7 @@ public class MemoryPortMultiplexerTutorialActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 mux.setSelection(getSelect());
-                inputs[mux.getSelection()].write(getAddress(), getData());
+                //inputs[mux.getSelection()].write(getAddress(), getData());
             }
         });
     }

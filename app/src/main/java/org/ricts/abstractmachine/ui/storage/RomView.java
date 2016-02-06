@@ -1,19 +1,19 @@
 package org.ricts.abstractmachine.ui.storage;
 
 import java.util.List;
+import java.util.Observable;
+import java.util.Observer;
 
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.View;
 
 import org.ricts.abstractmachine.R;
-import org.ricts.abstractmachine.components.interfaces.ReadPort;
 import org.ricts.abstractmachine.components.storage.ROM;
 import org.ricts.abstractmachine.ui.device.DeviceView;
 import org.ricts.abstractmachine.ui.utils.CustomDimenRecyclerView;
-import org.ricts.abstractmachine.ui.utils.UiUtils;
 
-public class RomView extends DeviceView implements ReadPort {
+public class RomView extends DeviceView implements Observer {
     protected int dataWidth;
     protected int addressWidth;
 
@@ -70,15 +70,15 @@ public class RomView extends DeviceView implements ReadPort {
         return ramView;
     }
 
-
     @Override
-    public int read(int address) {
-        return memoryPins.read(address); // initialise read animation & return underlying data
+    protected LayoutParams createMainViewLayoutParams() {
+        return new LayoutParams(
+                LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
     }
 
     @Override
-    public int accessTime() {
-        return rom.accessTime();
+    public void update(Observable observable, Object o) {
+        memoryPins.update(observable, o); // initialise read animation
     }
 
     public void initMemory(int dWidth, int aWidth, int accessTime){
@@ -92,17 +92,14 @@ public class RomView extends DeviceView implements ReadPort {
     }
 
     public void setDataSource(ROM r){
+        rom = r;
         dataWidth = rom.dataWidth();
         addressWidth = rom.addressWidth();
 
-        rom = r;
         init();
     }
 
     protected void init(){
-        memoryPins.initParams(dataWidth, addressWidth);
-        memoryPins.setSource(rom);
-
         /*** bind memoryView to their data ***/
         try {
             dataAdapter = new MemoryDataAdapter(getContext(), ramItemLayout,

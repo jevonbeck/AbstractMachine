@@ -5,8 +5,8 @@ import java.util.ArrayList;
 import org.ricts.abstractmachine.components.compute.cores.ComputeCore;
 import org.ricts.abstractmachine.components.compute.isa.InstructionGroup;
 import org.ricts.abstractmachine.components.compute.isa.IsaDecoder;
+import org.ricts.abstractmachine.components.interfaces.ControlUnitInterface;
 import org.ricts.abstractmachine.components.interfaces.MemoryPort;
-import org.ricts.abstractmachine.components.interfaces.RegisterPort;
 import org.ricts.abstractmachine.components.storage.RAM;
 import org.ricts.abstractmachine.components.storage.Register;
 import org.ricts.abstractmachine.datastructures.Stack;
@@ -30,12 +30,18 @@ public class BasicScalar extends ComputeCore {
 
 
     /* core dependent features */
+    private Register statusReg;
+    private Register intEnableReg; // interrupt enable
+    private Register intFlagsReg; // interrupt flags
     private Register[] dataRegs; // (no. of) registers for manipulating data
     private Register[] dataAddrRegs; // (no. of) registers for storing data addresses
     private Register[] instrAddrRegs; // (no. of) registers for storing instruction addresses (temporarily)
     private Stack callStack; // presence or absence of on-chip call stack
     private BasicALU alu; // operations allowed by ALU
 
+    private int iAddrBitMask;
+    private int dAddrBitMask;
+    private int dataBitMask;
 
     public BasicScalar(int byteMultiplierWidth, int dAdWidth, int iAdWidth, int stkAdWidth,
                        int dRegAdWidth, int dAdrRegAdWidth, int iAdrRegAdWidth) {
@@ -86,7 +92,7 @@ public class BasicScalar extends ComputeCore {
         }
 
         int[] array; // array for populating instruction formats
-        instructionSet = new ArrayList<InstructionGroup>();
+        ArrayList<InstructionGroup> instructionSet = new ArrayList<InstructionGroup>();
 		
 		/* Initialise ISA. N.B: BasicCore has a register machine ISA */
         // Instructions with 0 operands
@@ -205,6 +211,23 @@ public class BasicScalar extends ComputeCore {
 
         nopGroupName = BasicScalarEnums.NoOperands.enumName();
         nopMneumonic = BasicScalarEnums.NoOperands.NOP.name();
+    }
+
+    @Override
+    public boolean isDataMemInstr(String groupName, int enumOrdinal) {
+        if (groupName.equals(BasicScalarEnums.DataMemOps.enumName())) {
+            BasicScalarEnums.DataMemOps enumOp = BasicScalarEnums.DataMemOps.decode(enumOrdinal);
+
+            return enumOp.equals(BasicScalarEnums.DataMemOps.LOADM) ||
+                    enumOp.equals(BasicScalarEnums.DataMemOps.STOREM);
+        }
+        return false;
+    }
+
+    @Override
+    protected boolean isHaltInstr(String groupName, int enumOrdinal) {
+        return groupName.equals(BasicScalarEnums.NoOperands.enumName()) &&
+                BasicScalarEnums.NoOperands.decode(enumOrdinal) == BasicScalarEnums.NoOperands.HALT;
     }
 
     @Override
@@ -407,38 +430,40 @@ public class BasicScalar extends ComputeCore {
     }
 
     @Override
-    protected void updateProgramCounter(String groupName, int enumOrdinal, int[] operands, RegisterPort PC) {
+    protected void updateProgramCounter(String groupName, int enumOrdinal, int[] operands, ControlUnitInterface cu) {
         if (groupName.equals(BasicScalarEnums.NoOperands.enumName())) {
             // Instructions with 0 operands
             switch (BasicScalarEnums.NoOperands.decode(enumOrdinal)) {
-                case POP: // PC <-- predefinedStack.pop(); updateUnderflowFlag(); ('return' control-flow construct)
-                    PC.write(callStack.pop());
+                case POP: // cu <-- predefinedStack.pop(); updateUnderflowFlag(); ('return' control-flow construct)
+                    cu.setStartExecFrom(callStack.pop());
                     intFlagsReg.write(setBitValueAtIndex(InterruptFlags.STACKUFLOW.ordinal(), intFlagsReg.read(), callStack.isEmpty()));
                     break;
                 case NOP: // do nothing
-                default:
+                    break;
+                case HALT: // tell Control Unit to stop execution
+                    cu.setToHaltState();
                     break;
             }
         } else if (groupName.equals(BasicScalarEnums.InstrAddressLiteral.enumName())) {
             // Instructions with 1 instruction address literal
             switch (BasicScalarEnums.InstrAddressLiteral.decode(enumOrdinal)) {
-                case JUMP: // PC <-- INSTRLIT ('goto'/'break'/'continue' control-flow construct)
-                    PC.write(operands[0]);
+                case JUMP: // cu <-- INSTRLIT ('goto'/'break'/'continue' control-flow construct)
+                    cu.setStartExecFrom(operands[0]);
                     break;
             }
         } else if (groupName.equals(BasicScalarEnums.InstrAddressReg.enumName())) {
             // Instructions with 1 instruction address register
             switch (BasicScalarEnums.InstrAddressReg.decode(enumOrdinal)) {
-                case JUMP: // PC <-- IADREG ('goto'/'break'/'continue' control-flow construct)
-                    PC.write(instrAddrRegs[operands[0]].read());
+                case JUMP: // cu <-- IADREG ('goto'/'break'/'continue' control-flow construct)
+                    cu.setStartExecFrom(instrAddrRegs[operands[0]].read());
                     break;
                 case PUSH: // predefStack.push(IADREG); updateOverflowFlag(); (part of 'function-call' control-flow construct)
                     callStack.push(instrAddrRegs[operands[0]].read());
 
                     intFlagsReg.write(setBitValueAtIndex(InterruptFlags.STACKOFLOW.ordinal(), intFlagsReg.read(), callStack.isFull()));
                     break;
-                case STOREPC: // IADREG <-- PC (part of 'switch' statement / look-up table / 'function-call' control-flow construct)
-                    instrAddrRegs[operands[0]].write(PC.read());
+                case STOREPC: // IADREG <-- cu (part of 'switch' statement / look-up table / 'function-call' control-flow construct)
+                    instrAddrRegs[operands[0]].write(cu.getPC());
                     break;
             }
         } else if (groupName.equals(BasicScalarEnums.InstrAddrConvert.enumName())) {
@@ -461,14 +486,14 @@ public class BasicScalar extends ComputeCore {
             int iAddrLiteral = operands[2];
 
             switch (BasicScalarEnums.ConditionalBranchLiteral.decode(enumOrdinal)) {
-                case JUMPIFBC: // IF (!DREG[BITINDEX]) PC <-- IADLITERAL ('for'/'while'/'if-else' sourceReg[bitIndex])
+                case JUMPIFBC: // IF (!DREG[BITINDEX]) cu <-- IADLITERAL ('for'/'while'/'if-else' sourceReg[bitIndex])
                     if (!getBitAtIndex(bitIndex, dataRegs[dRegAddr].read())) {
-                        PC.write(iAddrLiteral);
+                        cu.setStartExecFrom(iAddrLiteral);
                     }
                     break;
-                case JUMPIFBS: // IF (DREG[BITINDEX]) PC <-- IADLITERAL ('do-while' sourceReg[bitIndex])
+                case JUMPIFBS: // IF (DREG[BITINDEX]) cu <-- IADLITERAL ('do-while' sourceReg[bitIndex])
                     if (getBitAtIndex(bitIndex, dataRegs[dRegAddr].read())) {
-                        PC.write(iAddrLiteral);
+                        cu.setStartExecFrom(iAddrLiteral);
                     }
                     break;
             }
@@ -479,14 +504,14 @@ public class BasicScalar extends ComputeCore {
             int iAddrRegValue = instrAddrRegs[operands[2]].read();
 
             switch (BasicScalarEnums.ConditionalBranch.decode(enumOrdinal)) {
-                case JUMPIFBC: // IF (!DREG[BITINDEX]) PC <-- IADREG ('for'/'while'/'if-else' sourceReg[bitIndex])
+                case JUMPIFBC: // IF (!DREG[BITINDEX]) cu <-- IADREG ('for'/'while'/'if-else' sourceReg[bitIndex])
                     if (!getBitAtIndex(bitIndex, dataRegs[dRegAddr].read())) {
-                        PC.write(iAddrRegValue);
+                        cu.setStartExecFrom(iAddrRegValue);
                     }
                     break;
-                case JUMPIFBS: // IF (DREG[BITINDEX]) PC <-- IADREG ('do-while' sourceReg[bitIndex])
+                case JUMPIFBS: // IF (DREG[BITINDEX]) cu <-- IADREG ('do-while' sourceReg[bitIndex])
                     if (getBitAtIndex(bitIndex, dataRegs[dRegAddr].read())) {
-                        PC.write(iAddrRegValue);
+                        cu.setStartExecFrom(iAddrRegValue);
                     }
                     break;
             }

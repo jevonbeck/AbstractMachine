@@ -9,20 +9,27 @@ import android.widget.TextView;
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.compute.cores.ComputeCore;
 import org.ricts.abstractmachine.components.compute.cu.ControlUnit;
+import org.ricts.abstractmachine.components.devicetype.Device;
+import org.ricts.abstractmachine.components.observables.ObservableComputeCore;
 import org.ricts.abstractmachine.components.interfaces.ThreadProcessingUnit;
+import org.ricts.abstractmachine.components.observables.ObservableControlUnit;
+import org.ricts.abstractmachine.components.observables.ObservableRegister;
+import org.ricts.abstractmachine.components.storage.Register;
 import org.ricts.abstractmachine.ui.storage.RamView;
+import org.ricts.abstractmachine.ui.storage.ReadPortView;
 import org.ricts.abstractmachine.ui.storage.RegDataView;
+
+import java.util.Observable;
+import java.util.Observer;
 
 /**
  * Created by Jevon on 18/01/15.
  */
-public class CpuCoreView extends RelativeLayout implements ThreadProcessingUnit {
-    private RegDataView pc; // Program Counter
-    private RegDataView ir; // Instruction Register
+public class CpuCoreView extends RelativeLayout implements Observer {
+    private TextView pc, ir;
     private TextView stateView, instructionView;
+    private String irText;
 
-    private ControlUnit cu; // Control Unit
-    private ComputeCore mainCore;
 
     /** Standard Constructors **/
     public CpuCoreView(Context context) {
@@ -37,20 +44,21 @@ public class CpuCoreView extends RelativeLayout implements ThreadProcessingUnit 
         super(context, attrs, defStyle);
 
         float scaleFactor = context.getResources().getDisplayMetrics().density;
-        /*** init properties ***/
+        /*** setSelectWidth properties ***/
         setBackgroundColor(context.getResources().getColor(R.color.reg_data_unselected));
         int padding = (int) (10 * scaleFactor);
         setPadding(padding, padding, padding, padding);
 
         /*** create children ***/
-        pc = new RegDataView(context);
-        pc.setBackgroundColor(context.getResources().getColor(R.color.test_color));
+        pc = new TextView(context);
+        pc.setId(R.id.CpuCoreView_pc_view);
         pc.setTextColor(context.getResources().getColor(android.R.color.white));
+        pc.setBackgroundColor(context.getResources().getColor(R.color.test_color));
 
-        ir = new RegDataView(context);
-        ir.setId(R.id.ControlUnitView_ir_view);
-        ir.setBackgroundColor(context.getResources().getColor(R.color.test_color));
+        ir = new TextView(context);
+        ir.setId(R.id.CpuCoreView_ir_view);
         ir.setTextColor(context.getResources().getColor(android.R.color.white));
+        ir.setBackgroundColor(context.getResources().getColor(R.color.test_color));
 
         TextView pcLabel = new TextView(context);
         pcLabel.setId(R.id.ControlUnitView_pc_label);
@@ -70,6 +78,7 @@ public class CpuCoreView extends RelativeLayout implements ThreadProcessingUnit 
         stateLabel.setText(context.getResources().getText(R.string.control_unit_state_label));
 
         stateView = new TextView(context);
+        stateView.setId(R.id.CpuCoreView_fsm_view);
         stateView.setTextColor(context.getResources().getColor(android.R.color.white));
         stateView.setBackgroundColor(context.getResources().getColor(R.color.test_color2));
 
@@ -133,38 +142,42 @@ public class CpuCoreView extends RelativeLayout implements ThreadProcessingUnit 
         addView(instructionView, lpInstructionView);
     }
 
-    public void initCpu(ComputeCore core, RamView mainMemory){
-        mainCore = core;
+    public void initCpu(ControlUnit controlUnit, RamView mainMemory){
+        /** initialise variables **/
+        stateView.setText(controlUnit.currentState().getName());
+        pc.setText(controlUnit.getPcReg().dataString());
+        ir.setText(controlUnit.getIrReg().dataString());
 
-        pc.setDataWidth(mainCore.iAddrWidth());
-        ir.setDataWidth(mainCore.instrWidth());
-        mainMemory.setReadResponder(ir);
-        ir.setDelayEnable(true);
+        /** setup callback behaviour **/
+        mainMemory.setReadResponder(new ReadPortView.ReadResponder() {
+            @Override
+            public void onReadFinished() {
+                ir.setText(irText); // only update ir when read finished
+            }
 
-        cu = new ControlUnit(pc, ir, mainCore, mainMemory, mainMemory);
+            @Override
+            public void onReadStart() {
 
-        setStartExecFrom(0);
+            }
+        });
     }
 
     @Override
-    public void setStartExecFrom(int currentPC){
-        pc.write(currentPC);
-        cu.setToFetchState();
-        stateView.setText(cu.getCurrentState());
-    }
+    public void update(Observable observable, Object o) {
+        if(observable instanceof ObservableControlUnit){
+            ControlUnit controlUnit = ((ObservableControlUnit) observable).getType();
 
-    @Override
-    public int nextActionTransitionTime(){
-        return cu.nextActionDuration();
-    }
+            stateView.setText(controlUnit.currentState().getName());
+            pc.setText(controlUnit.getPcReg().dataString());
+            irText = controlUnit.getIrReg().dataString(); // store data but don't set ir immediately
+        }
+        else if(observable instanceof ObservableComputeCore){
+            if(o != null && o instanceof ObservableComputeCore.ExecuteParams) {
+                ObservableComputeCore.ExecuteParams params = (ObservableComputeCore.ExecuteParams) o;
+                ComputeCore core = (ComputeCore) ((ObservableComputeCore) observable).getType();
 
-    @Override
-    public void triggerNextAction(){
-        cu.performNextAction(); // perform action for 'currentState' and go to next state
-        stateView.setText(cu.getCurrentState());
-
-        if(!cu.isAboutToExecute()){
-            instructionView.setText(mainCore.instrString(ir.read()));
+                instructionView.setText(core.instrString(params.getInstruction()));
+            }
         }
     }
 }

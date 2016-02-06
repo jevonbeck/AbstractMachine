@@ -6,7 +6,7 @@ import android.util.AttributeSet;
 import org.ricts.abstractmachine.components.interfaces.MemoryPort;
 import org.ricts.abstractmachine.components.storage.RAM;
 
-public class RamView extends RomView implements MemoryPort {
+public class RamView extends RomView {
 	private RAM ram;
 
 	public RamView(Context context) {
@@ -22,12 +22,6 @@ public class RamView extends RomView implements MemoryPort {
 	}
 
     @Override
-    public void write(int address, int data) {
-        ram.write(address, data);
-        memoryPins.write(address, data);
-    }
-
-    @Override
 	public void initMemory(int dWidth, int aWidth, int accessTime){
 		dataWidth = dWidth;
 		addressWidth = aWidth;
@@ -40,7 +34,6 @@ public class RamView extends RomView implements MemoryPort {
 	@Override
 	protected void init(){
 		rom = ram;
-        memoryPins.setSource(ram);
         super.init();
         memoryPins.setWriteResponder(new MemoryPortView.WriteResponder() {
             @Override
@@ -57,9 +50,7 @@ public class RamView extends RomView implements MemoryPort {
 
     public void setDataSource(RAM r){
         ram = r;
-        dataWidth = ram.dataWidth();
-        addressWidth = ram.addressWidth();
-
+        super.setDataSource(r);
         init();
     }
 }
