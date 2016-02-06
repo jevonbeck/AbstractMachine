@@ -11,7 +11,6 @@ import org.ricts.abstractmachine.components.storage.RAM;
 import org.ricts.abstractmachine.ui.storage.RamView;
 
 public class MemoryTutorialActivity extends Activity {
-	private RamView memory;
 	private EditText addressEdit;
 	private EditText dataEdit;
 	
@@ -22,9 +21,8 @@ public class MemoryTutorialActivity extends Activity {
 
         final ObservableRAM ram = new ObservableRAM(new RAM(8, 3, 10));
 
-		memory = (RamView) findViewById(R.id.memory);
-		//memory.initMemory(8, 3, 10);
-        memory.setDataSource(ram.getType());
+        RamView memory = (RamView) findViewById(R.id.memory);
+		memory.setDataSource(ram.getType());
 		
 		addressEdit = (EditText) findViewById(R.id.addressEdit); 
 		dataEdit = (EditText) findViewById(R.id.dataEdit); 
@@ -33,18 +31,15 @@ public class MemoryTutorialActivity extends Activity {
 		readButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				//memory.read(getAddress());
-                ram.read(getAddress());
+				ram.read(getAddress());
 			}
 		});
-		
-		
+
 		Button writeButton = (Button) findViewById(R.id.writeButton);
 		writeButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				//memory.write(getAddress(), getData());
-                ram.write(getAddress(), getData());
+				ram.write(getAddress(), getData());
             }
 		});
 
