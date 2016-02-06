@@ -23,9 +23,11 @@ import java.util.Observable;
 import java.util.Observer;
 
 public class ControlUnitView extends RelativeLayout implements Observer{
-    private RegDataView pc; // Program Counter
-    private RegDataView ir; // Instruction Register
-    private FSMView stateView; // Control Unit state
+    private TextView pc; // Program Counter
+    private TextView ir; // Instruction Register
+    private TextView stateView; // Control Unit state
+
+    private String pcText, irText, stateText;
 
     public ControlUnitView(Context context) {
         this(context, null);
@@ -45,15 +47,17 @@ public class ControlUnitView extends RelativeLayout implements Observer{
         setPadding(padding, padding, padding, padding);
 
         /*** create children ***/
-        pc = new RegDataView(context);
+        pc = new TextView(context);
         pc.setId(R.id.ControlUnitView_pc_view);
+        pc.setTypeface(Typeface.MONOSPACE);
+        pc.setTextColor(context.getResources().getColor(android.R.color.white));
         pc.setBackgroundColor(context.getResources().getColor(R.color.test_color));
-        pc.setUpdateImmediately(false);
 
-        ir = new RegDataView(context);
+        ir = new TextView(context);
         ir.setId(R.id.ControlUnitView_ir_view);
+        ir.setTypeface(Typeface.MONOSPACE);
+        ir.setTextColor(context.getResources().getColor(android.R.color.white));
         ir.setBackgroundColor(context.getResources().getColor(R.color.test_color));
-        ir.setUpdateImmediately(false);
 
         TextView pcLabel = new TextView(context);
         pcLabel.setId(R.id.ControlUnitView_pc_label);
@@ -72,8 +76,9 @@ public class ControlUnitView extends RelativeLayout implements Observer{
         stateLabel.setTextColor(context.getResources().getColor(android.R.color.white));
         stateLabel.setText(context.getResources().getText(R.string.control_unit_state_label));
 
-        stateView = new FSMView(context);
+        stateView = new TextView(context);
         stateView.setId(R.id.ControlUnitView_fsm_view);
+        stateView.setTextColor(context.getResources().getColor(android.R.color.white));
         stateView.setBackgroundColor(context.getResources().getColor(R.color.test_color2));
 
         /*** determine children layouts and positions ***/
@@ -117,69 +122,53 @@ public class ControlUnitView extends RelativeLayout implements Observer{
     @Override
     public void update(Observable observable, Object o) {
         if(observable instanceof ObservableControlUnit){
-            ObservableControlUnit observed = (ObservableControlUnit) observable;
-            ControlUnit controlUnit = observed.getType();
+            ControlUnit controlUnit = ((ObservableControlUnit) observable).getType();
+
+            stateText = controlUnit.currentState().getName();
+            pcText = controlUnit.getPcReg().dataString();
+            irText = controlUnit.getIrReg().dataString();
+
+            if(!controlUnit.isAboutToHalt()){
+                stateView.setText(stateText);
+            }
 
             if(controlUnit.isAboutToExecute()){
-                // update immediately when state changes to 'execute' state
-                stateView.setUpdateImmediately(true);
-                stateView.update(observable, o);
-                stateView.setUpdateImmediately(false);
+                pc.setText(pcText);
             }
         }
     }
 
-    public void initCU(ObservableControlUnit controlUnit, ComputeCoreView coreView,
+    public void initCU(ControlUnit controlUnit, ComputeCoreView coreView,
                        MemoryPortView instructionCache){
-        ObservableRegister obsPC = controlUnit.getType().getPcReg();
-        ObservableRegister obsIR = controlUnit.getType().getIrReg();
-
-        /** Add observers to observables **/
-        controlUnit.addObserver(stateView);
-        obsPC.addObserver(pc);
-        obsIR.addObserver(ir);
-
-        /** init displayable values **/
-        stateView.setUpdateImmediately(true);
-        stateView.update(controlUnit, null);
-        stateView.setUpdateImmediately(false);
-
-        pc.setUpdateImmediately(true);
-        pc.update(obsPC, null);
-        pc.setUpdateImmediately(false);
-
-        ir.setUpdateImmediately(true);
-        ir.update(obsIR, null);
-        ir.setUpdateImmediately(false);
+        /** initialise variables **/
+        stateView.setText(controlUnit.currentState().getName());
+        pc.setText(controlUnit.getPcReg().dataString());
+        ir.setText(controlUnit.getIrReg().dataString());
 
         /** setup callback behaviour **/
         instructionCache.setReadResponder(new ReadPortView.ReadResponder() {
             @Override
             public void onReadFinished() {
-                ir.updateDisplayText();
-                //pc.setUpdateImmediately(false);
+                ir.setText(irText); // only update ir when read finished
             }
 
             @Override
             public void onReadStart() {
-                // TODO: verify working
-                //pc.setUpdateImmediately(true);
-                pc.updateDisplayText();
+
             }
         });
 
         coreView.setUpdatePcResponder(new ComputeCoreView.PinsView.UpdateResponder() {
             @Override
             public void onUpdatePcCompleted() {
-                pc.updateDisplayText();
-                //stateView.updateDisplayText();
+                pc.setText(pcText);
             }
         });
 
         coreView.setHaltCommandResponder(new ComputeCoreView.HaltResponder() {
             @Override
             public void onHaltCompleted() {
-                stateView.updateDisplayText();
+                stateView.setText(stateText);
             }
         });
     }

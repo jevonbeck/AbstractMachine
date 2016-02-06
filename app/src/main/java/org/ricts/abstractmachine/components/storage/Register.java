@@ -26,4 +26,8 @@ public class Register extends Device implements DataDevice, RegisterPort{
     public int dataWidth(){
         return dataWidth;
     }
+
+    public String dataString(){
+        return formatNumberInHex(dataWord, dataWidth);
+    }
 }

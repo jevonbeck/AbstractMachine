@@ -84,13 +84,17 @@ public class ComputeCoreView extends DeviceView implements Observer {
             final String pcPostExecuteString = Device.formatNumberInHex(pcPostExecute, mainCore.iAddrWidth());
             final boolean updatePC = pcPreExecute != pcPostExecute;
 
+            mainBody.setInstructionText(mainCore.instrString(instruction));
+
             pins.setCommandResponder(new PinsView.CommandOnlyResponder() {
                 @Override
                 public void onCommandCompleted() {
                     if(isDataMemInstruction){
+                        /*
                         if(memoryCommandResponder != null) {
                             memoryCommandResponder.onMemoryCommandIssued();
                         }
+                        */
                     }
                     else if(isHaltInstruction){
                         if(haltResponder != null) {
@@ -111,7 +115,10 @@ public class ComputeCoreView extends DeviceView implements Observer {
                         pins.sendCommandOnly("setHalt");
                     }
                     else if(isDataMemInstruction){
-                        pins.sendCommandOnly("getMem");
+                        //pins.sendCommandOnly("getMem");
+                        if(memoryCommandResponder != null) {
+                            memoryCommandResponder.onMemoryCommandIssued();
+                        }
                     }
 
                     if (updatePC) {
@@ -123,11 +130,6 @@ public class ComputeCoreView extends DeviceView implements Observer {
             // actually begin the animation
             pins.executeInstruction(Device.formatNumberInHex(instruction, mainCore.instrWidth()));
         }
-    }
-
-    public void initCore(ObservableComputeCore core){
-        core.addObserver(mainBody);
-        core.addObserver(this);
     }
 
     public void setUpdatePcResponder(PinsView.UpdateResponder updateResponder){
@@ -317,8 +319,9 @@ public class ComputeCoreView extends DeviceView implements Observer {
         }
     }
 
-    private static class MainBodyView extends RelativeLayout implements Observer{
-        private InstructionView instructionView;
+    private static class MainBodyView extends RelativeLayout {
+        private TextView instructionView;
+        private String instructionText;
 
         public MainBodyView(Context context) {
             this(context, null);
@@ -343,8 +346,8 @@ public class ComputeCoreView extends DeviceView implements Observer {
             instructionLabel.setTextColor(context.getResources().getColor(android.R.color.white));
             instructionLabel.setText(context.getResources().getText(R.string.decoded_instruction_label));
 
-            instructionView = new InstructionView(context);
-            instructionView.setUpdateImmediately(false);
+            instructionView = new TextView(context);
+            instructionView.setTextColor(context.getResources().getColor(android.R.color.white));
             instructionView.setBackgroundColor(context.getResources().getColor(R.color.test_color2));
 
             /*** determine children layouts and positions ***/
@@ -360,12 +363,11 @@ public class ComputeCoreView extends DeviceView implements Observer {
         }
 
         public void updateInstructionView(){
-            instructionView.updateDisplayText();
+            instructionView.setText(instructionText);
         }
 
-        @Override
-        public void update(Observable observable, Object o) {
-            instructionView.update(observable, o);
+        public void setInstructionText(String text){
+            instructionText = text;
         }
     }
 }

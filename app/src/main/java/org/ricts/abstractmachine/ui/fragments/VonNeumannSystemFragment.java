@@ -30,10 +30,12 @@ public class VonNeumannSystemFragment extends VonNeumannActivityFragment {
         memory.setDataSource(mainMemory.getType());
 
         CpuCoreView cpu = (CpuCoreView) mainView.findViewById(R.id.cpuView);
-        cpu.initCpu(mainCore, controlUnit, memory);
+        cpu.initCpu(controlUnit.getType(), memory);
 
         /** Add observers to observables **/
         mainMemory.addObserver(memory);
+        controlUnit.addObserver(cpu);
+        mainCore.addObserver(cpu);
     }
 
     @Override

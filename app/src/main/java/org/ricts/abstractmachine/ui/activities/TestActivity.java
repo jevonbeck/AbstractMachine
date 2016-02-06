@@ -114,10 +114,12 @@ public class TestActivity extends Activity {
     }
 
     private void advanceTime(){
+        /*
         int result = cpu.nextActionTransitionTime();
         cpu.triggerNextAction();
 
         sysClock += result;
         sysClockTextView.setText(String.valueOf(sysClock));
+        */
     }
 }

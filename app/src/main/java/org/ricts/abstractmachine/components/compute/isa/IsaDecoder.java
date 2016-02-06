@@ -8,8 +8,6 @@ public class IsaDecoder extends Device {
 	private ArrayList<InstructionGroupDecoder> instructionDecoders;
 	private int instructionWidth;
 	private int instructionBitMask;
-	private int opcodeWidth;
-	private int opcodeMaxIndex;
 		
 	public IsaDecoder(ArrayList<InstructionGroup> formats){
 		instructionDecoders = new ArrayList<InstructionGroupDecoder>();
@@ -50,10 +48,10 @@ public class IsaDecoder extends Device {
 				extra = availableRange - remainder;	
 			}
 		}
-		opcodeMaxIndex = (opcodeNextIndex - 1) >>> (maxWidths[0] - maxWidths[maxWidths.length-1]);
+		int opcodeMaxIndex = (opcodeNextIndex - 1) >>> (maxWidths[0] - maxWidths[maxWidths.length-1]);
 		// opcodeMaxIndex = (opcodeNextIndex - 1) / Math.pow(2,(maxWidths[0] - maxWidths[maxWidths.length-1]))
 		
-		opcodeWidth = bitWidth(opcodeMaxIndex);
+		int opcodeWidth = bitWidth(opcodeMaxIndex);
 		instructionWidth = opcodeWidth + maxWidths[0]; // minOpcodeWidth + maxOperandWidth
 		instructionBitMask = bitMaskOfWidth(instructionWidth);
 		

@@ -14,6 +14,7 @@ public interface ControlUnitInterface {
     void setToExecuteState();
     void setToHaltState();
     boolean isAboutToExecute();
+    void fetchInstruction(ReadPort instructionCache);
 
     void performNextAction();
     int nextActionDuration();

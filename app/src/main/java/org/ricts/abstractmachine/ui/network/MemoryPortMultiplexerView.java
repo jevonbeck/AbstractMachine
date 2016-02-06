@@ -55,7 +55,10 @@ public class MemoryPortMultiplexerView extends MultiplexerView implements Observ
     public void update(Observable observable, Object o) {
         currentObservable = observable;
         currentObject = o;
-        attemptPinAnimations();
+
+        if (updateImmediately) {
+            animatePins();
+        }
     }
 
     public void setUpdateImmediately(boolean immediately){
@@ -68,11 +71,5 @@ public class MemoryPortMultiplexerView extends MultiplexerView implements Observ
                 currentObservable, currentObject); // initiate output pin animation
         ((MemoryPortView) inputPins[currentSel]).update(
                 currentObservable, currentObject); // initiate selected input pin animation
-    }
-
-    private void attemptPinAnimations(){
-        if (updateImmediately) {
-            animatePins();
-        }
     }
 }

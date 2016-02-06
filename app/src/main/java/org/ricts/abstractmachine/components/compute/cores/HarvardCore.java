@@ -6,7 +6,6 @@ import org.ricts.abstractmachine.components.interfaces.ControlUnitInterface;
 import org.ricts.abstractmachine.components.interfaces.ReadPort;
 import org.ricts.abstractmachine.components.interfaces.MemoryPort;
 import org.ricts.abstractmachine.components.interfaces.ThreadProcessingUnit;
-import org.ricts.abstractmachine.components.storage.Register;
 
 public class HarvardCore implements ThreadProcessingUnit{
 	private int nopInstruction; 
@@ -21,13 +20,9 @@ public class HarvardCore implements ThreadProcessingUnit{
        One performs a fetch while the other executes... ALWAYS! */
     
 		// thread unit 1 (TU 1) - initial state = 'fetch'
-        //Register pc1 = new Register(core.iAddrWidth()); // Program Counter
-        //Register ir1 = new Register(core.instrWidth()); // Instruction Register
         cu1 = new ControlUnit(core, instructionCache, dataMemory);
 	        
 	    // thread unit 2 (TU 2) - initial state = 'execute'
-        //Register pc2 = new Register(core.iAddrWidth()); // Program Counter
-        //Register ir2 = new Register(core.instrWidth()); // Instruction Register
         cu2 = new ControlUnit(core, instructionCache, dataMemory);
 	    
 	    // initialise thread units

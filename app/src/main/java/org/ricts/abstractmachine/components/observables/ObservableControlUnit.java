@@ -2,6 +2,7 @@ package org.ricts.abstractmachine.components.observables;
 
 import org.ricts.abstractmachine.components.compute.cu.ControlUnit;
 import org.ricts.abstractmachine.components.interfaces.ControlUnitInterface;
+import org.ricts.abstractmachine.components.interfaces.ReadPort;
 
 /**
  * Created by Jevon on 23/01/2016.
@@ -24,15 +25,15 @@ public class ObservableControlUnit extends ObservableFSM<ControlUnit> implements
     @Override
     public void setPC(int currentPC) {
         observable_data.setPC(currentPC);
-        //setChanged();
-        //notifyObservers();
+        setChanged();
+        notifyObservers();
     }
 
     @Override
     public void setIR(int currentIR) {
         observable_data.setIR(currentIR);
-        //setChanged();
-        //notifyObservers();
+        setChanged();
+        notifyObservers();
     }
 
     @Override
@@ -66,6 +67,13 @@ public class ObservableControlUnit extends ObservableFSM<ControlUnit> implements
     @Override
     public boolean isAboutToExecute() {
         return observable_data.isAboutToExecute();
+    }
+
+    @Override
+    public void fetchInstruction(ReadPort instructionCache) {
+        observable_data.fetchInstruction(instructionCache);
+        setChanged();
+        notifyObservers();
     }
 
     @Override

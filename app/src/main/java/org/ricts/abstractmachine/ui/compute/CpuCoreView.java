@@ -7,24 +7,29 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import org.ricts.abstractmachine.R;
+import org.ricts.abstractmachine.components.compute.cores.ComputeCore;
+import org.ricts.abstractmachine.components.compute.cu.ControlUnit;
+import org.ricts.abstractmachine.components.devicetype.Device;
 import org.ricts.abstractmachine.components.observables.ObservableComputeCore;
 import org.ricts.abstractmachine.components.interfaces.ThreadProcessingUnit;
 import org.ricts.abstractmachine.components.observables.ObservableControlUnit;
 import org.ricts.abstractmachine.components.observables.ObservableRegister;
+import org.ricts.abstractmachine.components.storage.Register;
 import org.ricts.abstractmachine.ui.storage.RamView;
 import org.ricts.abstractmachine.ui.storage.ReadPortView;
 import org.ricts.abstractmachine.ui.storage.RegDataView;
 
+import java.util.Observable;
+import java.util.Observer;
+
 /**
  * Created by Jevon on 18/01/15.
  */
-public class CpuCoreView extends RelativeLayout implements ThreadProcessingUnit {
-    private RegDataView pc; // Program Counter
-    private RegDataView ir; // Instruction Register
-    private FSMView stateView;
-    private InstructionView instructionView;
+public class CpuCoreView extends RelativeLayout implements Observer {
+    private TextView pc, ir;
+    private TextView stateView, instructionView;
+    private String irText;
 
-    private ObservableControlUnit controlUnit;
 
     /** Standard Constructors **/
     public CpuCoreView(Context context) {
@@ -45,12 +50,14 @@ public class CpuCoreView extends RelativeLayout implements ThreadProcessingUnit 
         setPadding(padding, padding, padding, padding);
 
         /*** create children ***/
-        pc = new RegDataView(context);
+        pc = new TextView(context);
         pc.setId(R.id.CpuCoreView_pc_view);
+        pc.setTextColor(context.getResources().getColor(android.R.color.white));
         pc.setBackgroundColor(context.getResources().getColor(R.color.test_color));
 
-        ir = new RegDataView(context);
+        ir = new TextView(context);
         ir.setId(R.id.CpuCoreView_ir_view);
+        ir.setTextColor(context.getResources().getColor(android.R.color.white));
         ir.setBackgroundColor(context.getResources().getColor(R.color.test_color));
 
         TextView pcLabel = new TextView(context);
@@ -70,8 +77,9 @@ public class CpuCoreView extends RelativeLayout implements ThreadProcessingUnit 
         stateLabel.setTextColor(context.getResources().getColor(android.R.color.white));
         stateLabel.setText(context.getResources().getText(R.string.control_unit_state_label));
 
-        stateView = new FSMView(context);
+        stateView = new TextView(context);
         stateView.setId(R.id.CpuCoreView_fsm_view);
+        stateView.setTextColor(context.getResources().getColor(android.R.color.white));
         stateView.setBackgroundColor(context.getResources().getColor(R.color.test_color2));
 
         TextView instructionLabel = new TextView(context);
@@ -79,7 +87,8 @@ public class CpuCoreView extends RelativeLayout implements ThreadProcessingUnit 
         instructionLabel.setTextColor(context.getResources().getColor(android.R.color.white));
         instructionLabel.setText(context.getResources().getText(R.string.decoded_instruction_label));
 
-        instructionView = new InstructionView(context);
+        instructionView = new TextView(context);
+        instructionView.setTextColor(context.getResources().getColor(android.R.color.white));
         instructionView.setBackgroundColor(context.getResources().getColor(R.color.test_color2));
 
 
@@ -133,29 +142,17 @@ public class CpuCoreView extends RelativeLayout implements ThreadProcessingUnit 
         addView(instructionView, lpInstructionView);
     }
 
-    public void initCpu(ObservableComputeCore core, ObservableControlUnit cu, RamView mainMemory){
-        controlUnit = cu;
-        ObservableRegister obsPC = controlUnit.getType().getPcReg();
-        ObservableRegister obsIR = controlUnit.getType().getIrReg();
-
-        /** Add observers to observables **/
-        controlUnit.addObserver(stateView);
-        obsPC.addObserver(pc);
-        obsIR.addObserver(ir);
-        core.addObserver(instructionView);
-
-        /** init displayable values **/
-        stateView.update(controlUnit, null);
-        pc.update(obsPC, null);
-        ir.setUpdateImmediately(true);
-        ir.update(obsIR, null);
-        ir.setUpdateImmediately(false);
+    public void initCpu(ControlUnit controlUnit, RamView mainMemory){
+        /** initialise variables **/
+        stateView.setText(controlUnit.currentState().getName());
+        pc.setText(controlUnit.getPcReg().dataString());
+        ir.setText(controlUnit.getIrReg().dataString());
 
         /** setup callback behaviour **/
         mainMemory.setReadResponder(new ReadPortView.ReadResponder() {
             @Override
             public void onReadFinished() {
-                ir.updateDisplayText();
+                ir.setText(irText); // only update ir when read finished
             }
 
             @Override
@@ -166,18 +163,21 @@ public class CpuCoreView extends RelativeLayout implements ThreadProcessingUnit 
     }
 
     @Override
-    public void setStartExecFrom(int currentPC){
-        // FIXME!!!
-        controlUnit.getType().setStartExecFrom(currentPC);
-    }
+    public void update(Observable observable, Object o) {
+        if(observable instanceof ObservableControlUnit){
+            ControlUnit controlUnit = ((ObservableControlUnit) observable).getType();
 
-    @Override
-    public int nextActionTransitionTime(){
-        return controlUnit.nextActionDuration();
-    }
+            stateView.setText(controlUnit.currentState().getName());
+            pc.setText(controlUnit.getPcReg().dataString());
+            irText = controlUnit.getIrReg().dataString(); // store data but don't set ir immediately
+        }
+        else if(observable instanceof ObservableComputeCore){
+            if(o != null && o instanceof ObservableComputeCore.ExecuteParams) {
+                ObservableComputeCore.ExecuteParams params = (ObservableComputeCore.ExecuteParams) o;
+                ComputeCore core = (ComputeCore) ((ObservableComputeCore) observable).getType();
 
-    @Override
-    public void triggerNextAction(){
-        controlUnit.performNextAction(); // perform action for 'currentState' and go to next state
+                instructionView.setText(core.instrString(params.getInstruction()));
+            }
+        }
     }
 }

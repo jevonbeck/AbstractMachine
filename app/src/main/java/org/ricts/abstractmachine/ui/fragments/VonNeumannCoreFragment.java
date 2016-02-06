@@ -2,20 +2,16 @@ package org.ricts.abstractmachine.ui.fragments;
 
 import android.support.v4.app.Fragment;
 import android.view.View;
+import android.widget.TextView;
 
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.observables.ObservableComputeCore;
-import org.ricts.abstractmachine.components.compute.cu.ControlUnit;
 import org.ricts.abstractmachine.components.observables.ObservableControlUnit;
 import org.ricts.abstractmachine.components.observables.ObservableRAM;
-import org.ricts.abstractmachine.components.storage.RAM;
 import org.ricts.abstractmachine.ui.compute.ComputeCoreView;
 import org.ricts.abstractmachine.ui.compute.ControlUnitView;
-import org.ricts.abstractmachine.ui.compute.FSMView;
 import org.ricts.abstractmachine.ui.network.MemoryPortMultiplexerView;
 import org.ricts.abstractmachine.ui.storage.MemoryPortView;
-import org.ricts.abstractmachine.ui.storage.ReadPortView;
-import org.ricts.abstractmachine.ui.storage.RegDataView;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -27,6 +23,7 @@ import org.ricts.abstractmachine.ui.storage.RegDataView;
  */
 public class VonNeumannCoreFragment extends VonNeumannActivityFragment {
     private MemoryPortMultiplexerView muxView;
+    private TextView muxSelectView;
 
     private enum MuxInputIds{
         INS_MEM, DATA_MEM
@@ -35,6 +32,9 @@ public class VonNeumannCoreFragment extends VonNeumannActivityFragment {
     @Override
     protected void initView(View mainView){
         mainView.setId(R.id.VonNeumannCoreFragment_main_view);
+
+        muxSelectView = (TextView) mainView.findViewById(R.id.muxSelect);
+        muxSelectView.setText("0x0");
 
         muxView = (MemoryPortMultiplexerView) mainView.findViewById(R.id.mux);
         muxView.setSelectWidth(1);
@@ -49,7 +49,6 @@ public class VonNeumannCoreFragment extends VonNeumannActivityFragment {
         //MemoryPortView dataMemory = muxInputs[MuxInputIds.DATA_MEM.ordinal()];
 
         ComputeCoreView coreView = (ComputeCoreView) mainView.findViewById(R.id.core);
-        coreView.initCore(mainCore);
         coreView.setMemoryCommandResponder(new ComputeCoreView.MemoryCommandResponder() {
             @Override
             public void onMemoryCommandIssued() {
@@ -58,11 +57,12 @@ public class VonNeumannCoreFragment extends VonNeumannActivityFragment {
         });
 
         ControlUnitView cuView = (ControlUnitView) mainView.findViewById(R.id.control_unit);
-        cuView.initCU(controlUnit, coreView, instructionCache);
+        cuView.initCU(controlUnit.getType(), coreView, instructionCache);
 
         /** Add observers to observables **/
         mainCore.addObserver(coreView);
         mainMemory.addObserver(muxView);
+        controlUnit.addObserver(cuView);
     }
 
     @Override
@@ -75,10 +75,12 @@ public class VonNeumannCoreFragment extends VonNeumannActivityFragment {
         if(controlUnit.isAboutToExecute()){
             muxView.setUpdateImmediately(false);
             muxView.setSelection(MuxInputIds.DATA_MEM.ordinal());
+            muxSelectView.setText("0x1");
         }
         else {
             muxView.setUpdateImmediately(true);
             muxView.setSelection(MuxInputIds.INS_MEM.ordinal());
+            muxSelectView.setText("0x0");
         }
 
         controlUnit.performNextAction(); // perform action for 'currentState' and go to next state

@@ -4,24 +4,22 @@ import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
 import org.ricts.abstractmachine.components.interfaces.ControlUnitInterface;
 import org.ricts.abstractmachine.components.interfaces.MemoryPort;
 import org.ricts.abstractmachine.components.interfaces.ReadPort;
-import org.ricts.abstractmachine.components.observables.ObservableRegister;
 import org.ricts.abstractmachine.components.storage.Register;
 
 public class ControlUnit extends FiniteStateMachine implements ControlUnitInterface {
-    private ObservableRegister pc; // Program Counter
-    private ObservableRegister ir; // Instruction Register
+    private Register pc; // Program Counter
+    private Register ir; // Instruction Register
 
     private ControlUnitState fetch, execute, halt;
     private State nextState = null;
 
     public ControlUnit(ComputeCoreInterface core, ReadPort instructionCache,
                        MemoryPort dataMemory){
-        // ObservableRegister is used to be able to view independent internal changes in state
-        pc = new ObservableRegister(new Register(core.iAddrWidth()));
-        ir = new ObservableRegister(new Register(core.instrWidth()));
+        pc = new Register(core.iAddrWidth());
+        ir = new Register(core.instrWidth());
 
         // setup instruction cycle
-        fetch = new ControlUnitFetchState(pc, ir, instructionCache);
+        fetch = new ControlUnitFetchState(this, instructionCache);
         execute = new ControlUnitExecuteState(core, dataMemory, this);
         halt = new ControlUnitHaltState();
 
@@ -104,11 +102,21 @@ public class ControlUnit extends FiniteStateMachine implements ControlUnitInterf
         setToFetchState();
     }
 
-    public ObservableRegister getPcReg(){
+    @Override
+    public void fetchInstruction(ReadPort instructionCache){
+        setIR(instructionCache.read(pc.read())); // IR = iCache[PC]
+        setPC(pc.read() + 1); // PC += 1
+    }
+
+    public boolean isAboutToHalt(){
+        return currentState() == halt;
+    }
+
+    public Register getPcReg(){
         return pc;
     }
 
-    public ObservableRegister getIrReg(){
+    public Register getIrReg(){
         return ir;
     }
 }
