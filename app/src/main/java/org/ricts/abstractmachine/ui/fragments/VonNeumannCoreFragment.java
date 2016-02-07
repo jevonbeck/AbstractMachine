@@ -26,7 +26,17 @@ public class VonNeumannCoreFragment extends VonNeumannActivityFragment {
     private TextView muxSelectView;
 
     private enum MuxInputIds{
-        INS_MEM, DATA_MEM
+        INS_MEM("0x0"), DATA_MEM("0x1");
+
+        private String m_text;
+
+        MuxInputIds(String text){
+            m_text = text;
+        }
+
+        public String getText(){
+            return m_text;
+        }
     }
 
     @Override
@@ -34,7 +44,7 @@ public class VonNeumannCoreFragment extends VonNeumannActivityFragment {
         mainView.setId(R.id.VonNeumannCoreFragment_main_view);
 
         muxSelectView = (TextView) mainView.findViewById(R.id.muxSelect);
-        muxSelectView.setText("0x0");
+        muxSelectView.setText(MuxInputIds.INS_MEM.getText());
 
         muxView = (MemoryPortMultiplexerView) mainView.findViewById(R.id.mux);
         muxView.setSelectWidth(1);
@@ -72,15 +82,15 @@ public class VonNeumannCoreFragment extends VonNeumannActivityFragment {
 
     @Override
     public void triggerNextAction() {
-        if(controlUnit.isAboutToExecute()){
-            muxView.setUpdateImmediately(false);
-            muxView.setSelection(MuxInputIds.DATA_MEM.ordinal());
-            muxSelectView.setText("0x1");
-        }
-        else {
+        if(controlUnit.isAboutToFetch()){
             muxView.setUpdateImmediately(true);
             muxView.setSelection(MuxInputIds.INS_MEM.ordinal());
-            muxSelectView.setText("0x0");
+            muxSelectView.setText(MuxInputIds.INS_MEM.getText());
+        }
+        else {
+            muxView.setUpdateImmediately(false);
+            muxView.setSelection(MuxInputIds.DATA_MEM.ordinal());
+            muxSelectView.setText(MuxInputIds.DATA_MEM.getText());
         }
 
         controlUnit.performNextAction(); // perform action for 'currentState' and go to next state

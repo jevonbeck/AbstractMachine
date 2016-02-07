@@ -89,14 +89,7 @@ public class ComputeCoreView extends DeviceView implements Observer {
             pins.setCommandResponder(new PinsView.CommandOnlyResponder() {
                 @Override
                 public void onCommandCompleted() {
-                    if(isDataMemInstruction){
-                        /*
-                        if(memoryCommandResponder != null) {
-                            memoryCommandResponder.onMemoryCommandIssued();
-                        }
-                        */
-                    }
-                    else if(isHaltInstruction){
+                    if(isHaltInstruction){
                         if(haltResponder != null) {
                             haltResponder.onHaltCompleted();
                         }
@@ -115,7 +108,6 @@ public class ComputeCoreView extends DeviceView implements Observer {
                         pins.sendCommandOnly("setHalt");
                     }
                     else if(isDataMemInstruction){
-                        //pins.sendCommandOnly("getMem");
                         if(memoryCommandResponder != null) {
                             memoryCommandResponder.onMemoryCommandIssued();
                         }

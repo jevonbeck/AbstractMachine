@@ -13,6 +13,7 @@ public interface ControlUnitInterface {
     void setToFetchState();
     void setToExecuteState();
     void setToHaltState();
+    boolean isAboutToFetch();
     boolean isAboutToExecute();
     void fetchInstruction(ReadPort instructionCache);
 

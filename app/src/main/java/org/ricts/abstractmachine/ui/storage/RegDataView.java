@@ -4,7 +4,6 @@ package org.ricts.abstractmachine.ui.storage;
 import android.content.Context;
 import android.graphics.Typeface;
 import android.util.AttributeSet;
-import org.ricts.abstractmachine.components.devicetype.Device;
 import org.ricts.abstractmachine.components.storage.Register;
 import org.ricts.abstractmachine.components.observables.ObservableRegister;
 import org.ricts.abstractmachine.ui.utils.DelayedUpdateTextView;
@@ -22,9 +21,7 @@ public class RegDataView extends DelayedUpdateTextView {
 
 	public RegDataView(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
-
         mainTextView.setTypeface(Typeface.MONOSPACE);
-        mainTextView.setText(Device.formatNumberInHex(0, 1));
         mainTextView.setTextColor(context.getResources().getColor(android.R.color.white));
 	}
 
@@ -33,7 +30,7 @@ public class RegDataView extends DelayedUpdateTextView {
         if(observable instanceof ObservableRegister) {
             Register dataReg = ((ObservableRegister) observable).getType();
 
-            setUpdateText(Device.formatNumberInHex(dataReg.read(), dataReg.dataWidth()));
+            setUpdateText(dataReg.dataString());
             attemptImmediateTextUpdate();
         }
     }
