@@ -5,13 +5,10 @@ import android.view.View;
 
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.observables.ObservableComputeCore;
-import org.ricts.abstractmachine.components.compute.cu.ControlUnit;
 import org.ricts.abstractmachine.components.observables.ObservableControlUnit;
 import org.ricts.abstractmachine.components.observables.ObservableRAM;
 import org.ricts.abstractmachine.ui.compute.CpuCoreView;
-import org.ricts.abstractmachine.ui.compute.FSMView;
 import org.ricts.abstractmachine.ui.storage.RamView;
-import org.ricts.abstractmachine.ui.storage.RegDataView;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -50,8 +47,7 @@ public class VonNeumannSystemFragment extends VonNeumannActivityFragment {
 
     @Override
     public void setStartExecFrom(int currentPC){
-        // FIXME!!!
-        controlUnit.setPC(currentPC);
+        controlUnit.setStartExecFrom(currentPC);
     }
 
     public VonNeumannSystemFragment() {

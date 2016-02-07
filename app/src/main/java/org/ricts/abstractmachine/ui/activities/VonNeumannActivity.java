@@ -1,6 +1,7 @@
 package org.ricts.abstractmachine.ui.activities;
 
 import android.os.Bundle;
+import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -115,9 +116,17 @@ public class VonNeumannActivity extends AppCompatActivity implements VonNeumannA
         sysClockTextView = (TextView) findViewById(R.id.sysClockText);
         sysClockTextView.setText(String.valueOf(sysClock));
 
+        SystemViewAdapter pagerAdapter = new SystemViewAdapter(getSupportFragmentManager(),
+                mainCore, observableRAM, fsm);
+
         pager = (ViewPager) findViewById(R.id.pager);
-        pager.setAdapter(new SystemViewAdapter(getSupportFragmentManager(),
-                mainCore, observableRAM, fsm));
+        pager.setAdapter(pagerAdapter);
+
+        TabLayout tabLayout = (TabLayout) findViewById(R.id.tab_layout);
+        tabLayout.setTabsFromPagerAdapter(pagerAdapter);
+        tabLayout.setOnTabSelectedListener(new TabLayout.ViewPagerOnTabSelectedListener(pager));
+
+        pager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
     }
 
     private void advanceTime(){
