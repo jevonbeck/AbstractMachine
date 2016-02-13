@@ -35,21 +35,6 @@ public class VonNeumannSystemFragment extends VonNeumannActivityFragment {
         mainCore.addObserver(cpu);
     }
 
-    @Override
-    public int nextActionTransitionTime() {
-        return controlUnit.nextActionDuration();
-    }
-
-    @Override
-    public void triggerNextAction() {
-        controlUnit.performNextAction(); // perform action for 'currentState' and go to next state
-    }
-
-    @Override
-    public void setStartExecFrom(int currentPC){
-        controlUnit.setStartExecFrom(currentPC);
-    }
-
     public VonNeumannSystemFragment() {
         // Required empty public constructor
     }

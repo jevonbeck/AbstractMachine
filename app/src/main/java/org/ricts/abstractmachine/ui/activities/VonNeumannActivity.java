@@ -10,14 +10,12 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.observables.ObservableComputeCore;
 import org.ricts.abstractmachine.components.compute.cu.ControlUnit;
 import org.ricts.abstractmachine.components.observables.ObservableControlUnit;
 import org.ricts.abstractmachine.components.observables.ObservableRAM;
-import org.ricts.abstractmachine.components.observables.ObservableRegister;
 import org.ricts.abstractmachine.components.storage.RAM;
 import org.ricts.abstractmachine.devices.compute.core.BasicScalar;
 import org.ricts.abstractmachine.devices.compute.core.BasicScalarEnums;
@@ -30,7 +28,7 @@ import java.util.ArrayList;
 public class VonNeumannActivity extends AppCompatActivity implements VonNeumannActivityFragment.StepActionListener {
     private static final String TAG = "VonNeumannActivity";
 
-    private ViewPager pager;
+    private ObservableControlUnit controlUnit;
     private TextView sysClockTextView;
     private int sysClock; // system clock
 
@@ -101,7 +99,7 @@ public class VonNeumannActivity extends AppCompatActivity implements VonNeumannA
 
         ObservableComputeCore mainCore = new ObservableComputeCore<BasicScalar>(core);
         ObservableRAM observableRAM = new ObservableRAM(memory);
-        ObservableControlUnit fsm = new ObservableControlUnit(
+        controlUnit = new ObservableControlUnit(
                 new ControlUnit(mainCore, observableRAM, observableRAM));
 
         Button advanceButton = (Button) findViewById(R.id.stepButton);
@@ -117,33 +115,25 @@ public class VonNeumannActivity extends AppCompatActivity implements VonNeumannA
         sysClockTextView.setText(String.valueOf(sysClock));
 
         SystemViewAdapter pagerAdapter = new SystemViewAdapter(getSupportFragmentManager(),
-                mainCore, observableRAM, fsm);
+                mainCore, observableRAM, controlUnit);
 
-        pager = (ViewPager) findViewById(R.id.pager);
+        ViewPager pager = (ViewPager) findViewById(R.id.pager);
         pager.setAdapter(pagerAdapter);
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tab_layout);
         tabLayout.setTabsFromPagerAdapter(pagerAdapter);
-        tabLayout.setOnTabSelectedListener(new TabLayout.ViewPagerOnTabSelectedListener(pager));
 
+        // Synchronise Tab and Slide UI
+        tabLayout.setOnTabSelectedListener(new TabLayout.ViewPagerOnTabSelectedListener(pager));
         pager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
     }
 
     private void advanceTime(){
-        VonNeumannActivityFragment fragment = (VonNeumannActivityFragment)
-                getSupportFragmentManager().findFragmentByTag("android:switcher:" +
-                        R.id.pager + ":" + pager.getCurrentItem());
+        int result = controlUnit.nextActionDuration();
+        controlUnit.performNextAction();
 
-        if(fragment != null) {
-            int result = fragment.nextActionTransitionTime();
-            fragment.triggerNextAction();
-
-            sysClock += result;
-            sysClockTextView.setText(String.valueOf(sysClock));
-        }
-        else {
-            Toast.makeText(this, "no fragment!", Toast.LENGTH_SHORT).show();
-        }
+        sysClock += result;
+        sysClockTextView.setText(String.valueOf(sysClock));
     }
 
     @Override

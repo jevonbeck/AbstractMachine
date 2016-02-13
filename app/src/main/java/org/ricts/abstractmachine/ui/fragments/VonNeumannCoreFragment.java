@@ -27,6 +27,7 @@ import java.util.Observer;
  */
 public class VonNeumannCoreFragment extends VonNeumannActivityFragment implements Observer{
     private MemoryPortMultiplexerView muxView;
+    private ControlUnitView cuView;
     private TextView muxSelectView;
 
     private enum MuxInputIds{
@@ -64,35 +65,13 @@ public class VonNeumannCoreFragment extends VonNeumannActivityFragment implement
             }
         });
 
-        ControlUnitView cuView = (ControlUnitView) mainView.findViewById(R.id.control_unit);
+        cuView = (ControlUnitView) mainView.findViewById(R.id.control_unit);
         cuView.initCU(controlUnit.getType(), coreView, instructionCache);
 
         /** Add observers to observables **/
         mainCore.addObserver(coreView);
-        mainMemory.addObserver(muxView);
-        //controlUnit.addObserver(this);
-        controlUnit.addObserver(cuView);
-    }
-
-    @Override
-    public int nextActionTransitionTime() {
-        return controlUnit.nextActionDuration();
-    }
-
-    @Override
-    public void triggerNextAction() {
-        if(controlUnit.isAboutToFetch()){
-            muxView.setUpdateImmediately(true);
-            muxView.setSelection(MuxInputIds.INS_MEM.ordinal());
-            muxSelectView.setText(MuxInputIds.INS_MEM.getOrdinalText());
-        }
-        else {
-            muxView.setUpdateImmediately(false);
-            muxView.setSelection(MuxInputIds.DATA_MEM.ordinal());
-            muxSelectView.setText(MuxInputIds.DATA_MEM.getOrdinalText());
-        }
-
-        controlUnit.performNextAction(); // perform action for 'currentState' and go to next state
+        mainMemory.addObserver(this);
+        controlUnit.addObserver(this);
     }
 
     @Override
@@ -100,16 +79,25 @@ public class VonNeumannCoreFragment extends VonNeumannActivityFragment implement
         if(observable instanceof ObservableControlUnit){
             ControlUnit cu = ((ObservableControlUnit) observable).getType();
 
-            if(cu.isAboutToFetch()){
+            if(cu.isAboutToExecute()){
+                muxSelectView.setText(MuxInputIds.INS_MEM.getOrdinalText());
+            }
+            else{
+                muxSelectView.setText(MuxInputIds.DATA_MEM.getOrdinalText());
+            }
+
+            cuView.update(observable, o);
+        }
+        else if(observable instanceof ObservableRAM){
+            if(controlUnit.isAboutToFetch()){
                 muxView.setUpdateImmediately(true);
                 muxView.setSelection(MuxInputIds.INS_MEM.ordinal());
-                //muxSelectView.setText(MuxInputIds.INS_MEM.getOrdinalText());
             }
             else{
                 muxView.setUpdateImmediately(false);
                 muxView.setSelection(MuxInputIds.DATA_MEM.ordinal());
-                //muxSelectView.setText(MuxInputIds.DATA_MEM.getOrdinalText());
             }
+            muxView.update(observable, o);
         }
     }
 

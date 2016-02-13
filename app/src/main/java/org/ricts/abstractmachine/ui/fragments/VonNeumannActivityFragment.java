@@ -19,7 +19,7 @@ import org.ricts.abstractmachine.components.observables.ObservableRAM;
  * {@link StepActionListener} interface
  * to handle interaction events.
  */
-public class VonNeumannActivityFragment extends Fragment implements ThreadProcessingUnit {
+public abstract class VonNeumannActivityFragment extends Fragment {
     protected ObservableComputeCore mainCore;
     protected ObservableRAM mainMemory;
     protected ObservableControlUnit controlUnit;
@@ -32,10 +32,7 @@ public class VonNeumannActivityFragment extends Fragment implements ThreadProces
         // Required empty public constructor
     }
 
-    protected void initView(View mainView){
-        // TODO: override this function in subclasses
-    }
-
+    protected abstract void initView(View mainView);
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -68,22 +65,6 @@ public class VonNeumannActivityFragment extends Fragment implements ThreadProces
     public void onDetach() {
         super.onDetach();
         mListener = null;
-    }
-
-    @Override
-    public int nextActionTransitionTime() {
-        // TODO: override this function in subclasses
-        return 0;
-    }
-
-    @Override
-    public void triggerNextAction() {
-        // TODO: override this function in subclasses
-    }
-
-    @Override
-    public void setStartExecFrom(int currentPC) {
-        // TODO: override this function in subclasses
     }
 
     /**
