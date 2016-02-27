@@ -28,7 +28,10 @@ import java.util.Observer;
 public class VonNeumannCoreFragment extends VonNeumannActivityFragment implements Observer{
     private MemoryPortMultiplexerView muxView;
     private ControlUnitView cuView;
+    private ComputeCoreView coreView;
     private TextView muxSelectView;
+
+    private boolean updateMuxView;
 
     private enum MuxInputIds{
         INS_MEM, DATA_MEM;
@@ -57,7 +60,7 @@ public class VonNeumannCoreFragment extends VonNeumannActivityFragment implement
         MemoryPortView instructionCache = muxInputs[MuxInputIds.INS_MEM.ordinal()];
         //MemoryPortView dataMemory = muxInputs[MuxInputIds.DATA_MEM.ordinal()];
 
-        ComputeCoreView coreView = (ComputeCoreView) mainView.findViewById(R.id.core);
+        coreView = (ComputeCoreView) mainView.findViewById(R.id.core);
         coreView.setMemoryCommandResponder(new ComputeCoreView.MemoryCommandResponder() {
             @Override
             public void onMemoryCommandIssued() {
@@ -75,6 +78,15 @@ public class VonNeumannCoreFragment extends VonNeumannActivityFragment implement
     }
 
     @Override
+    protected void handleUserVisibility(boolean visible) {
+        boolean fragmentNotVisible = !visible;
+
+        updateMuxView = visible;
+        cuView.setUpdateImmediately(fragmentNotVisible);
+        coreView.setUpdateImmediately(fragmentNotVisible);
+    }
+
+    @Override
     public void update(Observable observable, Object o) {
         if(observable instanceof ObservableControlUnit){
             ControlUnit cu = ((ObservableControlUnit) observable).getType();
@@ -89,15 +101,17 @@ public class VonNeumannCoreFragment extends VonNeumannActivityFragment implement
             cuView.update(observable, o);
         }
         else if(observable instanceof ObservableRAM){
-            if(controlUnit.isAboutToFetch()){
-                muxView.setUpdateImmediately(true);
-                muxView.setSelection(MuxInputIds.INS_MEM.ordinal());
+            if(updateMuxView) {
+                if (controlUnit.isAboutToFetch()) {
+                    muxView.setUpdateImmediately(true);
+                    muxView.setSelection(MuxInputIds.INS_MEM.ordinal());
+                } else {
+                    muxView.setUpdateImmediately(false);
+                    muxView.setSelection(MuxInputIds.DATA_MEM.ordinal());
+                }
+
+                muxView.update(observable, o);
             }
-            else{
-                muxView.setUpdateImmediately(false);
-                muxView.setSelection(MuxInputIds.DATA_MEM.ordinal());
-            }
-            muxView.update(observable, o);
         }
     }
 

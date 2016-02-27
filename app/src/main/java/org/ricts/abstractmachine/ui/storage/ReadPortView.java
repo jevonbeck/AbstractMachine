@@ -68,8 +68,7 @@ public class ReadPortView extends MultiPinView implements Observer {
 
     @Override
     public void update(Observable observable, Object o) {
-        if(observable != null && observable instanceof ObservableROM &&
-                o != null && o instanceof ObservableROM.ReadParams) {
+        if(o instanceof ObservableROM.ReadParams) {
             ObservableROM observedRom = (ObservableROM) observable;
             ROM rom = (ROM) observedRom.getType();
 

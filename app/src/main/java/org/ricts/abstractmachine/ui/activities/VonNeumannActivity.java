@@ -5,6 +5,7 @@ import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -27,6 +28,10 @@ import java.util.ArrayList;
 
 public class VonNeumannActivity extends AppCompatActivity implements VonNeumannActivityFragment.StepActionListener {
     private static final String TAG = "VonNeumannActivity";
+
+    private ViewPager pager;
+    private SystemViewAdapter pagerAdapter;
+    private int pagerAdapterCount, pagerOffScreenLimit;
 
     private ObservableControlUnit controlUnit;
     private TextView sysClockTextView;
@@ -114,10 +119,10 @@ public class VonNeumannActivity extends AppCompatActivity implements VonNeumannA
         sysClockTextView = (TextView) findViewById(R.id.sysClockText);
         sysClockTextView.setText(String.valueOf(sysClock));
 
-        SystemViewAdapter pagerAdapter = new SystemViewAdapter(getSupportFragmentManager(),
+        pagerAdapter = new SystemViewAdapter(getSupportFragmentManager(),
                 mainCore, observableRAM, controlUnit);
 
-        ViewPager pager = (ViewPager) findViewById(R.id.pager);
+        pager = (ViewPager) findViewById(R.id.pager);
         pager.setAdapter(pagerAdapter);
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tab_layout);
@@ -126,9 +131,30 @@ public class VonNeumannActivity extends AppCompatActivity implements VonNeumannA
         // Synchronise Tab and Slide UI
         tabLayout.setOnTabSelectedListener(new TabLayout.ViewPagerOnTabSelectedListener(pager));
         pager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
+
+        // Get data from pager and pagerAdapter
+        pagerAdapterCount = pagerAdapter.getCount();
+        pagerOffScreenLimit = pager.getOffscreenPageLimit();
     }
 
     private void advanceTime(){
+        int currentItemIndex = pager.getCurrentItem();
+        int min = currentItemIndex - pagerOffScreenLimit;
+        int max = currentItemIndex + pagerOffScreenLimit;
+
+        if(min < 0){
+            min = 0;
+        }
+        if(max >= pagerAdapterCount){
+            max = pagerAdapterCount - 1;
+        }
+
+        for(int x=min; x <= max; ++x){
+            ((VonNeumannActivityFragment) pagerAdapter.instantiateItem(pager, x))
+                    .setUserVisibility(x == currentItemIndex);
+        }
+
+        // Initiate animations
         int result = controlUnit.nextActionDuration();
         controlUnit.performNextAction();
 

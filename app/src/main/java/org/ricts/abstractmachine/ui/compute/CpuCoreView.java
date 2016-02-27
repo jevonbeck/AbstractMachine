@@ -9,15 +9,10 @@ import android.widget.TextView;
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.compute.cores.ComputeCore;
 import org.ricts.abstractmachine.components.compute.cu.ControlUnit;
-import org.ricts.abstractmachine.components.devicetype.Device;
 import org.ricts.abstractmachine.components.observables.ObservableComputeCore;
-import org.ricts.abstractmachine.components.interfaces.ThreadProcessingUnit;
 import org.ricts.abstractmachine.components.observables.ObservableControlUnit;
-import org.ricts.abstractmachine.components.observables.ObservableRegister;
-import org.ricts.abstractmachine.components.storage.Register;
 import org.ricts.abstractmachine.ui.storage.RamView;
 import org.ricts.abstractmachine.ui.storage.ReadPortView;
-import org.ricts.abstractmachine.ui.storage.RegDataView;
 
 import java.util.Observable;
 import java.util.Observer;
@@ -29,6 +24,7 @@ public class CpuCoreView extends RelativeLayout implements Observer {
     private TextView pc, ir;
     private TextView stateView, instructionView;
     private String irText;
+    private boolean updateIrImmediately;
 
 
     /** Standard Constructors **/
@@ -140,6 +136,9 @@ public class CpuCoreView extends RelativeLayout implements Observer {
         lpInstructionView.addRule(RelativeLayout.ALIGN_TOP, instructionLabel.getId());
         lpInstructionView.addRule(RelativeLayout.ALIGN_RIGHT, ir.getId());
         addView(instructionView, lpInstructionView);
+
+        /*** Initialise other vars ***/
+        updateIrImmediately = false;
     }
 
     public void initCpu(ControlUnit controlUnit, RamView mainMemory){
@@ -152,7 +151,7 @@ public class CpuCoreView extends RelativeLayout implements Observer {
         mainMemory.setReadResponder(new ReadPortView.ReadResponder() {
             @Override
             public void onReadFinished() {
-                ir.setText(irText); // only update ir when read finished
+                updateIrText(); // only update ir when read finished
             }
 
             @Override
@@ -169,15 +168,25 @@ public class CpuCoreView extends RelativeLayout implements Observer {
 
             stateView.setText(controlUnit.currentState().getName());
             pc.setText(controlUnit.getPcReg().dataString());
-            irText = controlUnit.getIrReg().dataString(); // store data but don't set ir immediately
+            irText = controlUnit.getIrReg().dataString();
+            if(updateIrImmediately)
+                updateIrText();
         }
         else if(observable instanceof ObservableComputeCore){
-            if(o != null && o instanceof ObservableComputeCore.ExecuteParams) {
+            if(o instanceof ObservableComputeCore.ExecuteParams) {
                 ObservableComputeCore.ExecuteParams params = (ObservableComputeCore.ExecuteParams) o;
                 ComputeCore core = (ComputeCore) ((ObservableComputeCore) observable).getType();
 
                 instructionView.setText(core.instrString(params.getInstruction()));
             }
         }
+    }
+
+    public void setUpdateIrImmediately(boolean immediately){
+        updateIrImmediately = immediately;
+    }
+
+    private void updateIrText(){
+        ir.setText(irText); // only update ir when read finished
     }
 }

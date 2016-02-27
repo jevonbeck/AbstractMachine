@@ -14,11 +14,11 @@ import org.ricts.abstractmachine.ui.utils.CustomDimenRecyclerView;
 
 public class RomView extends DeviceView implements Observer {
     protected MemoryDataAdapter dataAdapter;
+    protected MemoryPortView memoryPins;
+    protected boolean updatePins;
 
     private CustomDimenRecyclerView ramView;
     private int ramItemLayout;
-
-    protected MemoryPortView memoryPins;
 
     /** Standard Constructors **/
     public RomView(Context context) {
@@ -33,6 +33,7 @@ public class RomView extends DeviceView implements Observer {
         super(context, attrs, defStyle);
         ramView = (CustomDimenRecyclerView) mainView;
         memoryPins = (MemoryPortView) pinView;
+        updatePins = true;
     }
 
     @Override
@@ -73,7 +74,8 @@ public class RomView extends DeviceView implements Observer {
 
     @Override
     public void update(Observable observable, Object o) {
-        memoryPins.update(observable, o); // initialise read animation
+        if(updatePins)
+            memoryPins.update(observable, o); // initialise animation
     }
 
     public void setDataSource(ROM rom){
@@ -90,5 +92,9 @@ public class RomView extends DeviceView implements Observer {
 
     public void setReadResponder(ReadPortView.ReadResponder responder){
         memoryPins.setReadResponder(responder);
+    }
+
+    public void setAnimatePins(boolean animate){
+        updatePins = animate;
     }
 }

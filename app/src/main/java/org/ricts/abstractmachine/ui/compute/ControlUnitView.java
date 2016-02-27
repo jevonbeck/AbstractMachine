@@ -28,6 +28,7 @@ public class ControlUnitView extends RelativeLayout implements Observer{
     private TextView stateView; // Control Unit state
 
     private String pcText, irText, stateText;
+    private boolean updateImmediately;
 
     public ControlUnitView(Context context) {
         this(context, null);
@@ -121,19 +122,24 @@ public class ControlUnitView extends RelativeLayout implements Observer{
 
     @Override
     public void update(Observable observable, Object o) {
-        if(observable instanceof ObservableControlUnit){
-            ControlUnit controlUnit = ((ObservableControlUnit) observable).getType();
+        ControlUnit controlUnit = ((ObservableControlUnit) observable).getType();
 
-            stateText = controlUnit.currentState().getName();
-            pcText = controlUnit.getPcReg().dataString();
-            irText = controlUnit.getIrReg().dataString();
+        stateText = controlUnit.currentState().getName();
+        pcText = controlUnit.getPcReg().dataString();
+        irText = controlUnit.getIrReg().dataString();
 
+        if(updateImmediately){
+            updatePC();
+            updateIR();
+            updateState();
+        }
+        else {
             if(!controlUnit.isAboutToHalt()){
-                stateView.setText(stateText);
+                updateState();
             }
 
             if(controlUnit.isAboutToExecute()){
-                pc.setText(pcText);
+                updatePC();
             }
         }
     }
@@ -149,7 +155,7 @@ public class ControlUnitView extends RelativeLayout implements Observer{
         instructionCache.setReadResponder(new ReadPortView.ReadResponder() {
             @Override
             public void onReadFinished() {
-                ir.setText(irText); // only update ir when read finished
+                updateIR(); // only update ir when read finished
             }
 
             @Override
@@ -161,15 +167,31 @@ public class ControlUnitView extends RelativeLayout implements Observer{
         coreView.setUpdatePcResponder(new ComputeCoreView.PinsView.UpdateResponder() {
             @Override
             public void onUpdatePcCompleted() {
-                pc.setText(pcText);
+                updatePC();
             }
         });
 
         coreView.setHaltCommandResponder(new ComputeCoreView.HaltResponder() {
             @Override
             public void onHaltCompleted() {
-                stateView.setText(stateText);
+                updateState();
             }
         });
+    }
+
+    public void setUpdateImmediately(boolean immediately){
+        updateImmediately = immediately;
+    }
+
+    private void updatePC(){
+        pc.setText(pcText);
+    }
+
+    private void updateIR(){
+        ir.setText(irText);
+    }
+
+    private void updateState(){
+        stateView.setText(stateText);
     }
 }

@@ -3,7 +3,10 @@ package org.ricts.abstractmachine.ui.storage;
 import android.content.Context;
 import android.util.AttributeSet;
 
+import org.ricts.abstractmachine.components.observables.ObservableRAM;
 import org.ricts.abstractmachine.components.storage.ROM;
+
+import java.util.Observable;
 
 public class RamView extends RomView {
 
@@ -20,13 +23,21 @@ public class RamView extends RomView {
 	}
 
     @Override
+    public void update(Observable observable, Object o) {
+        if(updatePins)
+            memoryPins.update(observable, o); // initialise animation
+        else if(o instanceof ObservableRAM.WriteParams)
+            updateRomUI(); // immediately update ROM UI
+    }
+
+    @Override
     public void setDataSource(ROM r){
         super.setDataSource(r);
 
         memoryPins.setWriteResponder(new MemoryPortView.WriteResponder() {
             @Override
             public void onWriteFinished() {
-                dataAdapter.notifyDataSetChanged(); // Animate rom UI
+                updateRomUI();
             }
 
             @Override
@@ -34,5 +45,9 @@ public class RamView extends RomView {
 
             }
         });
+    }
+
+    private void updateRomUI(){
+        dataAdapter.notifyDataSetChanged();
     }
 }

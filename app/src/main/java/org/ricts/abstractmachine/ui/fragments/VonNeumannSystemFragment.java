@@ -19,20 +19,29 @@ import org.ricts.abstractmachine.ui.storage.RamView;
  * create an instance of this fragment.
  */
 public class VonNeumannSystemFragment extends VonNeumannActivityFragment {
+    private RamView memory;
+    private CpuCoreView cpu;
+
     @Override
     protected void initView(View mainView){
         mainView.setId(R.id.VonNeumannSystemFragment_main_view);
 
-        RamView memory = (RamView) mainView.findViewById(R.id.memory);
+        memory = (RamView) mainView.findViewById(R.id.memory);
         memory.setDataSource(mainMemory.getType());
 
-        CpuCoreView cpu = (CpuCoreView) mainView.findViewById(R.id.cpuView);
+        cpu = (CpuCoreView) mainView.findViewById(R.id.cpuView);
         cpu.initCpu(controlUnit.getType(), memory);
 
         /** Add observers to observables **/
         mainMemory.addObserver(memory);
         controlUnit.addObserver(cpu);
         mainCore.addObserver(cpu);
+    }
+
+    @Override
+    protected void handleUserVisibility(boolean visible) {
+        memory.setAnimatePins(visible);
+        cpu.setUpdateIrImmediately(!visible);
     }
 
     public VonNeumannSystemFragment() {

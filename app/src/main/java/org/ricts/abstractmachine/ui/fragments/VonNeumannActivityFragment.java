@@ -33,6 +33,7 @@ public abstract class VonNeumannActivityFragment extends Fragment {
     }
 
     protected abstract void initView(View mainView);
+    protected abstract void handleUserVisibility(boolean visible);
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -87,5 +88,9 @@ public abstract class VonNeumannActivityFragment extends Fragment {
         mainMemory = memData;
         controlUnit = fsmData;
         layoutId = id;
+    }
+
+    public void setUserVisibility(boolean visibility){
+        handleUserVisibility(visibility);
     }
 }
