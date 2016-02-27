@@ -42,15 +42,19 @@ public class VonNeumannCoreFragment extends VonNeumannActivityFragment implement
     }
 
     @Override
-    protected void initView(View mainView){
-        mainView.setId(R.id.VonNeumannCoreFragment_main_view);
-
+    protected void extractInnerViews(View mainView){
         muxSelectView = (TextView) mainView.findViewById(R.id.muxSelect);
+        muxView = (MemoryPortMultiplexerView) mainView.findViewById(R.id.mux);
+        coreView = (ComputeCoreView) mainView.findViewById(R.id.core);
+        cuView = (ControlUnitView) mainView.findViewById(R.id.control_unit);
+    }
+
+    @Override
+    protected void initViews(){
+        /** Initialise Views **/
         muxSelectView.setText(MuxInputIds.INS_MEM.getOrdinalText());
 
-        muxView = (MemoryPortMultiplexerView) mainView.findViewById(R.id.mux);
         muxView.setSelectWidth(1);
-
         View [] temp = muxView.getInputs();
         MemoryPortView muxInputs[] =  new MemoryPortView[temp.length];
         for(int x=0; x != muxInputs.length; ++x){
@@ -60,7 +64,6 @@ public class VonNeumannCoreFragment extends VonNeumannActivityFragment implement
         MemoryPortView instructionCache = muxInputs[MuxInputIds.INS_MEM.ordinal()];
         //MemoryPortView dataMemory = muxInputs[MuxInputIds.DATA_MEM.ordinal()];
 
-        coreView = (ComputeCoreView) mainView.findViewById(R.id.core);
         coreView.setMemoryCommandResponder(new ComputeCoreView.MemoryCommandResponder() {
             @Override
             public void onMemoryCommandIssued() {
@@ -68,7 +71,6 @@ public class VonNeumannCoreFragment extends VonNeumannActivityFragment implement
             }
         });
 
-        cuView = (ControlUnitView) mainView.findViewById(R.id.control_unit);
         cuView.initCU(controlUnit.getType(), coreView, instructionCache);
 
         /** Add observers to observables **/
@@ -84,6 +86,11 @@ public class VonNeumannCoreFragment extends VonNeumannActivityFragment implement
         updateMuxView = visible;
         cuView.setUpdateImmediately(fragmentNotVisible);
         coreView.setUpdateImmediately(fragmentNotVisible);
+    }
+
+    @Override
+    protected int getLayoutId() {
+        return R.layout.fragment_von_neumann_core;
     }
 
     @Override
@@ -130,7 +137,7 @@ public class VonNeumannCoreFragment extends VonNeumannActivityFragment implement
     public static VonNeumannCoreFragment newInstance(ObservableComputeCore core, ObservableRAM memData,
                                                      ObservableControlUnit fsmData) {
         VonNeumannCoreFragment fragment = new VonNeumannCoreFragment();
-        fragment.init(core, memData, fsmData, R.layout.fragment_von_neumann_core);
+        fragment.setObservables(core, memData, fsmData);
         return fragment;
     }
 }

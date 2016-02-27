@@ -8,8 +8,6 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import org.ricts.abstractmachine.components.observables.ObservableComputeCore;
-import org.ricts.abstractmachine.components.compute.cu.ControlUnit;
-import org.ricts.abstractmachine.components.interfaces.ThreadProcessingUnit;
 import org.ricts.abstractmachine.components.observables.ObservableControlUnit;
 import org.ricts.abstractmachine.components.observables.ObservableRAM;
 
@@ -27,20 +25,33 @@ public abstract class VonNeumannActivityFragment extends Fragment {
     private StepActionListener mListener;
 
     private int layoutId;
+    private boolean viewsReady = false, observablesReady = false;
 
     public VonNeumannActivityFragment() {
         // Required empty public constructor
     }
 
-    protected abstract void initView(View mainView);
+    protected abstract void extractInnerViews(View mainView);
+    protected abstract void initViews();
     protected abstract void handleUserVisibility(boolean visible);
+    protected abstract int getLayoutId();
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        layoutId = getLayoutId();
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(layoutId, container, false);
-        initView(rootView);
+        extractInnerViews(rootView);
+
+        viewsReady = true;
+        attemptInit();
+
         return rootView;
     }
 
@@ -82,15 +93,23 @@ public abstract class VonNeumannActivityFragment extends Fragment {
         void onStepActionCompleted();
     }
 
-    public void init(ObservableComputeCore core, ObservableRAM memData,
-                     ObservableControlUnit fsmData, int id){
+    public void setObservables(ObservableComputeCore core, ObservableRAM memData,
+                               ObservableControlUnit fsmData){
         mainCore = core;
         mainMemory = memData;
         controlUnit = fsmData;
-        layoutId = id;
+
+        observablesReady = true;
+        attemptInit();
     }
 
     public void setUserVisibility(boolean visibility){
         handleUserVisibility(visibility);
+    }
+
+    private void attemptInit(){
+        if(viewsReady && observablesReady){
+            initViews();
+        }
     }
 }

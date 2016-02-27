@@ -23,13 +23,15 @@ public class VonNeumannSystemFragment extends VonNeumannActivityFragment {
     private CpuCoreView cpu;
 
     @Override
-    protected void initView(View mainView){
-        mainView.setId(R.id.VonNeumannSystemFragment_main_view);
-
+    protected void extractInnerViews(View mainView){
         memory = (RamView) mainView.findViewById(R.id.memory);
-        memory.setDataSource(mainMemory.getType());
-
         cpu = (CpuCoreView) mainView.findViewById(R.id.cpuView);
+    }
+
+    @Override
+    protected void initViews(){
+        /** Initialise Views **/
+        memory.setDataSource(mainMemory.getType());
         cpu.initCpu(controlUnit.getType(), memory);
 
         /** Add observers to observables **/
@@ -42,6 +44,11 @@ public class VonNeumannSystemFragment extends VonNeumannActivityFragment {
     protected void handleUserVisibility(boolean visible) {
         memory.setAnimatePins(visible);
         cpu.setUpdateIrImmediately(!visible);
+    }
+
+    @Override
+    protected int getLayoutId() {
+        return R.layout.fragment_von_neumann_system;
     }
 
     public VonNeumannSystemFragment() {
@@ -59,7 +66,7 @@ public class VonNeumannSystemFragment extends VonNeumannActivityFragment {
     public static VonNeumannSystemFragment newInstance(ObservableComputeCore core, ObservableRAM memData,
                                                        ObservableControlUnit cu) {
         VonNeumannSystemFragment fragment = new VonNeumannSystemFragment();
-        fragment.init(core, memData, cu, R.layout.fragment_von_neumann_system);
+        fragment.setObservables(core, memData, cu);
         return fragment;
     }
 }

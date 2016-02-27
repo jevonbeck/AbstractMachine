@@ -48,8 +48,6 @@
     <item name="MultiplexerView_middle" type="id"/>
     <item name="MultiplexerView_first_triangle" type="id"/>
     <item name="MultiplexerView_last_triangle" type="id"/>
-    <item name="VonNeumannSystemFragment_main_view" type="id"/>
-    <item name="VonNeumannCoreFragment_main_view" type="id"/>
 
     <!-- Custom View Attributes -->
     <integer name="DeviceView_pin_position_left">0</integer>
