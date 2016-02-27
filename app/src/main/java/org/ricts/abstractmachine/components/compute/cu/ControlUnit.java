@@ -67,6 +67,11 @@ public class ControlUnit extends FiniteStateMachine implements ControlUnitInterf
     }
 
     @Override
+    public boolean isAboutToFetch() {
+        return currentState() == fetch;
+    }
+
+    @Override
     public void performNextAction(){
         triggerStateChange();
     }

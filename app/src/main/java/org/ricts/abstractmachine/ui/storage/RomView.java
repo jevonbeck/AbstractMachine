@@ -1,6 +1,5 @@
 package org.ricts.abstractmachine.ui.storage;
 
-import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 
@@ -14,16 +13,12 @@ import org.ricts.abstractmachine.ui.device.DeviceView;
 import org.ricts.abstractmachine.ui.utils.CustomDimenRecyclerView;
 
 public class RomView extends DeviceView implements Observer {
-    protected int dataWidth;
-    protected int addressWidth;
-
     protected MemoryDataAdapter dataAdapter;
-    protected ROM rom;
+    protected MemoryPortView memoryPins;
+    protected boolean updatePins;
 
     private CustomDimenRecyclerView ramView;
     private int ramItemLayout;
-
-    protected MemoryPortView memoryPins;
 
     /** Standard Constructors **/
     public RomView(Context context) {
@@ -38,6 +33,7 @@ public class RomView extends DeviceView implements Observer {
         super(context, attrs, defStyle);
         ramView = (CustomDimenRecyclerView) mainView;
         memoryPins = (MemoryPortView) pinView;
+        updatePins = true;
     }
 
     @Override
@@ -78,45 +74,27 @@ public class RomView extends DeviceView implements Observer {
 
     @Override
     public void update(Observable observable, Object o) {
-        memoryPins.update(observable, o); // initialise read animation
+        if(updatePins)
+            memoryPins.update(observable, o); // initialise animation
     }
 
-    public void initMemory(int dWidth, int aWidth, int accessTime){
-        dataWidth = dWidth;
-        addressWidth = aWidth;
-
-        // initialise rom (ramView data)
-        rom = new ROM(dataWidth, addressWidth, accessTime);
-
-        init();
-    }
-
-    public void setDataSource(ROM r){
-        rom = r;
-        dataWidth = rom.dataWidth();
-        addressWidth = rom.addressWidth();
-
-        init();
-    }
-
-    protected void init(){
+    public void setDataSource(ROM rom){
         /*** bind memoryView to their data ***/
         try {
             dataAdapter = new MemoryDataAdapter(getContext(), ramItemLayout,
-                    R.id.data, rom.dataArray());
+                    R.id.data, rom);
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        dataAdapter.setMemoryParams(dataWidth, addressWidth);
         ramView.setAdapter(dataAdapter);
-    }
-
-    public void setMemoryData(List<Integer> data, int addrOffset){
-        rom.setData(data, addrOffset);
     }
 
     public void setReadResponder(ReadPortView.ReadResponder responder){
         memoryPins.setReadResponder(responder);
+    }
+
+    public void setAnimatePins(boolean animate){
+        updatePins = animate;
     }
 }

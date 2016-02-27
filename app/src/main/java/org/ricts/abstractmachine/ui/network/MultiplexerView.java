@@ -47,8 +47,6 @@ public abstract class MultiplexerView extends RelativeLayout {
 
     public MultiplexerView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-        currentSel = 0;
-
         /*** extract XML attributes ***/
         TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.MultiplexerView);
         int outputPosition = a.getInt(R.styleable.MultiplexerView_outputPosition, 1);
@@ -256,6 +254,7 @@ public abstract class MultiplexerView extends RelativeLayout {
         }
 
         /*** Initialise other vars ***/
+        setSelection(0);
         selectPinData.action = DevicePin.PinAction.MOVING;
     }
 

@@ -65,6 +65,11 @@ public class ObservableControlUnit extends ObservableFSM<ControlUnit> implements
     }
 
     @Override
+    public boolean isAboutToFetch() {
+        return observable_data.isAboutToFetch();
+    }
+
+    @Override
     public boolean isAboutToExecute() {
         return observable_data.isAboutToExecute();
     }

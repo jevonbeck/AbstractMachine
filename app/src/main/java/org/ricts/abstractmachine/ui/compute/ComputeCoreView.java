@@ -35,8 +35,11 @@ public class ComputeCoreView extends DeviceView implements Observer {
 
     private MainBodyView mainBody;
     private PinsView pins;
+
     private MemoryCommandResponder memoryCommandResponder;
     private HaltResponder haltResponder;
+
+    private boolean updateImmediately;
 
     public ComputeCoreView(Context context) {
         this(context, null);
@@ -70,65 +73,62 @@ public class ComputeCoreView extends DeviceView implements Observer {
 
     @Override
     public void update(Observable observable, Object o) {
-        if(observable instanceof ObservableComputeCore &&
-                o != null && o instanceof ObservableComputeCore.ExecuteParams) {
+        if(o instanceof ObservableComputeCore.ExecuteParams) {
             ComputeCore mainCore = (ComputeCore) ((ObservableComputeCore) observable).getType();
             ObservableComputeCore.ExecuteParams params = (ObservableComputeCore.ExecuteParams) o;
             int instruction = params.getInstruction();
-            ControlUnitInterface controlUnit = params.getControlUnit();
-            int pcPreExecute = params.getPcPreExecute();
-            int pcPostExecute = controlUnit.getPC();
-
-            final boolean isDataMemInstruction = mainCore.isDataMemoryInstruction(instruction);
-            final boolean isHaltInstruction = mainCore.isHaltInstruction(instruction);
-            final String pcPostExecuteString = Device.formatNumberInHex(pcPostExecute, mainCore.iAddrWidth());
-            final boolean updatePC = pcPreExecute != pcPostExecute;
 
             mainBody.setInstructionText(mainCore.instrString(instruction));
 
-            pins.setCommandResponder(new PinsView.CommandOnlyResponder() {
-                @Override
-                public void onCommandCompleted() {
-                    if(isDataMemInstruction){
-                        /*
-                        if(memoryCommandResponder != null) {
-                            memoryCommandResponder.onMemoryCommandIssued();
-                        }
-                        */
-                    }
-                    else if(isHaltInstruction){
-                        if(haltResponder != null) {
-                            haltResponder.onHaltCompleted();
-                        }
-                    }
-                }
-            });
+            if(updateImmediately){
+                mainBody.updateInstructionView();
+            }
+            else{
+                ControlUnitInterface controlUnit = params.getControlUnit();
+                int pcPreExecute = params.getPcPreExecute();
+                int pcPostExecute = controlUnit.getPC();
 
-            pins.setExecuteResponder(new PinsView.ExecuteResponder() {
-                @Override
-                public void onExecuteCompleted() {
-                    // first animation [executeInstruction()] ends here!
-                    mainBody.updateInstructionView();
+                final boolean isDataMemInstruction = mainCore.isDataMemoryInstruction(instruction);
+                final boolean isHaltInstruction = mainCore.isHaltInstruction(instruction);
+                final String pcPostExecuteString = Device.formatNumberInHex(pcPostExecute, mainCore.iAddrWidth());
+                final boolean updatePC = pcPreExecute != pcPostExecute;
 
-                    /** Start one of these animations if applicable (they are mutually exclusive) **/
-                    if(isHaltInstruction){
-                        pins.sendCommandOnly("setHalt");
-                    }
-                    else if(isDataMemInstruction){
-                        //pins.sendCommandOnly("getMem");
-                        if(memoryCommandResponder != null) {
-                            memoryCommandResponder.onMemoryCommandIssued();
+                pins.setCommandResponder(new PinsView.CommandOnlyResponder() {
+                    @Override
+                    public void onCommandCompleted() {
+                        if(isHaltInstruction){
+                            if(haltResponder != null) {
+                                haltResponder.onHaltCompleted();
+                            }
                         }
                     }
+                });
 
-                    if (updatePC) {
-                        pins.updatePC(pcPostExecuteString);
+                pins.setExecuteResponder(new PinsView.ExecuteResponder() {
+                    @Override
+                    public void onExecuteCompleted() {
+                        // first animation [executeInstruction()] ends here!
+                        mainBody.updateInstructionView();
+
+                        /** Start one of these animations if applicable (they are mutually exclusive) **/
+                        if(isHaltInstruction){
+                            pins.sendCommandOnly("setHalt");
+                        }
+                        else if(isDataMemInstruction){
+                            if(memoryCommandResponder != null) {
+                                memoryCommandResponder.onMemoryCommandIssued();
+                            }
+                        }
+
+                        if (updatePC) {
+                            pins.updatePC(pcPostExecuteString);
+                        }
                     }
-                }
-            });
+                });
 
-            // actually begin the animation
-            pins.executeInstruction(Device.formatNumberInHex(instruction, mainCore.instrWidth()));
+                // actually begin the animation
+                pins.executeInstruction(Device.formatNumberInHex(instruction, mainCore.instrWidth()));
+            }
         }
     }
 
@@ -142,6 +142,10 @@ public class ComputeCoreView extends DeviceView implements Observer {
 
     public void setMemoryCommandResponder(MemoryCommandResponder responder){
         memoryCommandResponder = responder;
+    }
+
+    public void setUpdateImmediately(boolean immediately){
+        updateImmediately = immediately;
     }
 
     public static class PinsView extends MultiPinView {

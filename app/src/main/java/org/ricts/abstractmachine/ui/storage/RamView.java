@@ -3,13 +3,14 @@ package org.ricts.abstractmachine.ui.storage;
 import android.content.Context;
 import android.util.AttributeSet;
 
-import org.ricts.abstractmachine.components.interfaces.MemoryPort;
-import org.ricts.abstractmachine.components.storage.RAM;
+import org.ricts.abstractmachine.components.observables.ObservableRAM;
+import org.ricts.abstractmachine.components.storage.ROM;
+
+import java.util.Observable;
 
 public class RamView extends RomView {
-	private RAM ram;
 
-	public RamView(Context context) {
+    public RamView(Context context) {
 		super(context);
 	}
 
@@ -22,23 +23,21 @@ public class RamView extends RomView {
 	}
 
     @Override
-	public void initMemory(int dWidth, int aWidth, int accessTime){
-		dataWidth = dWidth;
-		addressWidth = aWidth;
+    public void update(Observable observable, Object o) {
+        if(updatePins)
+            memoryPins.update(observable, o); // initialise animation
+        else if(o instanceof ObservableRAM.WriteParams)
+            updateRomUI(); // immediately update ROM UI
+    }
 
-		ram = new RAM(dataWidth, addressWidth, accessTime);
+    @Override
+    public void setDataSource(ROM r){
+        super.setDataSource(r);
 
-		init();
-	}
-
-	@Override
-	protected void init(){
-		rom = ram;
-        super.init();
         memoryPins.setWriteResponder(new MemoryPortView.WriteResponder() {
             @Override
             public void onWriteFinished() {
-                dataAdapter.notifyDataSetChanged(); // Animate rom UI
+                updateRomUI();
             }
 
             @Override
@@ -46,11 +45,9 @@ public class RamView extends RomView {
 
             }
         });
-	}
+    }
 
-    public void setDataSource(RAM r){
-        ram = r;
-        super.setDataSource(r);
-        init();
+    private void updateRomUI(){
+        dataAdapter.notifyDataSetChanged();
     }
 }

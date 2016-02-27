@@ -1,22 +1,22 @@
 package org.ricts.abstractmachine.ui.activities;
 
 import android.os.Bundle;
+import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.observables.ObservableComputeCore;
 import org.ricts.abstractmachine.components.compute.cu.ControlUnit;
 import org.ricts.abstractmachine.components.observables.ObservableControlUnit;
 import org.ricts.abstractmachine.components.observables.ObservableRAM;
-import org.ricts.abstractmachine.components.observables.ObservableRegister;
 import org.ricts.abstractmachine.components.storage.RAM;
 import org.ricts.abstractmachine.devices.compute.core.BasicScalar;
 import org.ricts.abstractmachine.devices.compute.core.BasicScalarEnums;
@@ -30,6 +30,10 @@ public class VonNeumannActivity extends AppCompatActivity implements VonNeumannA
     private static final String TAG = "VonNeumannActivity";
 
     private ViewPager pager;
+    private SystemViewAdapter pagerAdapter;
+    private int pagerAdapterCount, pagerOffScreenLimit;
+
+    private ObservableControlUnit controlUnit;
     private TextView sysClockTextView;
     private int sysClock; // system clock
 
@@ -100,7 +104,7 @@ public class VonNeumannActivity extends AppCompatActivity implements VonNeumannA
 
         ObservableComputeCore mainCore = new ObservableComputeCore<BasicScalar>(core);
         ObservableRAM observableRAM = new ObservableRAM(memory);
-        ObservableControlUnit fsm = new ObservableControlUnit(
+        controlUnit = new ObservableControlUnit(
                 new ControlUnit(mainCore, observableRAM, observableRAM));
 
         Button advanceButton = (Button) findViewById(R.id.stepButton);
@@ -115,26 +119,47 @@ public class VonNeumannActivity extends AppCompatActivity implements VonNeumannA
         sysClockTextView = (TextView) findViewById(R.id.sysClockText);
         sysClockTextView.setText(String.valueOf(sysClock));
 
+        pagerAdapter = new SystemViewAdapter(getSupportFragmentManager(),
+                mainCore, observableRAM, controlUnit);
+
         pager = (ViewPager) findViewById(R.id.pager);
-        pager.setAdapter(new SystemViewAdapter(getSupportFragmentManager(),
-                mainCore, observableRAM, fsm));
+        pager.setAdapter(pagerAdapter);
+
+        TabLayout tabLayout = (TabLayout) findViewById(R.id.tab_layout);
+        tabLayout.setTabsFromPagerAdapter(pagerAdapter);
+
+        // Synchronise Tab and Slide UI
+        tabLayout.setOnTabSelectedListener(new TabLayout.ViewPagerOnTabSelectedListener(pager));
+        pager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
+
+        // Get data from pager and pagerAdapter
+        pagerAdapterCount = pagerAdapter.getCount();
+        pagerOffScreenLimit = pager.getOffscreenPageLimit();
     }
 
     private void advanceTime(){
-        VonNeumannActivityFragment fragment = (VonNeumannActivityFragment)
-                getSupportFragmentManager().findFragmentByTag("android:switcher:" +
-                        R.id.pager + ":" + pager.getCurrentItem());
+        int currentItemIndex = pager.getCurrentItem();
+        int min = currentItemIndex - pagerOffScreenLimit;
+        int max = currentItemIndex + pagerOffScreenLimit;
 
-        if(fragment != null) {
-            int result = fragment.nextActionTransitionTime();
-            fragment.triggerNextAction();
+        if(min < 0){
+            min = 0;
+        }
+        if(max >= pagerAdapterCount){
+            max = pagerAdapterCount - 1;
+        }
 
-            sysClock += result;
-            sysClockTextView.setText(String.valueOf(sysClock));
+        for(int x=min; x <= max; ++x){
+            ((VonNeumannActivityFragment) pagerAdapter.instantiateItem(pager, x))
+                    .setUserVisibility(x == currentItemIndex);
         }
-        else {
-            Toast.makeText(this, "no fragment!", Toast.LENGTH_SHORT).show();
-        }
+
+        // Initiate animations
+        int result = controlUnit.nextActionDuration();
+        controlUnit.performNextAction();
+
+        sysClock += result;
+        sysClockTextView.setText(String.valueOf(sysClock));
     }
 
     @Override

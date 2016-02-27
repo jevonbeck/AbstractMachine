@@ -5,13 +5,10 @@ import android.view.View;
 
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.observables.ObservableComputeCore;
-import org.ricts.abstractmachine.components.compute.cu.ControlUnit;
 import org.ricts.abstractmachine.components.observables.ObservableControlUnit;
 import org.ricts.abstractmachine.components.observables.ObservableRAM;
 import org.ricts.abstractmachine.ui.compute.CpuCoreView;
-import org.ricts.abstractmachine.ui.compute.FSMView;
 import org.ricts.abstractmachine.ui.storage.RamView;
-import org.ricts.abstractmachine.ui.storage.RegDataView;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -22,14 +19,17 @@ import org.ricts.abstractmachine.ui.storage.RegDataView;
  * create an instance of this fragment.
  */
 public class VonNeumannSystemFragment extends VonNeumannActivityFragment {
+    private RamView memory;
+    private CpuCoreView cpu;
+
     @Override
     protected void initView(View mainView){
         mainView.setId(R.id.VonNeumannSystemFragment_main_view);
 
-        RamView memory = (RamView) mainView.findViewById(R.id.memory);
+        memory = (RamView) mainView.findViewById(R.id.memory);
         memory.setDataSource(mainMemory.getType());
 
-        CpuCoreView cpu = (CpuCoreView) mainView.findViewById(R.id.cpuView);
+        cpu = (CpuCoreView) mainView.findViewById(R.id.cpuView);
         cpu.initCpu(controlUnit.getType(), memory);
 
         /** Add observers to observables **/
@@ -39,19 +39,9 @@ public class VonNeumannSystemFragment extends VonNeumannActivityFragment {
     }
 
     @Override
-    public int nextActionTransitionTime() {
-        return controlUnit.nextActionDuration();
-    }
-
-    @Override
-    public void triggerNextAction() {
-        controlUnit.performNextAction(); // perform action for 'currentState' and go to next state
-    }
-
-    @Override
-    public void setStartExecFrom(int currentPC){
-        // FIXME!!!
-        controlUnit.setPC(currentPC);
+    protected void handleUserVisibility(boolean visible) {
+        memory.setAnimatePins(visible);
+        cpu.setUpdateIrImmediately(!visible);
     }
 
     public VonNeumannSystemFragment() {

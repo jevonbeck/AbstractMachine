@@ -37,8 +37,7 @@ public class MemoryPortView extends ReadPortView {
 
     @Override
     public void update(Observable observable, Object o) {
-        if(observable != null && observable instanceof ObservableRAM &&
-                o != null && o instanceof ObservableRAM.WriteParams) {
+        if(o instanceof ObservableRAM.WriteParams) {
             ObservableRAM.WriteParams params = (ObservableRAM.WriteParams) o;
             ObservableRAM observedRam = (ObservableRAM) observable;
             RAM ram = observedRam.getType();
