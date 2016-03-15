@@ -43,6 +43,7 @@ public class VerticalPinDataView extends CustomDimenRecyclerView {
                     adapter.createViewHolder(this, adapter.getItemViewType(0));
 
             int count = adapter.getItemCount();
+            float scaleFactor = getContext().getResources().getDisplayMetrics().density;
 
             int max_width = 0;
 			for(int x=0; x!= count; ++x){
@@ -56,7 +57,7 @@ public class VerticalPinDataView extends CustomDimenRecyclerView {
 				int pinWidth = (int) pin.getPaint().measureText((String) pin.getText());
 
 				// find maximum
-				int textMax = pinWidth + 14;
+				int textMax = pinWidth + (int) (10*scaleFactor);
 				max_width = Math.max(max_width, textMax);
 			}
 
@@ -85,7 +86,8 @@ public class VerticalPinDataView extends CustomDimenRecyclerView {
                 String text = (String) pin.getText();
                 pin.getPaint().getTextBounds(text, 0, text.length(), pinBounds);
 
-                int result = (2*Math.abs(pinBounds.height()) + 24) *
+                float scaleFactor = getContext().getResources().getDisplayMetrics().density;
+                int result = (2*Math.abs(pinBounds.height()) + (int) (16*scaleFactor)) *
                         adapter.getItemCount();
 
                 return Math.min(result, parentHeight);

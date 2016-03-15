@@ -1,18 +1,16 @@
 package org.ricts.abstractmachine.components.compute.cores;
 
 import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
-import org.ricts.abstractmachine.components.interfaces.ControlUnitInterface;
 import org.ricts.abstractmachine.components.interfaces.ThreadProcessingUnit;
 import org.ricts.abstractmachine.components.interfaces.MemoryPort;
 import org.ricts.abstractmachine.components.compute.cu.ControlUnit;
+import org.ricts.abstractmachine.components.observables.ObservableControlUnit;
 
 public class VonNeumannCore implements ThreadProcessingUnit{
-    private ControlUnitInterface cu; // Control Unit
+    private ObservableControlUnit cu; // Control Unit
 
     public VonNeumannCore(ComputeCoreInterface core, MemoryPort dataMemory){
-        cu = new ControlUnit(core, dataMemory, dataMemory);
-
-        setStartExecFrom(0);
+        cu = new ObservableControlUnit(new ControlUnit(core, dataMemory, dataMemory));
     }
 
     @Override
@@ -28,5 +26,9 @@ public class VonNeumannCore implements ThreadProcessingUnit{
     @Override
     public void triggerNextAction(){
         cu.performNextAction(); // perform action for 'currentState' and go to next state
+    }
+
+    public ObservableControlUnit getControlUnit(){
+        return cu;
     }
 }

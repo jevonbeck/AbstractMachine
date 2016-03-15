@@ -64,7 +64,9 @@ public class VerticalRamDataView extends CustomDimenRecyclerView {
                     text = (String) data.getText();
                     data.getPaint().getTextBounds(text, 0, text.length(), dataBounds);
 
-                    int result = Math.abs(addrBounds.width()) + Math.abs(dataBounds.width()) + 6;
+                    float scaleFactor = getContext().getResources().getDisplayMetrics().density;
+                    int result = Math.abs(addrBounds.width()) + Math.abs(dataBounds.width()) +
+                            (int) (4 * scaleFactor);
 
                     return Math.min(result, parentWidth);
                 }
@@ -93,7 +95,9 @@ public class VerticalRamDataView extends CustomDimenRecyclerView {
                     String text = (String) addr.getText();
                     addr.getPaint().getTextBounds(text, 0, text.length(), bounds);
 
-                    int result = adapter.getItemCount() * (Math.abs(bounds.height()) + 14 + dividerThickness);
+                    float scaleFactor = getContext().getResources().getDisplayMetrics().density;
+                    int result = adapter.getItemCount() * (Math.abs(bounds.height()) + dividerThickness +
+                            (int) (10*scaleFactor));
 
                     return Math.min(result, parentHeight);
                 }

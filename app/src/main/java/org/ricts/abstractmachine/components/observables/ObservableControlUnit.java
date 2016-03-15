@@ -39,13 +39,13 @@ public class ObservableControlUnit extends ObservableFSM<ControlUnit> implements
     @Override
     public void setStartExecFrom(int currentPC) {
         observable_data.setStartExecFrom(currentPC);
-        //setChanged();
-        //notifyObservers();
+        setChanged();
+        notifyObservers();
     }
 
     @Override
-    public void setToFetchState() {
-        observable_data.setToFetchState();
+    public void setNextExecFrom(int currentPC) {
+        observable_data.setNextExecFrom(currentPC);
         setChanged();
         notifyObservers();
     }
@@ -58,8 +58,8 @@ public class ObservableControlUnit extends ObservableFSM<ControlUnit> implements
     }
 
     @Override
-    public void setToHaltState() {
-        observable_data.setToHaltState();
+    public void setNextStateToHalt() {
+        observable_data.setNextStateToHalt();
         setChanged();
         notifyObservers();
     }

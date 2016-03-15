@@ -11,6 +11,7 @@ import org.ricts.abstractmachine.components.compute.cores.ComputeCore;
 import org.ricts.abstractmachine.components.compute.cu.ControlUnit;
 import org.ricts.abstractmachine.components.observables.ObservableComputeCore;
 import org.ricts.abstractmachine.components.observables.ObservableControlUnit;
+import org.ricts.abstractmachine.ui.storage.MemoryPortView;
 import org.ricts.abstractmachine.ui.storage.RamView;
 import org.ricts.abstractmachine.ui.storage.ReadPortView;
 
@@ -21,6 +22,12 @@ import java.util.Observer;
  * Created by Jevon on 18/01/15.
  */
 public class CpuCoreView extends RelativeLayout implements Observer {
+    public interface StepActionResponder {
+        void onAnimationEnd();
+    }
+
+    private StepActionResponder responder;
+
     private TextView pc, ir;
     private TextView stateView, instructionView;
     private String irText;
@@ -152,10 +159,23 @@ public class CpuCoreView extends RelativeLayout implements Observer {
             @Override
             public void onReadFinished() {
                 updateIrText(); // only update ir when read finished
+                responder.onAnimationEnd();
             }
 
             @Override
             public void onReadStart() {
+
+            }
+        });
+
+        mainMemory.setWriteResponder(new MemoryPortView.WriteResponder() {
+            @Override
+            public void onWriteFinished() {
+                responder.onAnimationEnd(); // only update when write is finished
+            }
+
+            @Override
+            public void onWriteStart() {
 
             }
         });
@@ -177,13 +197,21 @@ public class CpuCoreView extends RelativeLayout implements Observer {
                 ObservableComputeCore.ExecuteParams params = (ObservableComputeCore.ExecuteParams) o;
                 ComputeCore core = (ComputeCore) ((ObservableComputeCore) observable).getType();
 
-                instructionView.setText(core.instrString(params.getInstruction()));
+                int instruction = params.getInstruction();
+                instructionView.setText(core.instrString(instruction));
+
+                if(!updateIrImmediately && !core.isDataMemoryInstruction(instruction))
+                    responder.onAnimationEnd();
             }
         }
     }
 
     public void setUpdateIrImmediately(boolean immediately){
         updateIrImmediately = immediately;
+    }
+
+    public void setActionResponder(StepActionResponder resp){
+        responder = resp;
     }
 
     private void updateIrText(){

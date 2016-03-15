@@ -33,11 +33,16 @@ public class ComputeCoreView extends DeviceView implements Observer {
         void onMemoryCommandIssued();
     }
 
+    public interface StepActionResponder {
+        void onAnimationEnd();
+    }
+
     private MainBodyView mainBody;
     private PinsView pins;
 
     private MemoryCommandResponder memoryCommandResponder;
     private HaltResponder haltResponder;
+    private StepActionResponder stepResponder;
 
     private boolean updateImmediately;
 
@@ -111,17 +116,16 @@ public class ComputeCoreView extends DeviceView implements Observer {
                         mainBody.updateInstructionView();
 
                         /** Start one of these animations if applicable (they are mutually exclusive) **/
-                        if(isHaltInstruction){
+                        if (isHaltInstruction) {
                             pins.sendCommandOnly("setHalt");
-                        }
-                        else if(isDataMemInstruction){
-                            if(memoryCommandResponder != null) {
+                        } else if (isDataMemInstruction) {
+                            if (memoryCommandResponder != null) {
                                 memoryCommandResponder.onMemoryCommandIssued();
                             }
-                        }
-
-                        if (updatePC) {
+                        } else if (updatePC) {
                             pins.updatePC(pcPostExecuteString);
+                        } else {
+                            stepResponder.onAnimationEnd();
                         }
                     }
                 });
@@ -146,6 +150,10 @@ public class ComputeCoreView extends DeviceView implements Observer {
 
     public void setUpdateImmediately(boolean immediately){
         updateImmediately = immediately;
+    }
+
+    public void setActionResponder(StepActionResponder responder){
+        stepResponder = responder;
     }
 
     public static class PinsView extends MultiPinView {

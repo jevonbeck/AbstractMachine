@@ -13,6 +13,7 @@ import org.ricts.abstractmachine.ui.compute.ComputeCoreView;
 import org.ricts.abstractmachine.ui.compute.ControlUnitView;
 import org.ricts.abstractmachine.ui.network.MemoryPortMultiplexerView;
 import org.ricts.abstractmachine.ui.storage.MemoryPortView;
+import org.ricts.abstractmachine.ui.storage.ReadPortView;
 
 import java.util.Observable;
 import java.util.Observer;
@@ -42,35 +43,65 @@ public class VonNeumannCoreFragment extends VonNeumannActivityFragment implement
     }
 
     @Override
-    protected void extractInnerViews(View mainView){
+    protected void initViews(View mainView){
         muxSelectView = (TextView) mainView.findViewById(R.id.muxSelect);
-        muxView = (MemoryPortMultiplexerView) mainView.findViewById(R.id.mux);
-        coreView = (ComputeCoreView) mainView.findViewById(R.id.core);
-        cuView = (ControlUnitView) mainView.findViewById(R.id.control_unit);
-    }
-
-    @Override
-    protected void initViews(){
-        /** Initialise Views **/
         muxSelectView.setText(MuxInputIds.INS_MEM.getOrdinalText());
 
+        muxView = (MemoryPortMultiplexerView) mainView.findViewById(R.id.mux);
         muxView.setSelectWidth(1);
-        View [] temp = muxView.getInputs();
-        MemoryPortView muxInputs[] =  new MemoryPortView[temp.length];
-        for(int x=0; x != muxInputs.length; ++x){
-            muxInputs[x] = (MemoryPortView) temp[x];
-        }
 
-        MemoryPortView instructionCache = muxInputs[MuxInputIds.INS_MEM.ordinal()];
-        //MemoryPortView dataMemory = muxInputs[MuxInputIds.DATA_MEM.ordinal()];
+        MemoryPortView dataMemory = (MemoryPortView) (muxView.getInputs())[MuxInputIds.DATA_MEM.ordinal()];
+        dataMemory.setReadResponder(new ReadPortView.ReadResponder() {
+            @Override
+            public void onReadFinished() {
+                mListener.onStepActionCompleted();
+            }
 
+            @Override
+            public void onReadStart() {
+
+            }
+        });
+        dataMemory = (MemoryPortView) muxView.getOutput();
+        dataMemory.setWriteResponder(new MemoryPortView.WriteResponder() {
+            @Override
+            public void onWriteFinished() {
+                mListener.onStepActionCompleted();
+            }
+
+            @Override
+            public void onWriteStart() {
+
+            }
+        });
+
+        coreView = (ComputeCoreView) mainView.findViewById(R.id.core);
         coreView.setMemoryCommandResponder(new ComputeCoreView.MemoryCommandResponder() {
             @Override
             public void onMemoryCommandIssued() {
                 muxView.animatePins();
             }
         });
+        coreView.setActionResponder(new ComputeCoreView.StepActionResponder() {
+            @Override
+            public void onAnimationEnd() {
+                mListener.onStepActionCompleted();
+            }
+        });
 
+        cuView = (ControlUnitView) mainView.findViewById(R.id.control_unit);
+        cuView.setActionResponder(new ControlUnitView.StepActionResponder() {
+            @Override
+            public void onAnimationEnd() {
+                mListener.onStepActionCompleted();
+            }
+        });
+    }
+
+    @Override
+    protected void bindObservablesToViews(){
+        /** Initialise Views **/
+        MemoryPortView instructionCache = (MemoryPortView) (muxView.getInputs())[MuxInputIds.INS_MEM.ordinal()];
         cuView.initCU(controlUnit.getType(), coreView, instructionCache);
 
         /** Add observers to observables **/

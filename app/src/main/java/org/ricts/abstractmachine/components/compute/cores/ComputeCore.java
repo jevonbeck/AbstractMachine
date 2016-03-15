@@ -65,7 +65,7 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
 			updateProgramCounter(groupName, enumOrdinal, operands, cu);
 		}
         else {
-            cu.setToHaltState();
+            cu.setNextStateToHalt();
         }
 	}
 

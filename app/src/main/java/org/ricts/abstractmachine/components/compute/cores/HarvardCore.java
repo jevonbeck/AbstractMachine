@@ -6,24 +6,25 @@ import org.ricts.abstractmachine.components.interfaces.ControlUnitInterface;
 import org.ricts.abstractmachine.components.interfaces.ReadPort;
 import org.ricts.abstractmachine.components.interfaces.MemoryPort;
 import org.ricts.abstractmachine.components.interfaces.ThreadProcessingUnit;
+import org.ricts.abstractmachine.components.observables.ObservableControlUnit;
 
 public class HarvardCore implements ThreadProcessingUnit{
 	private int nopInstruction; 
   
-	private ControlUnitInterface cu1; // Control Unit for TU 1
-	private ControlUnitInterface cu2; // Control Unit for TU 2
+	private ObservableControlUnit cu1; // Control Unit for TU 1
+	private ObservableControlUnit cu2; // Control Unit for TU 2
   
 	public HarvardCore(ComputeCoreInterface core, ReadPort instructionCache, MemoryPort dataMemory){
 		nopInstruction = core.nopInstruction();
 				
-    /* N.B. : Both thread units are connected to the same instructionCache and dataMemory! 
-       One performs a fetch while the other executes... ALWAYS! */
+        /* N.B. : Both thread units are connected to the same instructionCache and dataMemory!
+           One performs a fetch while the other executes... ALWAYS! */
     
 		// thread unit 1 (TU 1) - initial state = 'fetch'
-        cu1 = new ControlUnit(core, instructionCache, dataMemory);
+        cu1 = new ObservableControlUnit(new ControlUnit(core, instructionCache, dataMemory));
 	        
 	    // thread unit 2 (TU 2) - initial state = 'execute'
-        cu2 = new ControlUnit(core, instructionCache, dataMemory);
+        cu2 = new ObservableControlUnit(new ControlUnit(core, instructionCache, dataMemory));
 	    
 	    // initialise thread units
 	    setStartExecFrom(0);	
@@ -77,4 +78,12 @@ public class HarvardCore implements ThreadProcessingUnit{
         }
         nextExecutingCU.setPC(currentPCVal + 1); // fetch this instruction after executing
 	}
+
+    public ObservableControlUnit getCu1(){
+        return cu1;
+    }
+
+    public ObservableControlUnit getCu2(){
+        return cu2;
+    }
 }

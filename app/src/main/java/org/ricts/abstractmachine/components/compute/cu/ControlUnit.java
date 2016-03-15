@@ -24,8 +24,7 @@ public class ControlUnit extends FiniteStateMachine implements ControlUnitInterf
         halt = new ControlUnitHaltState();
 
         // initialise
-        setPC(0);
-        setCurrentState(fetch);
+        setStartExecFrom(0);
     }
 
     @Override
@@ -52,17 +51,18 @@ public class ControlUnit extends FiniteStateMachine implements ControlUnitInterf
     }
 
     @Override
-    public void setToFetchState(){
+    public void setNextExecFrom(int currentPC){
+        setPC(currentPC);
         nextState = fetch;
     }
 
     @Override
     public void setToExecuteState(){
-        nextState = execute;
+        setCurrentState(execute);
     }
 
     @Override
-    public void setToHaltState() {
+    public void setNextStateToHalt() {
         nextState = halt;
     }
 
@@ -103,8 +103,8 @@ public class ControlUnit extends FiniteStateMachine implements ControlUnitInterf
 
     @Override
     public void setStartExecFrom(int currentPC){
-        pc.write(currentPC);
-        setToFetchState();
+        setPC(currentPC);
+        setCurrentState(fetch);
     }
 
     @Override

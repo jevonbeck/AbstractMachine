@@ -1,13 +1,19 @@
 package org.ricts.abstractmachine.components.system;
 
+import org.ricts.abstractmachine.components.compute.cores.ComputeCore;
 import org.ricts.abstractmachine.components.interfaces.ThreadProcessingUnit;
+import org.ricts.abstractmachine.components.observables.ObservableComputeCore;
 
 public abstract class SystemArchitecture {
 	protected ThreadProcessingUnit processorCore;
-	private int sysClock; // system clock
+    protected ObservableComputeCore mainCore;
+
+    private int sysClock; // system clock
   	
-	public SystemArchitecture(){
-		sysClock = 0;
+	public SystemArchitecture(ComputeCore core){
+        mainCore = new ObservableComputeCore<ComputeCore>(core);
+
+        sysClock = 0;
 	}
 	
 	public int timeElapsed(){
@@ -19,4 +25,8 @@ public abstract class SystemArchitecture {
 		processorCore.triggerNextAction();
 		sysClock += result; 
 	}
+
+    public ObservableComputeCore getComputeCore(){
+        return mainCore;
+    }
 }

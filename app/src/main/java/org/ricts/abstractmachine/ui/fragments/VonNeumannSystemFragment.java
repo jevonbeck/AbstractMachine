@@ -23,13 +23,20 @@ public class VonNeumannSystemFragment extends VonNeumannActivityFragment {
     private CpuCoreView cpu;
 
     @Override
-    protected void extractInnerViews(View mainView){
+    protected void initViews(View mainView){
         memory = (RamView) mainView.findViewById(R.id.memory);
+
         cpu = (CpuCoreView) mainView.findViewById(R.id.cpuView);
+        cpu.setActionResponder(new CpuCoreView.StepActionResponder() {
+            @Override
+            public void onAnimationEnd() {
+                mListener.onStepActionCompleted(); // let Activity know that animations completed
+            }
+        });
     }
 
     @Override
-    protected void initViews(){
+    protected void bindObservablesToViews(){
         /** Initialise Views **/
         memory.setDataSource(mainMemory.getType());
         cpu.initCpu(controlUnit.getType(), memory);

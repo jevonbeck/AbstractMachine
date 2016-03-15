@@ -11,28 +11,15 @@ import java.util.Observable;
 public class RamView extends RomView {
 
     public RamView(Context context) {
-		super(context);
+        this(context, null);
 	}
 
 	public RamView(Context context, AttributeSet attrs) {
-		super(context, attrs);
+        this(context, attrs, 0);
 	}
 
 	public RamView(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
-	}
-
-    @Override
-    public void update(Observable observable, Object o) {
-        if(updatePins)
-            memoryPins.update(observable, o); // initialise animation
-        else if(o instanceof ObservableRAM.WriteParams)
-            updateRomUI(); // immediately update ROM UI
-    }
-
-    @Override
-    public void setDataSource(ROM r){
-        super.setDataSource(r);
 
         memoryPins.setWriteResponder(new MemoryPortView.WriteResponder() {
             @Override
@@ -43,6 +30,29 @@ public class RamView extends RomView {
             @Override
             public void onWriteStart() {
 
+            }
+        });
+	}
+
+    @Override
+    public void update(Observable observable, Object o) {
+        if(updatePins)
+            memoryPins.update(observable, o); // initialise animation
+        else if(o instanceof ObservableRAM.WriteParams)
+            updateRomUI(); // immediately update ROM UI
+    }
+
+    public void setWriteResponder(final MemoryPortView.WriteResponder responder){
+        memoryPins.setWriteResponder(new MemoryPortView.WriteResponder() {
+            @Override
+            public void onWriteFinished() {
+                updateRomUI();
+                responder.onWriteFinished();
+            }
+
+            @Override
+            public void onWriteStart() {
+                responder.onWriteStart();
             }
         });
     }

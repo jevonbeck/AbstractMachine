@@ -68,8 +68,9 @@ public class HorizontalRamDataView extends CustomDimenRecyclerView {
                     text = (String) data.getText();
                     data.getPaint().getTextBounds(text, 0, text.length(), dataBounds);
 
+                    float scaleFactor = getContext().getResources().getDisplayMetrics().density;
                     int result = (Math.max(Math.abs(addrBounds.width()), Math.abs(dataBounds.width())) +
-                            3 + dividerThickness) * adapter.getItemCount();
+                            dividerThickness + (int) (2 * scaleFactor)) * adapter.getItemCount();
 
                     return Math.min(result, parentWidth);
                 }
@@ -98,7 +99,8 @@ public class HorizontalRamDataView extends CustomDimenRecyclerView {
                     String text = (String) addr.getText();
                     addr.getPaint().getTextBounds(text, 0, text.length(), bounds);
 
-                    int result = 2 * (Math.abs(bounds.height()) + 14);
+                    float scaleFactor = getContext().getResources().getDisplayMetrics().density;
+                    int result = 2 * (Math.abs(bounds.height()) + (int) (10*scaleFactor));
 
                     return Math.min(result, parentHeight);
                 }

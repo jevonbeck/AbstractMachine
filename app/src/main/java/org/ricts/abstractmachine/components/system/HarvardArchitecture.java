@@ -1,26 +1,54 @@
 package org.ricts.abstractmachine.components.system;
 
-import org.ricts.abstractmachine.components.storage.*;
+import org.ricts.abstractmachine.components.compute.cores.HarvardCore;
+import org.ricts.abstractmachine.components.observables.ObservableControlUnit;
+import org.ricts.abstractmachine.components.observables.ObservableRAM;
 import org.ricts.abstractmachine.components.compute.cores.ComputeCore;
-import org.ricts.abstractmachine.components.compute.cpu.HarvardCpu;
+import org.ricts.abstractmachine.components.observables.ObservableROM;
+import org.ricts.abstractmachine.components.storage.RAM;
+import org.ricts.abstractmachine.components.storage.ROM;
+
+import java.util.List;
 
 public class HarvardArchitecture extends SystemArchitecture {
-    private ROM instructionCache;
-    private RAM dataRAM;
+    private ObservableROM<ROM> instructionCache;
+    private ObservableRAM dataRAM;
+    private ObservableControlUnit cu1, cu2;
 
     public HarvardArchitecture(ComputeCore core, int iMemAccessTime, int dMemAccessTime) {
-        super();
+        super(core);
 
-        instructionCache = new ROM(core.instrWidth(), core.iAddrWidth(), iMemAccessTime);
-        dataRAM = new RAM(core.dataWidth(), core.dAddrWidth(), dMemAccessTime);
-        processorCore = new HarvardCpu(core, instructionCache, dataRAM);
+        instructionCache = new  ObservableROM<ROM>(new ROM(core.instrWidth(), core.iAddrWidth(), iMemAccessTime));
+        dataRAM = new ObservableRAM(new RAM(core.dataWidth(), core.dAddrWidth(), dMemAccessTime));
+
+        HarvardCore hCore = new HarvardCore(mainCore, instructionCache, dataRAM);
+        cu1 = hCore.getCu1();
+        cu2 = hCore.getCu2();
+
+        processorCore = hCore;
     }
 
-    public ROM instructionMemory() {
+    public void initInstructionCache(List<Integer> data, int addrOffset){
+        instructionCache.getType().setData(data, addrOffset);
+    }
+
+    public void initDataRAM(List<Integer> data, int addrOffset){
+        dataRAM.getType().setData(data, addrOffset);
+    }
+
+    public ObservableRAM getDataRAM(){
+        return dataRAM;
+    }
+
+    public ObservableROM<ROM> getInstructionCache(){
         return instructionCache;
     }
 
-    public RAM dataMemory() {
-        return dataRAM;
+    public ObservableControlUnit getCu1(){
+        return cu1;
+    }
+
+    public ObservableControlUnit getCu2(){
+        return cu2;
     }
 }

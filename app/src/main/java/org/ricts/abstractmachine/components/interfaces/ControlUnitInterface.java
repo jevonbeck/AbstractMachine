@@ -10,9 +10,9 @@ public interface ControlUnitInterface {
     void setIR(int currentIR);
     void setStartExecFrom(int currentPC);
 
-    void setToFetchState();
+    void setNextExecFrom(int currentPC);
     void setToExecuteState();
-    void setToHaltState();
+    void setNextStateToHalt();
     boolean isAboutToFetch();
     boolean isAboutToExecute();
     void fetchInstruction(ReadPort instructionCache);

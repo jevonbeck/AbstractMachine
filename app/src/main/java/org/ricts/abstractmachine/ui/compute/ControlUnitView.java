@@ -8,21 +8,20 @@ import android.widget.TextView;
 
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.compute.cu.ControlUnit;
-import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
-import org.ricts.abstractmachine.components.interfaces.ControlUnitInterface;
-import org.ricts.abstractmachine.components.interfaces.MemoryPort;
-import org.ricts.abstractmachine.components.interfaces.ReadPort;
-import org.ricts.abstractmachine.components.observables.ObservableComputeCore;
 import org.ricts.abstractmachine.components.observables.ObservableControlUnit;
-import org.ricts.abstractmachine.components.observables.ObservableRegister;
 import org.ricts.abstractmachine.ui.storage.MemoryPortView;
 import org.ricts.abstractmachine.ui.storage.ReadPortView;
-import org.ricts.abstractmachine.ui.storage.RegDataView;
 
 import java.util.Observable;
 import java.util.Observer;
 
 public class ControlUnitView extends RelativeLayout implements Observer{
+    public interface StepActionResponder {
+        void onAnimationEnd();
+    }
+
+    private StepActionResponder stepResponder;
+
     private TextView pc; // Program Counter
     private TextView ir; // Instruction Register
     private TextView stateView; // Control Unit state
@@ -156,6 +155,7 @@ public class ControlUnitView extends RelativeLayout implements Observer{
             @Override
             public void onReadFinished() {
                 updateIR(); // only update ir when read finished
+                stepResponder.onAnimationEnd();
             }
 
             @Override
@@ -168,6 +168,7 @@ public class ControlUnitView extends RelativeLayout implements Observer{
             @Override
             public void onUpdatePcCompleted() {
                 updatePC();
+                stepResponder.onAnimationEnd();
             }
         });
 
@@ -175,12 +176,17 @@ public class ControlUnitView extends RelativeLayout implements Observer{
             @Override
             public void onHaltCompleted() {
                 updateState();
+                stepResponder.onAnimationEnd();
             }
         });
     }
 
     public void setUpdateImmediately(boolean immediately){
         updateImmediately = immediately;
+    }
+
+    public void setActionResponder(StepActionResponder responder){
+        stepResponder = responder;
     }
 
     private void updatePC(){
