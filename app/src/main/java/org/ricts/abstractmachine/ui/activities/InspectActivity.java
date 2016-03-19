@@ -22,6 +22,7 @@ public abstract class InspectActivity extends AppCompatActivity implements Inspe
     private ViewPager pager;
     private PagerAdapter pagerAdapter;
     private TextView sysClockTextView;
+    private boolean isRunning;
 
     private int pagerAdapterCount, pagerOffScreenLimit;
     private SystemArchitecture architecture;
@@ -42,11 +43,30 @@ public abstract class InspectActivity extends AppCompatActivity implements Inspe
         pagerAdapter = createAdapter(architecture);
 
         /** Setup UI **/
+        isRunning = false;
+
         Button advanceButton = (Button) findViewById(R.id.stepButton);
         advanceButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View arg0) {
                 advanceTime();
+            }
+        });
+
+        Button runButton = (Button) findViewById(R.id.runButton);
+        runButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View arg0) {
+                isRunning = true;
+                advanceTime();
+            }
+        });
+
+        Button stopButton = (Button) findViewById(R.id.stopButton);
+        stopButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View arg0) {
+                isRunning = false;
             }
         });
 
@@ -70,6 +90,9 @@ public abstract class InspectActivity extends AppCompatActivity implements Inspe
 
     @Override
     public void onStepActionCompleted() {
+        if(isRunning)
+            advanceTime();
+
         Log.d(TAG, "onStepActionCompleted()");
     }
 
@@ -91,7 +114,9 @@ public abstract class InspectActivity extends AppCompatActivity implements Inspe
         }
 
         // Initiate animations
+        Log.d(TAG, "architecture.advanceTime() start");
         architecture.advanceTime();
+        Log.d(TAG, "architecture.advanceTime() end");
         sysClockTextView.setText(String.valueOf(architecture.timeElapsed()));
     }
 

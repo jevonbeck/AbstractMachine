@@ -200,8 +200,21 @@ public class CpuCoreView extends RelativeLayout implements Observer {
                 int instruction = params.getInstruction();
                 instructionView.setText(core.instrString(instruction));
 
-                if(!updateIrImmediately && !core.isDataMemoryInstruction(instruction))
-                    responder.onAnimationEnd();
+                if(!updateIrImmediately && !core.isDataMemoryInstruction(instruction)) {
+                    // Launch thread to ensure that responder.onAnimationEnd() is called after
+                    // InspectActivity.advanceTime() completes
+                    (new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    responder.onAnimationEnd();
+                                }
+                            }, 1);
+                        }
+                    })).start();
+                }
             }
         }
     }

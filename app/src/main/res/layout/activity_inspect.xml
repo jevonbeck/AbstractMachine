@@ -28,12 +28,27 @@
         android:layout_below="@id/pager"
         android:text="Step forward"
         />
-    <TextView
-        android:id="@+id/sysClockLabel"
+    <Button
+        android:id="@+id/runButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_toRightOf="@id/stepButton"
         android:layout_alignTop="@id/stepButton"
+        android:text="Run"
+        />
+    <Button
+        android:id="@+id/stopButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/runButton"
+        android:layout_alignTop="@id/runButton"
+        android:text="Stop"
+        />
+    <TextView
+        android:id="@+id/sysClockLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/stepButton"
         android:text="Time elapsed: "
         />
     <TextView
