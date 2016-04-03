@@ -50,31 +50,6 @@ public class VonNeumannCoreFragment extends VonNeumannActivityFragment implement
         muxView = (MemoryPortMultiplexerView) mainView.findViewById(R.id.mux);
         muxView.setSelectWidth(1);
 
-        MemoryPortView dataMemory = (MemoryPortView) (muxView.getInputs())[MuxInputIds.DATA_MEM.ordinal()];
-        dataMemory.setReadResponder(new ReadPortView.ReadResponder() {
-            @Override
-            public void onReadFinished() {
-                mListener.onStepActionCompleted();
-            }
-
-            @Override
-            public void onReadStart() {
-
-            }
-        });
-        dataMemory = (MemoryPortView) muxView.getOutput();
-        dataMemory.setWriteResponder(new MemoryPortView.WriteResponder() {
-            @Override
-            public void onWriteFinished() {
-                mListener.onStepActionCompleted();
-            }
-
-            @Override
-            public void onWriteStart() {
-
-            }
-        });
-
         coreView = (ComputeCoreView) mainView.findViewById(R.id.core);
         coreView.setMemoryCommandResponder(new ComputeCoreView.MemoryCommandResponder() {
             @Override
@@ -86,6 +61,31 @@ public class VonNeumannCoreFragment extends VonNeumannActivityFragment implement
             @Override
             public void onAnimationEnd() {
                 mListener.onStepActionCompleted();
+            }
+        });
+
+        MemoryPortView dataMemory = (MemoryPortView) (muxView.getInputs())[MuxInputIds.DATA_MEM.ordinal()];
+        dataMemory.setReadResponder(new ReadPortView.ReadResponder() {
+            @Override
+            public void onReadFinished() {
+                coreView.sendDoneCommand();
+            }
+
+            @Override
+            public void onReadStart() {
+
+            }
+        });
+        dataMemory = (MemoryPortView) muxView.getOutput();
+        dataMemory.setWriteResponder(new MemoryPortView.WriteResponder() {
+            @Override
+            public void onWriteFinished() {
+                coreView.sendDoneCommand();
+            }
+
+            @Override
+            public void onWriteStart() {
+
             }
         });
 

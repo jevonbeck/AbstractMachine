@@ -106,6 +106,9 @@ public class ComputeCoreView extends DeviceView implements Observer {
                                 haltResponder.onHaltCompleted();
                             }
                         }
+                        else{
+                            stepResponder.onAnimationEnd();
+                        }
                     }
                 });
 
@@ -117,7 +120,7 @@ public class ComputeCoreView extends DeviceView implements Observer {
 
                         /** Start one of these animations if applicable (they are mutually exclusive) **/
                         if (isHaltInstruction) {
-                            pins.sendCommandOnly("setHalt");
+                            pins.sendCommandOnly("halt");
                         } else if (isDataMemInstruction) {
                             if (memoryCommandResponder != null) {
                                 memoryCommandResponder.onMemoryCommandIssued();
@@ -125,7 +128,7 @@ public class ComputeCoreView extends DeviceView implements Observer {
                         } else if (updatePC) {
                             pins.updatePC(pcPostExecuteString);
                         } else {
-                            stepResponder.onAnimationEnd();
+                            sendDoneCommand();
                         }
                     }
                 });
@@ -134,6 +137,10 @@ public class ComputeCoreView extends DeviceView implements Observer {
                 pins.executeInstruction(Device.formatNumberInHex(instruction, mainCore.instrWidth()));
             }
         }
+    }
+
+    public void sendDoneCommand(){
+        pins.sendCommandOnly("done");
     }
 
     public void setUpdatePcResponder(PinsView.UpdateResponder updateResponder){
