@@ -90,10 +90,14 @@ public abstract class InspectActivity extends AppCompatActivity implements Inspe
 
     @Override
     public void onStepActionCompleted() {
-        if(isRunning)
+        if(isRunning) {
+            Log.d(TAG, "onStepActionCompleted() advanceTime() start");
             advanceTime();
+            Log.d(TAG, "onStepActionCompleted() advanceTime() end");
+        }
 
         Log.d(TAG, "onStepActionCompleted()");
+        Log.d(TAG, "isRunning = " + isRunning);
     }
 
     private void advanceTime(){

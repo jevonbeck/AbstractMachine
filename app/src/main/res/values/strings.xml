@@ -22,6 +22,23 @@
     <string name="instruction_register_label">IR:</string>
     <string name="decoded_instruction_label">Ins:</string>
 
+    <string name="architecture_type_label">Architecture Type:</string>
+    <string name="architecture_type_harvard">Harvard</string>
+    <string name="architecture_type_von_neumann">Von Neumann</string>
+
+    <string name="compute_core_type_label">Compute Core Type:</string>
+    <string name="compute_core_type_register">Register</string>
+    <string name="compute_core_type_acc">Accumulator</string>
+    <string name="compute_core_type_stack">Stack</string>
+
+    <string name="data_width_label">Data Width:</string>
+    <string name="data_width_8">8</string>
+    <string name="data_width_16">16</string>
+
+    <string name="wizardactivity_prev_button_text">Previous</string>
+    <string name="wizardactivity_next_button_next">Next</string>
+    <string name="wizardactivity_next_button_finish">Finish</string>
+
     <string name="title_activity_memory_port_multiplexer_tutorial">
         MemoryPortMultiplexerTutorialActivity
     </string>
@@ -48,6 +65,8 @@
     <item name="MultiplexerView_middle" type="id"/>
     <item name="MultiplexerView_first_triangle" type="id"/>
     <item name="MultiplexerView_last_triangle" type="id"/>
+    <item name="WizardActivity_ViewPager" type="id"/>
+    <item name="WizardActivity_PreviousButton" type="id"/>
 
     <!-- Custom View Attributes -->
     <integer name="DeviceView_pin_position_left">0</integer>

@@ -12,7 +12,6 @@ import org.ricts.abstractmachine.components.observables.ObservableControlUnit;
 import org.ricts.abstractmachine.components.observables.ObservableRAM;
 import org.ricts.abstractmachine.components.system.SystemArchitecture;
 import org.ricts.abstractmachine.components.system.VonNeumannArchitecture;
-import org.ricts.abstractmachine.devices.compute.core.BasicScalar;
 import org.ricts.abstractmachine.devices.compute.core.BasicScalarEnums;
 import org.ricts.abstractmachine.ui.fragments.VonNeumannCoreFragment;
 import org.ricts.abstractmachine.ui.fragments.VonNeumannSystemFragment;
