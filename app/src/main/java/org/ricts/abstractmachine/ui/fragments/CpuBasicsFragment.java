@@ -2,6 +2,7 @@ package org.ricts.abstractmachine.ui.fragments;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,9 +14,9 @@ import android.widget.SpinnerAdapter;
 
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.ui.activities.CpuConfigureActivity;
-import org.ricts.abstractmachine.ui.utils.wizard.WizardFragment;
+import org.ricts.abstractmachine.ui.utils.wizard.WizardFragmentInterface;
 
-public class CpuBasicsFragment extends WizardFragment {
+public class CpuBasicsFragment extends Fragment implements WizardFragmentInterface {
     private static final String TAG = "CpuBasicsFragment";
 
     public enum CoreNames {

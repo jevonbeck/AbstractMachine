@@ -36,7 +36,7 @@
     <string name="data_width_16">16</string>
 
     <string name="wizardactivity_prev_button_text">Previous</string>
-    <string name="wizardactivity_next_button_next">Next</string>
+    <string name="wizardactivity_next_button_text">Next</string>
     <string name="wizardactivity_next_button_finish">Finish</string>
 
     <string name="title_activity_memory_port_multiplexer_tutorial">

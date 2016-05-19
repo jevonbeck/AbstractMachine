@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.RelativeLayout;
@@ -17,7 +16,6 @@ import org.ricts.abstractmachine.R;
  */
 public abstract class WizardActivity extends AppCompatActivity {
     private static final String TAG = "WizardActivity";
-    public static final String BUTTON_LOCATION_KEY = "buttonOnTop";
 
     private ViewPager pager;
     private Button previousButton, nextButton;
@@ -31,58 +29,13 @@ public abstract class WizardActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        RelativeLayout mainLayout = new RelativeLayout(this);
-
-        pager = new ViewPager(this);
-        pager.setId(R.id.WizardActivity_ViewPager);
-
-        previousButton = new Button(this);
-        styleButton(previousButton);
-        previousButton.setId(R.id.WizardActivity_PreviousButton);
-        previousButton.setText(getString(R.string.wizardactivity_prev_button_text));
-
-        nextButton = new Button(this);
-        styleButton(nextButton);
-        nextButton.setText(getString(R.string.wizardactivity_next_button_next));
-
-        float scaleFactor = getResources().getDisplayMetrics().density;
-        RelativeLayout.LayoutParams lpPager = new RelativeLayout.LayoutParams(
-                RelativeLayout.LayoutParams.MATCH_PARENT, (int) (400 * scaleFactor));
-        RelativeLayout.LayoutParams lpPrevButton = new RelativeLayout.LayoutParams(
-                RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-        RelativeLayout.LayoutParams lpNextButton = new RelativeLayout.LayoutParams(
-                RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-        //lpNextButton.addRule(RelativeLayout.RIGHT_OF, previousButton.getId());
-
-        Bundle startOptions = getIntent().getExtras();
-        //boolean buttonsOnTop = startOptions.getBoolean(BUTTON_LOCATION_KEY, false);
-        boolean buttonsOnTop = false;
-
-        if(buttonsOnTop){
-            mainLayout.addView(previousButton, lpPrevButton);
-            lpNextButton.addRule(RelativeLayout.RIGHT_OF, previousButton.getId());
-            mainLayout.addView(nextButton, lpNextButton);
-
-            lpPager.addRule(RelativeLayout.BELOW, previousButton.getId());
-            mainLayout.addView(pager, lpPager);
-        }
-        else{
-            mainLayout.addView(pager, lpPager);
-            lpPrevButton.addRule(RelativeLayout.BELOW, pager.getId());
-            lpNextButton.addRule(RelativeLayout.BELOW, pager.getId());
-
-            mainLayout.addView(previousButton, lpPrevButton);
-
-            lpNextButton.addRule(RelativeLayout.RIGHT_OF, previousButton.getId());
-            mainLayout.addView(nextButton, lpNextButton);
-        }
-        setContentView(mainLayout);
+        setContentView(R.layout.activity_wizard);
 
         /** Setup main UI data **/
         dataBundle = new Bundle();
 
         pagerAdapter = createAdapter();
+        pager = (ViewPager) findViewById(R.id.pager);
         pager.setAdapter(pagerAdapter);
 
         pager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
@@ -101,6 +54,8 @@ public abstract class WizardActivity extends AppCompatActivity {
             }
         });
 
+        previousButton = (Button) findViewById(R.id.previousButton);
+        styleButton(previousButton);
         previousButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -108,6 +63,8 @@ public abstract class WizardActivity extends AppCompatActivity {
             }
         });
 
+        nextButton = (Button) findViewById(R.id.nextButton);
+        styleButton(nextButton);
         nextButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -128,6 +85,8 @@ public abstract class WizardActivity extends AppCompatActivity {
                 }
             }
         });
+
+        updateButtons(pager.getCurrentItem());
     }
 
     protected void styleButton(Button button){
@@ -135,9 +94,7 @@ public abstract class WizardActivity extends AppCompatActivity {
     }
 
     private void switchToPage(int nextPageIndex){
-        int nextIndex = normaliseIndex(nextPageIndex);
-        pager.setCurrentItem(nextIndex);
-        //updateButtons(nextIndex);
+        pager.setCurrentItem( normaliseIndex(nextPageIndex) );
     }
 
     private void updateButtons(int nextCurrentItem){
@@ -148,17 +105,17 @@ public abstract class WizardActivity extends AppCompatActivity {
         previousButton.setEnabled(nextCurrentItem > min);
 
         nextButton.setText(getString(
-                (nextCurrentItem < max)? R.string.wizardactivity_next_button_next :
+                (nextCurrentItem < max)? R.string.wizardactivity_next_button_text :
                     R.string.wizardactivity_next_button_finish));
     }
 
     private void restorePageData(int currentPageIndex){
-        ((WizardFragment) pagerAdapter.instantiateItem(pager, currentPageIndex))
+        ((WizardFragmentInterface) pagerAdapter.instantiateItem(pager, currentPageIndex))
                 .restorePageData(dataBundle);
     }
 
     private void savePageData(int currentPageIndex){
-        ((WizardFragment) pagerAdapter.instantiateItem(pager, currentPageIndex))
+        ((WizardFragmentInterface) pagerAdapter.instantiateItem(pager, currentPageIndex))
                 .savePageData(dataBundle);
     }
 
