@@ -2,7 +2,7 @@ package org.ricts.abstractmachine.ui.fragments;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,9 +14,9 @@ import android.widget.SpinnerAdapter;
 
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.ui.activities.CpuConfigureActivity;
-import org.ricts.abstractmachine.ui.utils.wizard.WizardFragmentInterface;
+import org.ricts.abstractmachine.ui.utils.wizard.WizardFragment;
 
-public class CpuBasicsFragment extends Fragment implements WizardFragmentInterface {
+public class CpuBasicsFragment extends WizardFragment {
     private static final String TAG = "CpuBasicsFragment";
 
     public enum CoreNames {
@@ -28,7 +28,7 @@ public class CpuBasicsFragment extends Fragment implements WizardFragmentInterfa
         }
     }
 
-    private RadioGroup archRadiGroup, coreTypeRadioGroup, bitWidthRadioGroup;
+    private RadioGroup archRadiGroup, coreTypeRadioGroup, bitWidthRadioGroup, instrAddrWidthRadioGroup;
     private Spinner coreSpinner;
     private boolean viewsAvailable = false;
 
@@ -43,82 +43,8 @@ public class CpuBasicsFragment extends Fragment implements WizardFragmentInterfa
         void updateWizardPageCount();
     }
 
-    @Override
-    public void restorePageData(Bundle bundle) {
-        if(viewsAvailable){
-            CharSequence archType = bundle.getCharSequence(CpuConfigureActivity.ARCH_TYPE);
-            if(archType.equals(getString(R.string.architecture_type_von_neumann))){
-                archRadiGroup.check(R.id.vonNeumannButton);
-            }
-            else if(archType.equals(getString(R.string.architecture_type_harvard))){
-                archRadiGroup.check(R.id.harvardButton);
-            }
-
-            CharSequence coreType = bundle.getCharSequence(CpuConfigureActivity.CORE_TYPE);
-            if(coreType.equals(getString(R.string.compute_core_type_register))){
-                coreTypeRadioGroup.check(R.id.registerTypeButton);
-            }
-            else if(coreType.equals(getString(R.string.compute_core_type_acc))){
-                coreTypeRadioGroup.check(R.id.accumTypeButton);
-            }
-            else { // coreType.equals(getString(R.string.compute_core_type_stack))
-                coreTypeRadioGroup.check(R.id.stackTypeButton);
-            }
-
-            int dataWidth = bundle.getInt(CpuConfigureActivity.CORE_DATA_WIDTH);
-            switch (dataWidth){
-                case 8:
-                    bitWidthRadioGroup.check(R.id.eightBitButton);
-                    break;
-                case 16:
-                    bitWidthRadioGroup.check(R.id.sixteenBitButton);
-                    break;
-                default:
-            }
-
-            String coreName = bundle.getString(CpuConfigureActivity.CORE_NAME);
-            SpinnerAdapter spinAdapter = coreSpinner.getAdapter();
-            int itemCount = spinAdapter.getCount();
-
-            int index = 0; // default index
-            for(int x=0; x < itemCount; ++x){
-                String item = spinAdapter.getItem(x).toString();
-                if(coreName.equals(item)){
-                    index = x;
-                    break;
-                }
-            }
-            coreSpinner.setSelection(index);
-        }
-    }
-
-    @Override
-    public void savePageData(Bundle bundle) {
-        bundle.putCharSequence(CpuConfigureActivity.ARCH_TYPE, getSelectedButtonText(archRadiGroup));
-        bundle.putCharSequence(CpuConfigureActivity.CORE_TYPE, getSelectedButtonText(coreTypeRadioGroup));
-        bundle.putString(CpuConfigureActivity.CORE_NAME, getComputeCoreName());
-        bundle.putInt(CpuConfigureActivity.CORE_DATA_WIDTH, Integer.valueOf(
-                getSelectedButtonText(bitWidthRadioGroup).toString() ));
-
-        // update activity pagerAdapter
-        mUpdater.updateWizardPageCount();
-    }
-
     public CpuBasicsFragment() {
         // Required empty public constructor
-    }
-
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @return A new instance of fragment CpuBasicsFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static CpuBasicsFragment newInstance(Bundle args) {
-        CpuBasicsFragment fragment = new CpuBasicsFragment();
-        fragment.restorePageData(args);
-        return fragment;
     }
 
     @Override
@@ -162,6 +88,7 @@ public class CpuBasicsFragment extends Fragment implements WizardFragmentInterfa
 
         archRadiGroup = (RadioGroup) rootView.findViewById(R.id.archRadioGroup);
         bitWidthRadioGroup = (RadioGroup) rootView.findViewById(R.id.bitWidthRadioGroup);
+        instrAddrWidthRadioGroup = (RadioGroup) rootView.findViewById(R.id.instrAddrWidthRadioGroup);
 
         viewsAvailable = true;
 
@@ -172,6 +99,98 @@ public class CpuBasicsFragment extends Fragment implements WizardFragmentInterfa
     public void onDetach() {
         super.onDetach();
         mUpdater = null;
+    }
+
+    @Override
+    public void restorePageData(Bundle bundle) {
+        if(viewsAvailable){
+            CharSequence archType = bundle.getCharSequence(CpuConfigureActivity.ARCH_TYPE);
+            if(archType.equals(getString(R.string.architecture_type_von_neumann))){
+                archRadiGroup.check(R.id.vonNeumannButton);
+            }
+            else if(archType.equals(getString(R.string.architecture_type_harvard))){
+                archRadiGroup.check(R.id.harvardButton);
+            }
+
+            CharSequence coreType = bundle.getCharSequence(CpuConfigureActivity.CORE_TYPE);
+            if(coreType.equals(getString(R.string.compute_core_type_register))){
+                coreTypeRadioGroup.check(R.id.registerTypeButton);
+            }
+            else if(coreType.equals(getString(R.string.compute_core_type_acc))){
+                coreTypeRadioGroup.check(R.id.accumTypeButton);
+            }
+            else { // coreType.equals(getString(R.string.compute_core_type_stack))
+                coreTypeRadioGroup.check(R.id.stackTypeButton);
+            }
+
+            switch (bundle.getInt(CpuConfigureActivity.CORE_DATA_WIDTH)){
+                case 8:
+                    bitWidthRadioGroup.check(R.id.eightBitButton);
+                    break;
+                case 16:
+                    bitWidthRadioGroup.check(R.id.sixteenBitButton);
+                    break;
+                default:
+            }
+
+            switch (bundle.getInt(CpuConfigureActivity.INSTR_ADDR_WIDTH)){
+                case 3:
+                    instrAddrWidthRadioGroup.check(R.id.threeBitButton);
+                    break;
+                case 4:
+                    instrAddrWidthRadioGroup.check(R.id.fourBitButton);
+                    break;
+                case 5:
+                    instrAddrWidthRadioGroup.check(R.id.fiveBitButton);
+                    break;
+                case 6:
+                    instrAddrWidthRadioGroup.check(R.id.sixBitButton);
+                    break;
+                default:
+            }
+
+            String coreName = bundle.getString(CpuConfigureActivity.CORE_NAME);
+            SpinnerAdapter spinAdapter = coreSpinner.getAdapter();
+            int itemCount = spinAdapter.getCount();
+
+            int index = 0; // default index
+            for(int x=0; x < itemCount; ++x){
+                String item = spinAdapter.getItem(x).toString();
+                if(coreName.equals(item)){
+                    index = x;
+                    break;
+                }
+            }
+            coreSpinner.setSelection(index);
+        }
+    }
+
+    @Override
+    public void savePageData(Bundle bundle) {
+        bundle.putCharSequence(CpuConfigureActivity.ARCH_TYPE, getSelectedButtonText(archRadiGroup));
+        bundle.putCharSequence(CpuConfigureActivity.CORE_TYPE, getSelectedButtonText(coreTypeRadioGroup));
+        bundle.putString(CpuConfigureActivity.CORE_NAME, getComputeCoreName());
+        bundle.putInt(CpuConfigureActivity.CORE_DATA_WIDTH, Integer.valueOf(
+                getSelectedButtonText(bitWidthRadioGroup).toString() ));
+
+        int instrMemSize = Integer.valueOf( getSelectedButtonText(instrAddrWidthRadioGroup).toString() );
+        bundle.putInt(CpuConfigureActivity.INSTR_ADDR_WIDTH, getAddressWidthFromSize(instrMemSize) );
+
+        // update activity pagerAdapter
+        mUpdater.updateWizardPageCount();
+    }
+
+    /**
+     * Use this factory method to create a new instance of
+     * this fragment using the provided parameters.
+     *
+     * @return A new instance of fragment CpuBasicsFragment.
+     */
+    // TODO: Rename and change types and number of parameters
+    public static CpuBasicsFragment newInstance(Bundle args) {
+        CpuBasicsFragment fragment = new CpuBasicsFragment();
+        fragment.restorePageData(args);
+        return fragment;
     }
 
     private CharSequence getSelectedButtonText(RadioGroup radioGroup){
@@ -196,6 +215,21 @@ public class CpuBasicsFragment extends Fragment implements WizardFragmentInterfa
                 break;
             default:
                 break;
+        }
+    }
+
+    private int getAddressWidthFromSize(int memSize){
+        switch (memSize){
+            case 8:
+                return 3;
+            case 16:
+                return 4;
+            case 32:
+                return 5;
+            case 64:
+                return 6;
+            default:
+                return 0;
         }
     }
 }

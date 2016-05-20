@@ -18,6 +18,7 @@ public class CpuConfigureActivity extends WizardActivity implements CpuBasicsFra
     public static final String CORE_TYPE = "coreType";
     public static final String CORE_NAME = "coreName";
     public static final String CORE_DATA_WIDTH = "coreDataWidth";
+    public static final String INSTR_ADDR_WIDTH = "instructionAddressWidth";
 
     @Override
     public void updateWizardPageCount() {

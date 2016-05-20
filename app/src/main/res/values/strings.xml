@@ -32,8 +32,11 @@
     <string name="compute_core_type_stack">Stack</string>
 
     <string name="data_width_label">Data Width:</string>
-    <string name="data_width_8">8</string>
-    <string name="data_width_16">16</string>
+    <string name="instr_mem_size_label">Instruction Memory Size:</string>
+    <string name="width_8">8</string>
+    <string name="width_16">16</string>
+    <string name="width_32">32</string>
+    <string name="width_64">64</string>
 
     <string name="wizardactivity_prev_button_text">Previous</string>
     <string name="wizardactivity_next_button_text">Next</string>

@@ -7,7 +7,6 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
-import android.widget.RelativeLayout;
 
 import org.ricts.abstractmachine.R;
 
@@ -110,12 +109,12 @@ public abstract class WizardActivity extends AppCompatActivity {
     }
 
     private void restorePageData(int currentPageIndex){
-        ((WizardFragmentInterface) pagerAdapter.instantiateItem(pager, currentPageIndex))
+        ((WizardFragment) pagerAdapter.instantiateItem(pager, currentPageIndex))
                 .restorePageData(dataBundle);
     }
 
     private void savePageData(int currentPageIndex){
-        ((WizardFragmentInterface) pagerAdapter.instantiateItem(pager, currentPageIndex))
+        ((WizardFragment) pagerAdapter.instantiateItem(pager, currentPageIndex))
                 .savePageData(dataBundle);
     }
 

@@ -90,10 +90,42 @@
         <RadioButton android:id="@+id/eightBitButton"
                      android:layout_width="wrap_content"
                      android:layout_height="wrap_content"
-                     android:text="@string/data_width_8"/>
+                     android:text="@string/width_8"/>
         <RadioButton android:id="@+id/sixteenBitButton"
                      android:layout_width="wrap_content"
                      android:layout_height="wrap_content"
-                     android:text="@string/data_width_16"/>
+                     android:text="@string/width_16"/>
+    </RadioGroup>
+
+    <TextView
+        android:id = "@+id/instrAddrWidthLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/bitWidthRadioGroup"
+        android:text="@string/instr_mem_size_label"
+        />
+    <RadioGroup xmlns:android="http://schemas.android.com/apk/res/android"
+                android:id="@+id/instrAddrWidthRadioGroup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/instrAddrWidthLabel"
+                android:checkedButton = "@+id/threeBitButton"
+                android:orientation="horizontal">
+        <RadioButton android:id="@+id/threeBitButton"
+                     android:layout_width="wrap_content"
+                     android:layout_height="wrap_content"
+                     android:text="@string/width_8"/>
+        <RadioButton android:id="@+id/fourBitButton"
+                     android:layout_width="wrap_content"
+                     android:layout_height="wrap_content"
+                     android:text="@string/width_16"/>
+        <RadioButton android:id="@+id/fiveBitButton"
+                     android:layout_width="wrap_content"
+                     android:layout_height="wrap_content"
+                     android:text="@string/width_32"/>
+        <RadioButton android:id="@+id/sixBitButton"
+                     android:layout_width="wrap_content"
+                     android:layout_height="wrap_content"
+                     android:text="@string/width_64"/>
     </RadioGroup>
 </RelativeLayout>
