@@ -10,8 +10,10 @@ import android.support.v4.view.PagerAdapter;
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.ui.fragments.CpuBasicsFragment;
 import org.ricts.abstractmachine.ui.utils.wizard.WizardActivity;
+import org.ricts.abstractmachine.ui.utils.wizard.WizardFragment;
 
-public class CpuConfigureActivity extends WizardActivity implements CpuBasicsFragment.PagerAdapterUpdater {
+public class CpuConfigureActivity extends WizardActivity implements WizardFragment.DataSource,
+        CpuBasicsFragment.PagerAdapterUpdater {
     private static final String TAG = "CpuConfigureActivity";
 
     public static final String ARCH_TYPE = "architectureType";
@@ -44,6 +46,11 @@ public class CpuConfigureActivity extends WizardActivity implements CpuBasicsFra
         }
 
         return null;
+    }
+
+    @Override
+    public Bundle getWizardData() {
+        return dataBundle;
     }
 
     private static class CpuConfigureAdapter extends FragmentStatePagerAdapter {
