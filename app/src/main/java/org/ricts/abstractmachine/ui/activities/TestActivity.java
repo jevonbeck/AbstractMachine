@@ -7,17 +7,11 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import org.ricts.abstractmachine.R;
-import org.ricts.abstractmachine.components.interfaces.MemoryPort;
 import org.ricts.abstractmachine.components.storage.RAM;
 import org.ricts.abstractmachine.devices.compute.core.BasicScalar;
 import org.ricts.abstractmachine.devices.compute.core.BasicScalarEnums;
-import org.ricts.abstractmachine.ui.compute.ComputeCoreView;
-import org.ricts.abstractmachine.ui.compute.ControlUnitView;
 import org.ricts.abstractmachine.ui.compute.CpuCoreView;
-import org.ricts.abstractmachine.ui.storage.MemoryPortView;
-import org.ricts.abstractmachine.ui.network.MemoryPortMultiplexerView;
 import org.ricts.abstractmachine.ui.storage.RamView;
-import org.ricts.abstractmachine.ui.storage.ReadPortView;
 
 import java.util.ArrayList;
 
@@ -47,6 +41,7 @@ public class TestActivity extends Activity {
         ArrayList<Integer> memData = new ArrayList<Integer>();
         int [] operands;
 
+        /*
         // JUMP 0x2
         operands = new int[1];
         operands[0] = 2;
@@ -88,7 +83,7 @@ public class TestActivity extends Activity {
         operands[1] = 0;
         memData.add(core.encodeInstruction(BasicScalarEnums.DataMemOps.enumName(),
                 BasicScalarEnums.DataMemOps.STOREM.name(), operands));
-
+        */
         RAM memory = new RAM(core.instrWidth(), core.iAddrWidth(), 10);
         memory.setData(memData, 0);
 

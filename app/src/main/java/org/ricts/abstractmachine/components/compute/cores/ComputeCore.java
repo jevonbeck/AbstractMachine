@@ -22,6 +22,7 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
 	protected abstract void updateProgramCounter(String groupName, int enumOrdinal, int[] operands, ControlUnitInterface cu);
     protected abstract int executionTime(String groupName, int enumOrdinal, MemoryPort dataMemory);
     protected abstract String insToString(String groupName, int enumOrdinal, int[] operands);
+    protected abstract String getGroupName(String mneumonic);
 
 	@Override
 	public int instrWidth(){
@@ -141,7 +142,7 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
         return "Ins invalid!";
     }
 
-    public int encodeInstruction(String iGroupName, String iMneumonic, int [] operands) {
-		return instrDecoder.encode(iGroupName, iMneumonic, operands);
+    public int encodeInstruction(String iMneumonic, int [] operands) {
+		return instrDecoder.encode(getGroupName(iMneumonic), iMneumonic, operands);
 	}
 }
