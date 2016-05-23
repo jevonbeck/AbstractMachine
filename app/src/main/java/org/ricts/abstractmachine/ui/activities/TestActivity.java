@@ -9,7 +9,6 @@ import android.widget.TextView;
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.storage.RAM;
 import org.ricts.abstractmachine.devices.compute.core.BasicScalar;
-import org.ricts.abstractmachine.devices.compute.core.BasicScalarEnums;
 import org.ricts.abstractmachine.ui.compute.CpuCoreView;
 import org.ricts.abstractmachine.ui.storage.RamView;
 

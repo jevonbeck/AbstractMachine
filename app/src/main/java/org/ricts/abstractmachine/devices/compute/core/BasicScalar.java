@@ -381,7 +381,7 @@ public class BasicScalar extends ComputeCore {
                 sourceRegAddr = operands[1];
                 int shiftAmount = operands[2];
 
-                switch (BasicScalarEnums.ShiftReg.decode(enumOrdinal)) {
+                switch (instruction) {
                     case SHIFTL: // DESTINATION <-- (SOURCE << SHIFTAMOUNT)
                         dataRegs[destRegAddr].write(alu.result(Mneumonics.SHIFTL, dataRegs[sourceRegAddr].read(), shiftAmount));
                         break;
@@ -399,7 +399,7 @@ public class BasicScalar extends ComputeCore {
 
                 byteLiteral = getWordFrom(dataRegs[sourceRegAddr].read(), 8, 8 * sourceByteIndex);
 
-                switch (BasicScalarEnums.RegByteManip.decode(enumOrdinal)) {
+                switch (instruction) {
                     case MOVEBYTE: // DESTINATION[DBYTEINDEX] <-- SOURCE[SBYTEINDEX] (ASCII/UTF-8 character move)
                         dataRegs[destRegAddr].write(setWordIn(dataRegs[destRegAddr].read(), byteLiteral, 8, 8 * destByteIndex));
                         break;
@@ -412,7 +412,7 @@ public class BasicScalar extends ComputeCore {
                 int bRegAddr = operands[2];
 
                 updateAluCarry();
-                switch (BasicScalarEnums.AluOps.decode(enumOrdinal)) {
+                switch (instruction) {
                     case ADD: // RESULT <-- A + B
                         dataRegs[destRegAddr].write(alu.result(Mneumonics.ADD, dataRegs[aRegAddr].read(), dataRegs[bRegAddr].read()));
                         break;
@@ -454,7 +454,7 @@ public class BasicScalar extends ComputeCore {
 
                 updateAluCarry();
                 alu.result(Mneumonics.UPDATEWIDTH, bitWidth); // temporarily modify ALU dataWidth to set appropriately set ALU flags
-                switch (BasicScalarEnums.MultiWidthAluOps.decode(enumOrdinal)) {
+                switch (instruction) {
                     case ADDWIDTH: // RESULT <-- A[((BYTEMULT*8)-1):0] + B[((BYTEMULT*8)-1):0]
                         dataRegs[resultRegAddr].write(alu.result(Mneumonics.ADD, A, B) & byteMask);
                         break;
@@ -569,7 +569,7 @@ public class BasicScalar extends ComputeCore {
                 bitIndex = operands[1];
                 int iAddrRegValue = instrAddrRegs[operands[2]].read();
 
-                switch (BasicScalarEnums.ConditionalBranch.decode(enumOrdinal)) {
+                switch (instruction) {
                     case JUMPIFBC: // IF (!DREG[BITINDEX]) cu <-- IADREG ('for'/'while'/'if-else' sourceReg[bitIndex])
                         if (!getBitAtIndex(bitIndex, dataRegs[dRegAddr].read())) {
                             cu.setPC(iAddrRegValue);
