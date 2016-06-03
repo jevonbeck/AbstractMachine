@@ -1,182 +1,155 @@
 package org.ricts.abstractmachine.ui.utils;
 
 import android.content.Context;
-import android.content.res.TypedArray;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.drawable.Drawable;
-import android.text.TextPaint;
+import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.view.View;
-import org.ricts.abstractmachine.R;
+import android.widget.RadioGroup;
 
-/**
- * TODO: document your custom view class.
- */
-public class MultiLineRadioGroup extends View {
-    private String mExampleString; // TODO: use a default from R.string...
-    private int mExampleColor = Color.RED; // TODO: use a default from R.color...
-    private float mExampleDimension = 0; // TODO: use a default from R.dimen...
-    private Drawable mExampleDrawable;
+import java.util.HashMap;
+import java.util.Map;
 
-    private TextPaint mTextPaint;
-    private float mTextWidth;
-    private float mTextHeight;
+public class MultiLineRadioGroup extends RadioGroup {
+    private Map<View, Rect> viewRectMap;
 
     public MultiLineRadioGroup(Context context) {
-        super(context);
-        init(null, 0);
+        this(context, null);
     }
 
     public MultiLineRadioGroup(Context context, AttributeSet attrs) {
         super(context, attrs);
-        init(attrs, 0);
-    }
 
-    public MultiLineRadioGroup(Context context, AttributeSet attrs, int defStyle) {
-        super(context, attrs, defStyle);
-        init(attrs, defStyle);
-    }
-
-    private void init(AttributeSet attrs, int defStyle) {
-        // Load attributes
-        final TypedArray a = getContext().obtainStyledAttributes(
-                attrs, R.styleable.MultiLineRadioGroup, defStyle, 0);
-
-        mExampleString = a.getString(
-                R.styleable.MultiLineRadioGroup_exampleString);
-        mExampleColor = a.getColor(
-                R.styleable.MultiLineRadioGroup_exampleColor,
-                mExampleColor);
-        // Use getDimensionPixelSize or getDimensionPixelOffset when dealing with
-        // values that should fall on pixel boundaries.
-        mExampleDimension = a.getDimension(
-                R.styleable.MultiLineRadioGroup_exampleDimension,
-                mExampleDimension);
-
-        if (a.hasValue(R.styleable.MultiLineRadioGroup_exampleDrawable)) {
-            mExampleDrawable = a.getDrawable(
-                    R.styleable.MultiLineRadioGroup_exampleDrawable);
-            mExampleDrawable.setCallback(this);
-        }
-
-        a.recycle();
-
-        // Set up a default TextPaint object
-        mTextPaint = new TextPaint();
-        mTextPaint.setFlags(Paint.ANTI_ALIAS_FLAG);
-        mTextPaint.setTextAlign(Paint.Align.LEFT);
-
-        // Update TextPaint and text measurements from attributes
-        invalidateTextPaintAndMeasurements();
-    }
-
-    private void invalidateTextPaintAndMeasurements() {
-        mTextPaint.setTextSize(mExampleDimension);
-        mTextPaint.setColor(mExampleColor);
-        mTextWidth = mTextPaint.measureText(mExampleString);
-
-        Paint.FontMetrics fontMetrics = mTextPaint.getFontMetrics();
-        mTextHeight = fontMetrics.bottom;
+        viewRectMap = new HashMap<View, Rect>();
     }
 
     @Override
-    protected void onDraw(Canvas canvas) {
-        super.onDraw(canvas);
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec){
+        int widthMeasurement = MeasureSpec.getSize(widthMeasureSpec);
+        int heightMeasurement = MeasureSpec.getSize(heightMeasureSpec);
+        switch (getOrientation()){
+            case HORIZONTAL:
+                heightMeasurement = findHorizontalHeight(widthMeasureSpec, heightMeasureSpec);
+                break;
+            case VERTICAL:
+                widthMeasurement = findVerticalWidth(widthMeasureSpec, heightMeasureSpec);
+                break;
+        }
+        setMeasuredDimension(widthMeasurement, heightMeasurement);
+    }
 
-        // TODO: consider storing these as member variables to reduce
-        // allocations per draw cycle.
-        int paddingLeft = getPaddingLeft();
-        int paddingTop = getPaddingTop();
-        int paddingRight = getPaddingRight();
-        int paddingBottom = getPaddingBottom();
-
-        int contentWidth = getWidth() - paddingLeft - paddingRight;
-        int contentHeight = getHeight() - paddingTop - paddingBottom;
-
-        // Draw the text.
-        canvas.drawText(mExampleString,
-                paddingLeft + (contentWidth - mTextWidth) / 2,
-                paddingTop + (contentHeight + mTextHeight) / 2,
-                mTextPaint);
-
-        // Draw the example drawable on top of the text.
-        if (mExampleDrawable != null) {
-            mExampleDrawable.setBounds(paddingLeft, paddingTop,
-                    paddingLeft + contentWidth, paddingTop + contentHeight);
-            mExampleDrawable.draw(canvas);
+    @Override
+    protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+        int count = getChildCount();
+        for(int x=0; x < count; ++x) {
+            View button = getChildAt(x);
+            Rect dims = viewRectMap.get(button);
+            button.layout(dims.left, dims.top, dims.right, dims.bottom);
         }
     }
 
-    /**
-     * Gets the example string attribute value.
-     * @return The example string attribute value.
-     */
-    public String getExampleString() {
-        return mExampleString;
+    private int findHorizontalHeight(int widthMeasureSpec, int heightMeasureSpec){
+        int parentHeight = MeasureSpec.getSize(heightMeasureSpec);
+        int maxRight = MeasureSpec.getSize(widthMeasureSpec) - getPaddingRight();
+
+        // create MeasureSpecs to accommodate max space that RadioButtons can occupy
+        int newWidthMeasureSpec = MeasureSpec.makeMeasureSpec(maxRight - getPaddingLeft(),
+                MeasureSpec.getMode(widthMeasureSpec));
+        int newHeightMeasureSpec = MeasureSpec.makeMeasureSpec(
+                parentHeight - (getPaddingTop() + getPaddingBottom()),
+                MeasureSpec.getMode(heightMeasureSpec));
+
+        int nextLeft = getPaddingLeft();
+        int nextTop = getPaddingTop();
+        int maxRowHeight = 0;
+        viewRectMap.clear();
+        // measure and find placement for each RadioButton (results to be used in onLayout() stage)
+        int count = getChildCount();
+        for(int x=0; x < count; ++x){
+            View button = getChildAt(x);
+            measureChild(button, newWidthMeasureSpec, newHeightMeasureSpec);
+
+            maxRowHeight = Math.max(maxRowHeight, button.getMeasuredHeight());
+
+            // determine RadioButton placement
+            int nextRight = nextLeft + button.getMeasuredWidth();
+            if(nextRight > maxRight){ // if current button will exceed border on this row ...
+                // ... move to next row
+                nextLeft = getPaddingLeft();
+                nextTop += maxRowHeight;
+
+                // adjust for next row values
+                nextRight = nextLeft + button.getMeasuredWidth();
+                maxRowHeight = button.getMeasuredHeight();
+            }
+
+            int nextBottom = nextTop + button.getMeasuredHeight();
+            viewRectMap.put(button, new Rect(nextLeft, nextTop, nextRight, nextBottom));
+
+            // update nextLeft
+            nextLeft = nextRight;
+        }
+
+        // height of RadioGroup is a natural by-product of placing all the children
+        switch(MeasureSpec.getMode(heightMeasureSpec)){
+            case MeasureSpec.UNSPECIFIED:
+            case MeasureSpec.AT_MOST:
+                return Math.min(nextTop + maxRowHeight + getPaddingBottom(), parentHeight);
+            case MeasureSpec.EXACTLY:
+            default:
+                return parentHeight;
+        }
     }
 
-    /**
-     * Sets the view's example string attribute value. In the example view, this string
-     * is the text to draw.
-     * @param exampleString The example string attribute value to use.
-     */
-    public void setExampleString(String exampleString) {
-        mExampleString = exampleString;
-        invalidateTextPaintAndMeasurements();
-    }
+    private int findVerticalWidth(int widthMeasureSpec, int heightMeasureSpec){
+        int parentWidth = MeasureSpec.getSize(widthMeasureSpec);
+        int maxBottom = MeasureSpec.getSize(heightMeasureSpec) - getPaddingBottom();
 
-    /**
-     * Gets the example color attribute value.
-     * @return The example color attribute value.
-     */
-    public int getExampleColor() {
-        return mExampleColor;
-    }
+        // create MeasureSpecs to accommodate max space that RadioButtons can occupy
+        int newWidthMeasureSpec = MeasureSpec.makeMeasureSpec(
+                parentWidth - (getPaddingLeft() + getPaddingRight()),
+                MeasureSpec.getMode(widthMeasureSpec));
+        int newHeightMeasureSpec = MeasureSpec.makeMeasureSpec(maxBottom - getPaddingTop(),
+                MeasureSpec.getMode(heightMeasureSpec));
 
-    /**
-     * Sets the view's example color attribute value. In the example view, this color
-     * is the font color.
-     * @param exampleColor The example color attribute value to use.
-     */
-    public void setExampleColor(int exampleColor) {
-        mExampleColor = exampleColor;
-        invalidateTextPaintAndMeasurements();
-    }
+        int nextTop = getPaddingTop();
+        int nextLeft = getPaddingLeft();
+        int maxColWidth = 0;
+        viewRectMap.clear();
+        // measure and find placement for each RadioButton (results to be used in onLayout() stage)
+        int count = getChildCount();
+        for(int x=0; x < count; ++x){
+            View button = getChildAt(x);
+            measureChild(button, newWidthMeasureSpec, newHeightMeasureSpec);
 
-    /**
-     * Gets the example dimension attribute value.
-     * @return The example dimension attribute value.
-     */
-    public float getExampleDimension() {
-        return mExampleDimension;
-    }
+            maxColWidth = Math.max(maxColWidth, button.getMeasuredWidth());
 
-    /**
-     * Sets the view's example dimension attribute value. In the example view, this dimension
-     * is the font size.
-     * @param exampleDimension The example dimension attribute value to use.
-     */
-    public void setExampleDimension(float exampleDimension) {
-        mExampleDimension = exampleDimension;
-        invalidateTextPaintAndMeasurements();
-    }
+            // determine RadioButton placement
+            int nextBottom = nextTop + button.getMeasuredHeight();
+            if(nextBottom > maxBottom){ // if current button will exceed border for this column ...
+                // ... move to next column
+                nextTop = getPaddingTop();
+                nextLeft += maxColWidth;
 
-    /**
-     * Gets the example drawable attribute value.
-     * @return The example drawable attribute value.
-     */
-    public Drawable getExampleDrawable() {
-        return mExampleDrawable;
-    }
+                // adjust for next row values
+                nextBottom = nextTop + button.getMeasuredHeight();
+                maxColWidth = button.getMeasuredWidth();
+            }
 
-    /**
-     * Sets the view's example drawable attribute value. In the example view, this drawable is
-     * drawn above the text.
-     * @param exampleDrawable The example drawable attribute value to use.
-     */
-    public void setExampleDrawable(Drawable exampleDrawable) {
-        mExampleDrawable = exampleDrawable;
+            int nextRight = nextLeft + button.getMeasuredWidth();
+            viewRectMap.put(button, new Rect(nextLeft, nextTop, nextRight, nextBottom));
+
+            // update nextTop
+            nextTop = nextBottom;
+        }
+
+        // width of RadioGroup is a natural by-product of placing all the children
+        switch(MeasureSpec.getMode(widthMeasureSpec)){
+            case MeasureSpec.UNSPECIFIED:
+            case MeasureSpec.AT_MOST:
+                return Math.min(nextLeft + maxColWidth + getPaddingRight(), parentWidth);
+            case MeasureSpec.EXACTLY:
+            default:
+                return parentWidth;
+        }
     }
 }
