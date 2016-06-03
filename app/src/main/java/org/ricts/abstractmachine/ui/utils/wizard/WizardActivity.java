@@ -42,8 +42,10 @@ public abstract class WizardActivity extends AppCompatActivity {
 
             @Override
             public void onPageSelected(int position) {
-                if(position > lastPosition)
-                    savePageData(lastPosition);
+                if(position > lastPosition) {
+                    savePageData(lastPosition); // save last page data
+                    updatePage(position); // use latest saved data to update current wizard page if necessary
+                }
                 else if(position < lastPosition)
                     restorePageData(position);
 
@@ -116,6 +118,11 @@ public abstract class WizardActivity extends AppCompatActivity {
     private void savePageData(int currentPageIndex){
         ((WizardFragment) pagerAdapter.instantiateItem(pager, currentPageIndex))
                 .savePageData(dataBundle);
+    }
+
+    private void updatePage(int currentPageIndex){
+        ((WizardFragment) pagerAdapter.instantiateItem(pager, currentPageIndex))
+                .updatePage(dataBundle);
     }
 
     private int normaliseIndex(int index){
