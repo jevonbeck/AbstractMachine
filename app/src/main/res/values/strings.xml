@@ -33,10 +33,21 @@
 
     <string name="data_width_label">Data Width:</string>
     <string name="instr_mem_size_label">Instruction Memory Size:</string>
+    <string name="data_mem_size_label">Data Memory Size:</string>
     <string name="width_8">8</string>
     <string name="width_16">16</string>
     <string name="width_32">32</string>
     <string name="width_64">64</string>
+
+    <string name="arg1_hint">Operand 1</string>
+    <string name="arg2_hint">Operand 2</string>
+    <string name="arg3_hint">Operand 3</string>
+    <string name="arg4_hint">Operand 4</string>
+    <string name="label_hint">Label</string>
+    <string name="comment_hint">Comment</string>
+
+    <string name="positive_button_text">OK</string>
+    <string name="negative_button_text">Cancel</string>
 
     <string name="wizardactivity_prev_button_text">Previous</string>
     <string name="wizardactivity_next_button_text">Next</string>

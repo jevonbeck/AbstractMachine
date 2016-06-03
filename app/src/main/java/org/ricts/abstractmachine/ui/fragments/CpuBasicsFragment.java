@@ -11,6 +11,7 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.SpinnerAdapter;
+import android.widget.TextView;
 
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.ui.activities.CpuConfigureActivity;
@@ -28,7 +29,9 @@ public class CpuBasicsFragment extends WizardFragment {
         }
     }
 
-    private RadioGroup archRadiGroup, coreTypeRadioGroup, bitWidthRadioGroup, instrAddrWidthRadioGroup;
+    private TextView dataAddrWidthLabel;
+    private RadioGroup archRadiGroup, coreTypeRadioGroup,
+            bitWidthRadioGroup, instrAddrWidthRadioGroup, dataAddrWidthRadioGroup;
     private Spinner coreSpinner;
     private boolean viewsAvailable = false;
 
@@ -86,7 +89,26 @@ public class CpuBasicsFragment extends WizardFragment {
         });
         setCoreSpinnerAdapter(coreTypeRadioGroup.getCheckedRadioButtonId());
 
+        dataAddrWidthLabel = (TextView) rootView.findViewById(R.id.dataAddrWidthLabel);
+        dataAddrWidthRadioGroup = (RadioGroup) rootView.findViewById(R.id.dataAddrWidthRadioGroup);
+
         archRadiGroup = (RadioGroup) rootView.findViewById(R.id.archRadioGroup);
+        archRadiGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup radioGroup, int checkedId) {
+                switch (checkedId){
+                    case R.id.harvardButton:
+                        dataAddrWidthLabel.setVisibility(View.VISIBLE);
+                        dataAddrWidthRadioGroup.setVisibility(View.VISIBLE);
+                        break;
+                    case R.id.vonNeumannButton:
+                        dataAddrWidthLabel.setVisibility(View.GONE);
+                        dataAddrWidthRadioGroup.setVisibility(View.GONE);
+                        break;
+                }
+            }
+        });
+
         bitWidthRadioGroup = (RadioGroup) rootView.findViewById(R.id.bitWidthRadioGroup);
         instrAddrWidthRadioGroup = (RadioGroup) rootView.findViewById(R.id.instrAddrWidthRadioGroup);
 
@@ -110,6 +132,22 @@ public class CpuBasicsFragment extends WizardFragment {
             }
             else if(archType.equals(getString(R.string.architecture_type_harvard))){
                 archRadiGroup.check(R.id.harvardButton);
+
+                switch (bundle.getInt(CpuConfigureActivity.DATA_ADDR_WIDTH)){
+                    case 3:
+                        dataAddrWidthRadioGroup.check(R.id.dataThreeBitButton);
+                        break;
+                    case 4:
+                        dataAddrWidthRadioGroup.check(R.id.dataFourBitButton);
+                        break;
+                    case 5:
+                        dataAddrWidthRadioGroup.check(R.id.dataFiveBitButton);
+                        break;
+                    case 6:
+                        dataAddrWidthRadioGroup.check(R.id.dataSixBitButton);
+                        break;
+                    default:
+                }
             }
 
             CharSequence coreType = bundle.getCharSequence(CpuConfigureActivity.CORE_TYPE);
@@ -135,16 +173,16 @@ public class CpuBasicsFragment extends WizardFragment {
 
             switch (bundle.getInt(CpuConfigureActivity.INSTR_ADDR_WIDTH)){
                 case 3:
-                    instrAddrWidthRadioGroup.check(R.id.threeBitButton);
+                    instrAddrWidthRadioGroup.check(R.id.insThreeBitButton);
                     break;
                 case 4:
-                    instrAddrWidthRadioGroup.check(R.id.fourBitButton);
+                    instrAddrWidthRadioGroup.check(R.id.insFourBitButton);
                     break;
                 case 5:
-                    instrAddrWidthRadioGroup.check(R.id.fiveBitButton);
+                    instrAddrWidthRadioGroup.check(R.id.insFiveBitButton);
                     break;
                 case 6:
-                    instrAddrWidthRadioGroup.check(R.id.sixBitButton);
+                    instrAddrWidthRadioGroup.check(R.id.insSixBitButton);
                     break;
                 default:
             }
@@ -174,10 +212,26 @@ public class CpuBasicsFragment extends WizardFragment {
                 getSelectedButtonText(bitWidthRadioGroup).toString() ));
 
         int instrMemSize = Integer.valueOf( getSelectedButtonText(instrAddrWidthRadioGroup).toString() );
-        bundle.putInt(CpuConfigureActivity.INSTR_ADDR_WIDTH, getAddressWidthFromSize(instrMemSize) );
+        int instrAddrWidth = getAddressWidthFromSize(instrMemSize);
+        bundle.putInt(CpuConfigureActivity.INSTR_ADDR_WIDTH, instrAddrWidth);
+
+        switch (archRadiGroup.getCheckedRadioButtonId()){
+            case R.id.vonNeumannButton:
+                bundle.putInt(CpuConfigureActivity.DATA_ADDR_WIDTH, instrAddrWidth);
+                break;
+            case R.id.harvardButton:
+                int dataMemSize = Integer.valueOf( getSelectedButtonText(dataAddrWidthRadioGroup).toString() );
+                bundle.putInt(CpuConfigureActivity.DATA_ADDR_WIDTH, getAddressWidthFromSize(dataMemSize) );
+                break;
+        }
 
         // update activity pagerAdapter
         mUpdater.updateWizardPageCount();
+    }
+
+    @Override
+    public void updatePage(Bundle bundle) {
+        // No need to implement as this is the first page!
     }
 
     /**

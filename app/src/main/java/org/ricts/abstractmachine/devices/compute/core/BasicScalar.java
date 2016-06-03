@@ -99,6 +99,7 @@ public class BasicScalar extends ComputeCore {
     }
 
     private Map<String, String> mneumonicToGroupMap;
+    private String[] mneumonicList;
 
     /* core dependent features */
     private Register statusReg;
@@ -253,12 +254,28 @@ public class BasicScalar extends ComputeCore {
             }
         }
 
+        Instruction[] insValues = Instruction.values();
+        mneumonicList = new String[insValues.length];
+        for(int x = 0; x < mneumonicList.length; ++x){
+            mneumonicList[x] = insValues[x].name();
+        }
+
         instrDecoder = new IsaDecoder(instructionSet);
         instrWidth = instrDecoder.instructionWidth();
         instrBitMask = bitMaskOfWidth(instrWidth);
 
-        nopGroupName = InstructionGrouping.NoOperands.name();
         nopMneumonic = Instruction.NOP.name();
+    }
+
+    @Override
+    public String[] getMneumonicList() {
+        return mneumonicList;
+    }
+
+    @Override
+    public int getOperandCount(String mneumonic) {
+        InstructionGrouping grouping = Enum.valueOf(InstructionGrouping.class, getGroupName(mneumonic));
+        return grouping.getOperandCount();
     }
 
     @Override

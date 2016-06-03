@@ -8,13 +8,16 @@ import org.ricts.abstractmachine.components.interfaces.MemoryPort;
 
 public abstract class ComputeCore extends Device implements ComputeCoreInterface {
 	protected IsaDecoder instrDecoder;
-	protected String nopGroupName, nopMneumonic;
+	protected String nopMneumonic;
 	
 	protected int instrWidth;  
 	protected int instrBitMask;
 	protected int iAddrWidth;
 	protected int dAddrWidth;
 	protected int dataWidth;
+
+    public abstract String [] getMneumonicList();
+    public abstract int getOperandCount(String mneumonic);
 
     protected abstract boolean isDataMemInstr(String groupName, int enumOrdinal);
     protected abstract boolean isHaltInstr(String groupName, int enumOrdinal);
@@ -104,7 +107,7 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
 
     @Override
     public int nopInstruction() {
-        return instrDecoder.encode(nopGroupName, nopMneumonic, new int [0]);
+        return encodeInstruction(nopMneumonic, new int [0]);
     }
 
     public boolean isDataMemoryInstruction(int instruction){
@@ -140,6 +143,10 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
             return  insToString(groupName, enumOrdinal, operands);
         }
         return "Ins invalid!";
+    }
+
+    public String instrValueString(int instruction) {
+        return formatNumberInHex(instruction, instrWidth);
     }
 
     public int encodeInstruction(String iMneumonic, int [] operands) {

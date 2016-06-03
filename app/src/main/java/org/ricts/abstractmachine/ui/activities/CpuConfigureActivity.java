@@ -9,6 +9,7 @@ import android.support.v4.view.PagerAdapter;
 
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.ui.fragments.CpuBasicsFragment;
+import org.ricts.abstractmachine.ui.fragments.InstrMemFragment;
 import org.ricts.abstractmachine.ui.utils.wizard.WizardActivity;
 import org.ricts.abstractmachine.ui.utils.wizard.WizardFragment;
 
@@ -21,11 +22,10 @@ public class CpuConfigureActivity extends WizardActivity implements WizardFragme
     public static final String CORE_NAME = "coreName";
     public static final String CORE_DATA_WIDTH = "coreDataWidth";
     public static final String INSTR_ADDR_WIDTH = "instructionAddressWidth";
+    public static final String DATA_ADDR_WIDTH = "dataAddressWidth";
+    public static final String PROGRAM = "program"; // instruction memory data (pure numbers)
+    public static final String PROGRAM_DATA = "programData"; // program (including UI metadata)
 
-    @Override
-    public void updateWizardPageCount() {
-        pagerAdapter.notifyDataSetChanged();
-    }
 
     @Override
     protected PagerAdapter createAdapter() {
@@ -53,6 +53,11 @@ public class CpuConfigureActivity extends WizardActivity implements WizardFragme
         return dataBundle;
     }
 
+    @Override
+    public void updateWizardPageCount() {
+        pagerAdapter.notifyDataSetChanged();
+    }
+
     private static class CpuConfigureAdapter extends FragmentStatePagerAdapter {
         private Bundle dataBun;
         private String harvardArchType;
@@ -68,8 +73,7 @@ public class CpuConfigureActivity extends WizardActivity implements WizardFragme
                 case 0:
                     return new CpuBasicsFragment();
                 case 1:
-                    return new CpuBasicsFragment(); // TODO: change me!!!
-                    //return new InstrMemFragment();
+                    return new InstrMemFragment();
                 case 2:
                     return new CpuBasicsFragment(); // TODO: change me too!!!
                     default:
