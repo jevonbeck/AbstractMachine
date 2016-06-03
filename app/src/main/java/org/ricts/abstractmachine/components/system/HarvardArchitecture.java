@@ -36,6 +36,14 @@ public class HarvardArchitecture extends SystemArchitecture {
         dataRAM.getType().setData(data, addrOffset);
     }
 
+    public void initInstructionCache(List<Integer> data){
+        initInstructionCache(data, 0);
+    }
+
+    public void initDataRAM(List<Integer> data){
+        initDataRAM(data, 0);
+    }
+
     public ObservableRAM getDataRAM(){
         return dataRAM;
     }

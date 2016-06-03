@@ -23,6 +23,10 @@ public class VonNeumannArchitecture extends SystemArchitecture {
         processorCore = vCore;
     }
 
+    public void initMemory(List<Integer> data) {
+        initMemory(data, 0);
+    }
+
     public void initMemory(List<Integer> data, int addrOffset){
         mainMemory.getType().setData(data, addrOffset);
     }
