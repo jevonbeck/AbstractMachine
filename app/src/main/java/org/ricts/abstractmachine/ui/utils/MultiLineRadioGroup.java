@@ -90,10 +90,12 @@ public class MultiLineRadioGroup extends RadioGroup {
         }
 
         // height of RadioGroup is a natural by-product of placing all the children
+        int idealHeight = nextTop + maxRowHeight + getPaddingBottom();
         switch(MeasureSpec.getMode(heightMeasureSpec)){
             case MeasureSpec.UNSPECIFIED:
+                return idealHeight;
             case MeasureSpec.AT_MOST:
-                return Math.min(nextTop + maxRowHeight + getPaddingBottom(), parentHeight);
+                return Math.min(idealHeight, parentHeight);
             case MeasureSpec.EXACTLY:
             default:
                 return parentHeight;
@@ -143,10 +145,12 @@ public class MultiLineRadioGroup extends RadioGroup {
         }
 
         // width of RadioGroup is a natural by-product of placing all the children
+        int idealWidth = nextLeft + maxColWidth + getPaddingRight();
         switch(MeasureSpec.getMode(widthMeasureSpec)){
             case MeasureSpec.UNSPECIFIED:
+                return idealWidth;
             case MeasureSpec.AT_MOST:
-                return Math.min(nextLeft + maxColWidth + getPaddingRight(), parentWidth);
+                return Math.min(idealWidth, parentWidth);
             case MeasureSpec.EXACTLY:
             default:
                 return parentWidth;
