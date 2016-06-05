@@ -4,13 +4,18 @@
               android:layout_width="match_parent"
               android:layout_height="match_parent">
 
-    <view
-        class="org.ricts.abstractmachine.ui.utils.MultiLineRadioGroup"
-        android:id="@+id/instrRadioGroup"
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:orientation="horizontal"
-        android:layout_weight="1"/>
+        android:layout_weight="1">
+        <view
+            class="org.ricts.abstractmachine.ui.utils.MultiLineRadioGroup"
+            android:id="@+id/instrRadioGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            />
+    </ScrollView>
     <EditText
         android:id="@+id/operandOneEditText"
         android:layout_width="match_parent"
