@@ -50,6 +50,7 @@
     <string name="positive_button_text">OK</string>
     <string name="negative_button_text">Cancel</string>
 
+    <string name="new_button_text">New</string>
     <string name="load_button_text">Load</string>
     <string name="save_button_text">Save</string>
     <string name="save_message_positive">File saved</string>
@@ -57,6 +58,7 @@
     <string name="nothing_to_save_message">Nothing to save!</string>
     <string name="invalid_filename_message">Invalid filename</string>
     <string name="file_list_dialog_title">Select file</string>
+    <string name="filename_dialog_title">Create file</string>
 
     <string name="wizardactivity_prev_button_text">Previous</string>
     <string name="wizardactivity_next_button_text">Next</string>

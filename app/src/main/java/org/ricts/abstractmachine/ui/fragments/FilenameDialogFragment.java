@@ -47,6 +47,7 @@ public class FilenameDialogFragment extends DialogFragment {
         /** Actually create the dialog **/
         final AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setView(mainView)
+                .setTitle(R.string.filename_dialog_title)
                 // Add action buttons
                 .setPositiveButton(R.string.save_button_text, new DialogInterface.OnClickListener() {
                     @Override

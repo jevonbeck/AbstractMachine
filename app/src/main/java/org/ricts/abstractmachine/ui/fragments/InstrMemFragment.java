@@ -56,7 +56,7 @@ public class InstrMemFragment extends WizardFragment {
     private ComputeCore mainCore;
     private ArrayList<AssemblyCodeData> adapterData;
     private ListView programListView;
-    private Button saveButton, loadButton;
+    private Button saveButton, loadButton, newButton;
     private String currentFile;
 
     public InstrMemFragment() {
@@ -71,6 +71,7 @@ public class InstrMemFragment extends WizardFragment {
         programListView = (ListView) rootView.findViewById(R.id.listView);
         saveButton = (Button) rootView.findViewById(R.id.saveButton);
         loadButton = (Button) rootView.findViewById(R.id.loadButton);
+        newButton = (Button) rootView.findViewById(R.id.newButton);
         return rootView;
     }
 
@@ -109,6 +110,7 @@ public class InstrMemFragment extends WizardFragment {
             File coreRootDir = getComputeCorePath(dataBundle, context);
             String [] availableFiles = coreRootDir.list();
             if(availableFiles.length == 0){ // no files available
+                currentFile = null;
                 adapterData = new ArrayList<AssemblyCodeData>();
             }
             else{
@@ -185,6 +187,16 @@ public class InstrMemFragment extends WizardFragment {
                         LOADFILE_DIALOG_TAG);
             }
         });
+
+        /** Configure New button **/
+        newButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                currentFile = null;
+                adapterData = new ArrayList<AssemblyCodeData>();
+                populateListView(context);
+            }
+        });
     }
 
     private void loadListViewData(String filename, Context context, Bundle dataBundle){
@@ -193,6 +205,13 @@ public class InstrMemFragment extends WizardFragment {
         File coreRootDir = getComputeCorePath(dataBundle, context);
         adapterData = loadListFromFile(new File(coreRootDir, currentFile),
                 (int) Math.pow(2, mainCore.iAddrWidth()));
+
+        // store last loaded file for the appropriate core
+        SharedPreferences preferences =
+                context.getSharedPreferences(PREFERENCES_FILE, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putString(coreRootDir.getPath(), currentFile);
+        editor.apply();
     }
 
     private void populateListView(Context context){
