@@ -10,7 +10,7 @@
         android:id="@+id/tab_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#33b5e5"
+        android:background="@color/sexy_blue_color"
         android:paddingTop="4dp"
         android:paddingBottom="4dp" />
 
@@ -20,35 +20,40 @@
         android:layout_height="400dp"
         android:layout_below="@+id/tab_layout"/>
 
-    <Button
-        android:id="@+id/stepButton"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:id="@+id/buttonLayout"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/pager"
-        android:text="Step forward"
-        />
-    <Button
-        android:id="@+id/runButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_toRightOf="@id/stepButton"
-        android:layout_alignTop="@id/stepButton"
-        android:text="Run"
-        />
-    <Button
-        android:id="@+id/stopButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_toRightOf="@id/runButton"
-        android:layout_alignTop="@id/runButton"
-        android:text="Stop"
-        />
+        android:layout_below="@id/pager">
+        <Button
+            android:id="@+id/stepButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/inspectactivity_step_button_text"
+            />
+        <Button
+            android:id="@+id/runButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/inspectactivity_run_button_text"
+            />
+        <Button
+            android:id="@+id/stopButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/inspectactivity_stop_button_text"
+            />
+    </LinearLayout>
+
     <TextView
         android:id="@+id/sysClockLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/stepButton"
-        android:text="Time elapsed: "
+        android:layout_below="@id/buttonLayout"
+        android:text="@string/inspectactivity_system_clock_label"
         />
     <TextView
         android:id="@+id/sysClockText"

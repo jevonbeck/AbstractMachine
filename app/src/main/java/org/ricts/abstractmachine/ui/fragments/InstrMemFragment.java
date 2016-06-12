@@ -8,45 +8,56 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
-import android.text.method.DigitsKeyListener;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.compute.cores.ComputeCore;
-import org.ricts.abstractmachine.components.devicetype.Device;
-import org.ricts.abstractmachine.devices.compute.core.BasicScalar;
-import org.ricts.abstractmachine.ui.activities.CpuConfigureActivity;
+import org.ricts.abstractmachine.ui.activities.InspectActivity;
 import org.ricts.abstractmachine.ui.utils.wizard.WizardFragment;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * Created by Jevon on 18/05/2016.
  */
 public class InstrMemFragment extends WizardFragment {
+    private static final String TAG = "InstrMemFragment";
+
     private static final String PREFERENCES_FILE = "lastUsedFiles";
     private static final String DATA_MNEUMONIC = "DATA";
-    private static final String DIALOG_FRAGMENT_TAG = "instructionFragment";
+    private static final String INSTR_DIALOG_TAG = "instructionFragment";
+    private static final String FILE_DIALOG_TAG = "filenameFragment";
+    private static final String LOADFILE_DIALOG_TAG = "loadFileFragment";
+    private static final String ADAPTER_DATA = "adapterData"; // key for program UI metadata
+    private static final int HEX_RADIX = 16;
+    private static final String INS_SEPERATOR = ",";
+    private static final String INS_DATA_SEPERATOR = ";";
 
     private ComputeCore mainCore;
     private ArrayList<AssemblyCodeData> adapterData;
     private ListView programListView;
+    private Button saveButton, loadButton;
+    private String currentFile;
 
     public InstrMemFragment() {
         // Required empty public constructor
@@ -58,64 +69,44 @@ public class InstrMemFragment extends WizardFragment {
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_instruction_memory, container, false);
         programListView = (ListView) rootView.findViewById(R.id.listView);
+        saveButton = (Button) rootView.findViewById(R.id.saveButton);
+        loadButton = (Button) rootView.findViewById(R.id.loadButton);
         return rootView;
     }
 
     @Override
     public void restorePageData(Bundle bundle) {
-        adapterData = bundle.getParcelableArrayList(CpuConfigureActivity.PROGRAM_DATA);
-        initialiseListView(bundle, adapterData == null);
+        adapterData = bundle.getParcelableArrayList(ADAPTER_DATA);
+        initialiseViews(bundle, adapterData == null);
     }
 
     @Override
     public void savePageData(Bundle bundle) {
-        bundle.putParcelableArrayList(CpuConfigureActivity.PROGRAM_DATA, adapterData);
+        bundle.putParcelableArrayList(ADAPTER_DATA, adapterData);
 
         ArrayList<Integer> program = new ArrayList<Integer>();
         for(AssemblyCodeData data: adapterData){
             String formattedValue = data.getNumericValue();
-            program.add( Integer.parseInt(formattedValue.substring(formattedValue.indexOf('x') + 1)) );
+            program.add( parseHex( formattedValue.substring(formattedValue.indexOf('x') + 1) ) );
         }
-        bundle.putIntegerArrayList(CpuConfigureActivity.PROGRAM, program);
+        bundle.putIntegerArrayList(InspectActivity.PROGRAM, program);
     }
 
     @Override
     public void updatePage(Bundle bundle) {
-        initialiseListView(bundle, true);
+        initialiseViews(bundle, true); // TODO: get better logic for boolean
     }
 
-    private void initialiseListView(Bundle dataBundle, boolean initFromFile){
-        Context context = getContext();
+    private void initialiseViews(final Bundle dataBundle, boolean initFromFile){
+        final Context context = getContext();
 
-        String coreName = dataBundle.getString(CpuConfigureActivity.CORE_NAME);
-        int coreDataWidth = dataBundle.getInt(CpuConfigureActivity.CORE_DATA_WIDTH);
-        int instrAddrWidth = dataBundle.getInt(CpuConfigureActivity.INSTR_ADDR_WIDTH);
-        int dataAddrWidth = dataBundle.getInt(CpuConfigureActivity.DATA_ADDR_WIDTH);
-
-        /** Create adapter for ListView **/
         // Create appropriate ComputeCore
-        CpuBasicsFragment.CoreNames coreType = Enum.valueOf(CpuBasicsFragment.CoreNames.class, coreName);
-        switch (coreType){
-            case BasicScalar:
-                int byteMultiplierWidth; // log_2(coreDataWidth/8)
-                switch (coreDataWidth){
-                    case 16:
-                        byteMultiplierWidth = 1;
-                        break;
-                    case 8:
-                    default:
-                        byteMultiplierWidth = 0;
-                        break;
-                }
+        mainCore = InspectActivity.getComputeCore(dataBundle);
 
-                mainCore = new BasicScalar(byteMultiplierWidth, dataAddrWidth, instrAddrWidth, 3, 3, 1, 1);
-                break;
-        }
-
+        /** Configure ListView **/
         if(initFromFile){
             // Search for assembly language programs that target the specified core
-            String coreProgramsPath = coreName + "_" + coreDataWidth;
-            File coreRootDir = context.getDir(coreProgramsPath, Context.MODE_PRIVATE);
+            File coreRootDir = getComputeCorePath(dataBundle, context);
             String [] availableFiles = coreRootDir.list();
             if(availableFiles.length == 0){ // no files available
                 adapterData = new ArrayList<AssemblyCodeData>();
@@ -124,16 +115,90 @@ public class InstrMemFragment extends WizardFragment {
                 SharedPreferences preferences =
                         context.getSharedPreferences(PREFERENCES_FILE, Context.MODE_PRIVATE);
                 // load most recently used file OR 1st (and only file)
-                adapterData = populateList(preferences.getString(coreProgramsPath, availableFiles[0]),
-                        (int) Math.pow(2, instrAddrWidth));
+                loadListViewData(preferences.getString(coreRootDir.getPath(), availableFiles[0]),
+                        context, dataBundle);
             }
         } // else 'adapterData' has already been initialised
 
-        // instantiate adapter
-        final AssemblyCodeAdapter adapter = new AssemblyCodeAdapter(context, R.layout.listitem_instruction,
-                mainCore.instrWidth(), mainCore.iAddrWidth(), adapterData);
+        populateListView(context);
 
-        /** Configure ListView **/
+        /** Configure Save button **/
+        final FilenameDialogFragment.FileSaver saver = new FilenameDialogFragment.FileSaver(){
+            @Override
+            public void saveFile(String filename) {
+                File targetFile = new File(getComputeCorePath(dataBundle, context), filename);
+
+                if(saveListToFile(adapterData, targetFile, mainCore.instrValueString(0), context)) {
+                    currentFile = filename; // last saved file is now current file
+                }
+            }
+        };
+
+        saveButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(currentFile != null){ // if file was previously loaded ...
+                    // ... update current file
+                    saver.saveFile(currentFile);
+                }
+                else { // prompt user for filename... and then save file
+                    DialogFragment fragment = FilenameDialogFragment.newInstance(saver);
+                    fragment.show(InstrMemFragment.this.getActivity().getSupportFragmentManager(),
+                            FILE_DIALOG_TAG);
+                }
+            }
+        });
+
+        /** Configure Load button **/
+        loadButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                /** load a file into the current list (limited by instruction address width) **/
+                final String [] fileList = getComputeCorePath(dataBundle, context).list();
+
+                // prompt user to select a file from list of available file names and
+                // initialise ListView
+                DialogFragment fragment = new DialogFragment(){
+                    private DialogFragment fragmentReference = this;
+
+                    @NonNull
+                    @Override
+                    public Dialog onCreateDialog(Bundle savedInstanceState){
+                        final AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                        builder.setTitle(R.string.file_list_dialog_title)
+                                .setItems(fileList, new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialogInterface, int which) {
+                                        loadListViewData(fileList[which], context, dataBundle);
+                                        populateListView(context);
+                                    }
+                                })
+                                .setNegativeButton(R.string.negative_button_text, new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        fragmentReference.getDialog().cancel();
+                                    }
+                                });
+                        return builder.create();
+                    }
+                };
+                fragment.show(InstrMemFragment.this.getActivity().getSupportFragmentManager(),
+                        LOADFILE_DIALOG_TAG);
+            }
+        });
+    }
+
+    private void loadListViewData(String filename, Context context, Bundle dataBundle){
+        currentFile = filename;
+
+        File coreRootDir = getComputeCorePath(dataBundle, context);
+        adapterData = loadListFromFile(new File(coreRootDir, currentFile),
+                (int) Math.pow(2, mainCore.iAddrWidth()));
+    }
+
+    private void populateListView(Context context){
+        final AssemblyCodeAdapter adapter = new AssemblyCodeAdapter(context, R.layout.listitem_instruction,
+                mainCore, adapterData);
+
         final AssemblyCodeDialogFragment.ListUpdater updater = new AssemblyCodeDialogFragment.ListUpdater(){
             @Override
             public void notifyUpdate() {
@@ -147,28 +212,29 @@ public class InstrMemFragment extends WizardFragment {
                 // Get current item data and pass it to new custom DialogFragment
                 DialogFragment fragment = AssemblyCodeDialogFragment.newInstance(
                         (AssemblyCodeData) adapterView.getItemAtPosition(position),
-                        mainCore, updater, "0123456789ABCDEF");
+                        mainCore, updater);
 
                 // show the DialogFragment!
-                fragment.show(InstrMemFragment.this.getActivity().getSupportFragmentManager(), DIALOG_FRAGMENT_TAG);
+                fragment.show(InstrMemFragment.this.getActivity().getSupportFragmentManager(), INSTR_DIALOG_TAG);
             }
         });
         programListView.setAdapter(adapter);
     }
 
-    private ArrayList<AssemblyCodeData> populateList(String filename, int maxLines){
+    private ArrayList<AssemblyCodeData> loadListFromFile(File file, int maxLines){
         ArrayList<AssemblyCodeData> result = new ArrayList<AssemblyCodeData>();
 
         try {
-            BufferedReader buf = new BufferedReader(new FileReader(filename));
+            BufferedReader buf = new BufferedReader(new FileReader(file));
             int lineCount = 0;
             String line;
             while ((line = buf.readLine()) != null){
-                // Instruction Format:  MNEUMONIC,OP1,OP2;label;comment
-                String [] splits = line.split(";");
+                // File line Format:  MNEUMONIC[,OP1,OP2];label;comment
+                Log.d(TAG, "'" + line + "'");
+                String [] splits = line.split(INS_DATA_SEPERATOR, -1);
 
                 String instructionLine = splits[0];
-                String [] insLineSplits = instructionLine.split(",");
+                String [] insLineSplits = instructionLine.split(INS_SEPERATOR);
                 String mneumonic = insLineSplits[0];
                 int [] operands = new int[insLineSplits.length - 1];
                 for(int x=0; x < operands.length; ++x){
@@ -192,11 +258,81 @@ public class InstrMemFragment extends WizardFragment {
         return result;
     }
 
+    /**
+     * This function saves the current dataList to the given file and returns whether the save
+     * was successful
+     * */
+    private boolean saveListToFile(List<AssemblyCodeData> dataList, File file,
+                                   String zeroString, Context context) {
+        // Reduce file size by only saving data from start until last address with instruction/data (non-zero)
+        int lastIndex;
+        for(lastIndex = dataList.size() - 1; lastIndex >= 0; --lastIndex){
+            AssemblyCodeData data = dataList.get(lastIndex);
+
+            if(!zeroString.equals(data.getNumericValue())){
+                break;
+            }
+        }
+
+        // don't attempt to save file if there is nothing to save!
+        if(lastIndex < 0){
+            Toast.makeText(context, context.getString(R.string.nothing_to_save_message), Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        // Save data in file according to custom format
+        try {
+            FileWriter fw = new FileWriter(file);
+            String emptyString = "";
+            for(int x=0; x <= lastIndex; ++x){
+                AssemblyCodeData data = dataList.get(x);
+
+                StringBuilder operandBuilder = new StringBuilder();
+                int [] operands = data.getOperands();
+                int lengthMinusOne = operands.length - 1;
+                for(int y=0; y < operands.length; ++y){
+                    operandBuilder.append(operands[y]);
+
+                    if(y < lengthMinusOne){
+                        operandBuilder.append(INS_SEPERATOR);
+                    }
+                }
+
+                String tempString = operandBuilder.toString();
+                String operandsString = !tempString.equals(emptyString) ?
+                        INS_SEPERATOR + tempString : emptyString;
+
+                // File line Format:  MNEUMONIC[,OP1,OP2];label;comment
+                String line = data.getMneumonic() + operandsString + INS_DATA_SEPERATOR +
+                        data.getLabel() + INS_DATA_SEPERATOR + data.getComment() + "\n";
+                Log.d(TAG, line);
+                fw.write(line);
+            }
+            fw.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            Toast.makeText(context, context.getString(R.string.save_message_negative), Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        Toast.makeText(context, context.getString(R.string.save_message_positive), Toast.LENGTH_SHORT).show();
+        return true;
+    }
+
+    private static File getComputeCorePath(Bundle dataBundle, Context context){
+        String coreName = dataBundle.getString(InspectActivity.CORE_NAME);
+        int coreDataWidth = dataBundle.getInt(InspectActivity.CORE_DATA_WIDTH);
+
+        return context.getDir(coreName + "_" + coreDataWidth, Context.MODE_PRIVATE);
+    }
+
+    private static int parseHex(String text){
+        return Integer.parseInt(text, HEX_RADIX);
+    }
+
     public static class AssemblyCodeDialogFragment extends DialogFragment {
         private ComputeCore mainCore;
         private AssemblyCodeData instructionData;
         private ListUpdater mUpdater;
-        private String permittedCharacters;
 
         public interface ListUpdater {
             void notifyUpdate();
@@ -207,28 +343,27 @@ public class InstrMemFragment extends WizardFragment {
         }
 
         public static AssemblyCodeDialogFragment newInstance(AssemblyCodeData data, ComputeCore core,
-                                                             ListUpdater updater, String charRange){
+                                                             ListUpdater updater){
             AssemblyCodeDialogFragment fragment = new AssemblyCodeDialogFragment();
-            fragment.init(data, core, updater, charRange);
+            fragment.init(data, core, updater);
             return fragment;
         }
 
+        @NonNull
         @Override
         public Dialog onCreateDialog(Bundle savedInstanceState){
             LayoutInflater inflater = getActivity().getLayoutInflater();
 
             // Pass null as the parent view because its going in the dialog layout
+            // TODO: create mainView from scratch
             final View mainView = inflater.inflate(R.layout.fragment_instr_dialog, null);
 
             /** Setup UI interactions and initialise UI **/
+            // TODO: find a way to do hex-only input (soft keyboard?!)
             final EditText operandOneEditText = (EditText) mainView.findViewById(R.id.operandOneEditText);
-            operandOneEditText.setKeyListener(DigitsKeyListener.getInstance(permittedCharacters));
             final EditText operandTwoEditText = (EditText) mainView.findViewById(R.id.operandTwoEditText);
-            operandTwoEditText.setKeyListener(DigitsKeyListener.getInstance(permittedCharacters));
             final EditText operandThreeEditText = (EditText) mainView.findViewById(R.id.operandThreeEditText);
-            operandThreeEditText.setKeyListener(DigitsKeyListener.getInstance(permittedCharacters));
             final EditText operandFourEditText = (EditText) mainView.findViewById(R.id.operandFourEditText);
-            operandFourEditText.setKeyListener(DigitsKeyListener.getInstance(permittedCharacters));
 
             final EditText labelEditText = (EditText) mainView.findViewById(R.id.labelEditText);
             labelEditText.setText(instructionData.getLabel());
@@ -286,21 +421,21 @@ public class InstrMemFragment extends WizardFragment {
                     }
 
                     // update EditText text
-                    Locale locale = Locale.getDefault();
                     int [] operands = instructionData.getOperands();
                     for(int x=0; x < operands.length; ++x){
+                        String text = Integer.toHexString(operands[x]);
                         switch (x){
                             case 0:
-                                operandOneEditText.setText(String.format(locale, "%d", operands[x]));
+                                operandOneEditText.setText(text);
                                 break;
                             case 1:
-                                operandTwoEditText.setText(String.format(locale, "%d", operands[x]));
+                                operandTwoEditText.setText(text);
                                 break;
                             case 2:
-                                operandThreeEditText.setText(String.format(locale, "%d", operands[x]));
+                                operandThreeEditText.setText(text);
                                 break;
                             case 3:
-                                operandFourEditText.setText(String.format(locale, "%d", operands[x]));
+                                operandFourEditText.setText(text);
                                 break;
                         }
                     }
@@ -333,9 +468,9 @@ public class InstrMemFragment extends WizardFragment {
                             int encodedInstruction;
                             String instructionText;
                             if(mneumonic.equals(DATA_MNEUMONIC)){
-                                String operandString = operandOneEditText.getText().toString();
-                                instructionText = DATA_MNEUMONIC + " " + operandString;
-                                encodedInstruction = Integer.parseInt(operandString);
+                                encodedInstruction = getSafeInt(operandOneEditText);
+                                instructionText = DATA_MNEUMONIC + " " +
+                                        mainCore.instrValueString(encodedInstruction);
                                 operands = new int[1];
                                 operands[0] = encodedInstruction;
                             }
@@ -383,11 +518,10 @@ public class InstrMemFragment extends WizardFragment {
             return builder.create();
         }
 
-        public void init(AssemblyCodeData data, ComputeCore core, ListUpdater updater, String charRange){
+        public void init(AssemblyCodeData data, ComputeCore core, ListUpdater updater){
             instructionData = data;
             mainCore = core;
             mUpdater = updater;
-            permittedCharacters = charRange;
         }
 
         private void addRadioButtonWithText(String mneumonic, RadioGroup instrGroup,
@@ -402,26 +536,26 @@ public class InstrMemFragment extends WizardFragment {
 
             // ... then, check/select button with current mneumonic
             if(mneumonic.equals(comparisonMneumonic)){
-                button.setChecked(true); // TODO: check that this triggers visibility of EditTexts
+                button.setChecked(true); // this triggers visibility of EditTexts
             }
         }
 
         private int getSafeInt(EditText editText){
             String currentText = editText.getText().toString();
-            return currentText.equals("") ? 0 : Integer.parseInt(currentText);
+            return currentText.equals("") ? 0 : parseHex(currentText);
         }
     }
 
     private static class AssemblyCodeAdapter extends ArrayAdapter<AssemblyCodeData> {
-        private int instrAddrWidth;
+        private ComputeCore mainCore;
 
-        public AssemblyCodeAdapter(Context context, int resource, int instWidth, int instAWidth,
+        public AssemblyCodeAdapter(Context context, int resource, ComputeCore core,
                                    List<AssemblyCodeData> objects) {
             super(context, resource);
-            instrAddrWidth = instAWidth;
+            mainCore = core;
 
             int objectCount = objects.size();
-            int listSize = (int) Math.pow(2, instAWidth);
+            int listSize = (int) Math.pow(2, mainCore.iAddrWidth());
             for(int x=0; x < listSize; ++x){
                 if(x < objectCount){
                     add(objects.get(x));
@@ -429,7 +563,7 @@ public class InstrMemFragment extends WizardFragment {
                 else{
                     // add newly created data element to list and adapter
                     // (for easier reference when saving page data)
-                    AssemblyCodeData data = new AssemblyCodeData(instWidth);
+                    AssemblyCodeData data = new AssemblyCodeData(core);
                     objects.add(data);
                     add(data);
                 }
@@ -446,7 +580,7 @@ public class InstrMemFragment extends WizardFragment {
             AssemblyCodeData data = getItem(position);
 
             TextView indexTextView = (TextView) convertView.findViewById(R.id.index);
-            indexTextView.setText(Device.formatNumberInHex(position, instrAddrWidth));
+            indexTextView.setText(mainCore.instrAddrValueString(position));
 
             TextView labelTextView = (TextView) convertView.findViewById(R.id.label);
             String labelText = data.getLabel();
@@ -472,15 +606,14 @@ public class InstrMemFragment extends WizardFragment {
         private String label, instruction, numericValue, comment, mneumonic;
         private int [] operands;
 
-        public AssemblyCodeData(int instructionWidth){
+        public AssemblyCodeData(ComputeCore core){
             mneumonic = DATA_MNEUMONIC;
             operands = new int[1];
             operands[0] = 0;
             label = "";
             comment = "";
 
-            instruction = DATA_MNEUMONIC + " 0";
-            numericValue = Device.formatNumberInHex(0, instructionWidth);
+            initAsPureData(core.instrValueString(operands[0]));
         }
 
         public AssemblyCodeData(ComputeCore core, String m, int []ops, String l, String c){
@@ -489,9 +622,14 @@ public class InstrMemFragment extends WizardFragment {
             label = l;
             comment = c;
 
-            int instr = core.encodeInstruction(mneumonic, operands);
-            instruction = core.instrString(instr);
-            numericValue = core.instrValueString(instr);
+            if(mneumonic.equals(DATA_MNEUMONIC)){
+                initAsPureData(core.instrValueString(operands[0]));
+            }
+            else{
+                int instr = core.encodeInstruction(mneumonic, operands);
+                instruction = core.instrString(instr);
+                numericValue = core.instrValueString(instr);
+            }
         }
 
         protected AssemblyCodeData(Parcel in) {
@@ -576,6 +714,11 @@ public class InstrMemFragment extends WizardFragment {
 
         public void setOperands(int [] ops){
             operands = ops;
+        }
+
+        private void initAsPureData(String value){
+            numericValue = value;
+            instruction = DATA_MNEUMONIC + " " + numericValue;
         }
     }
 }

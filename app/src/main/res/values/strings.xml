@@ -45,13 +45,27 @@
     <string name="arg4_hint">Operand 4</string>
     <string name="label_hint">Label</string>
     <string name="comment_hint">Comment</string>
+    <string name="filename_hint">File name</string>
 
     <string name="positive_button_text">OK</string>
     <string name="negative_button_text">Cancel</string>
 
+    <string name="load_button_text">Load</string>
+    <string name="save_button_text">Save</string>
+    <string name="save_message_positive">File saved</string>
+    <string name="save_message_negative">Save failed!</string>
+    <string name="nothing_to_save_message">Nothing to save!</string>
+    <string name="invalid_filename_message">Invalid filename</string>
+    <string name="file_list_dialog_title">Select file</string>
+
     <string name="wizardactivity_prev_button_text">Previous</string>
     <string name="wizardactivity_next_button_text">Next</string>
     <string name="wizardactivity_next_button_finish">Finish</string>
+
+    <string name="inspectactivity_step_button_text">Step</string>
+    <string name="inspectactivity_run_button_text">Run</string>
+    <string name="inspectactivity_stop_button_text">Stop</string>
+    <string name="inspectactivity_system_clock_label">Time elapsed: </string>
 
     <string name="title_activity_memory_port_multiplexer_tutorial">
         MemoryPortMultiplexerTutorialActivity

@@ -37,6 +37,8 @@ public abstract class WizardActivity extends AppCompatActivity {
         pager = (ViewPager) findViewById(R.id.pager);
         pager.setAdapter(pagerAdapter);
 
+        // main updates performed in OnPageChangeListener to allow user to navigate wizard
+        // via buttons and swipe!
         pager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
             private int lastPosition = 0;
 

@@ -12,11 +12,8 @@ import org.ricts.abstractmachine.components.observables.ObservableControlUnit;
 import org.ricts.abstractmachine.components.observables.ObservableRAM;
 import org.ricts.abstractmachine.components.system.SystemArchitecture;
 import org.ricts.abstractmachine.components.system.VonNeumannArchitecture;
-import org.ricts.abstractmachine.devices.compute.core.BasicScalar;
 import org.ricts.abstractmachine.ui.fragments.VonNeumannCoreFragment;
 import org.ricts.abstractmachine.ui.fragments.VonNeumannSystemFragment;
-
-import java.util.ArrayList;
 
 public class VonNeumannActivity extends InspectActivity {
 
@@ -27,49 +24,8 @@ public class VonNeumannActivity extends InspectActivity {
 
     @Override
     protected void initSystemArchitecture(SystemArchitecture architecture, Bundle options) {
-        ComputeCore core = (ComputeCore) architecture.getComputeCore().getType();
-
-        ArrayList<Integer> memData = new ArrayList<Integer>();
-        int [] operands;
-
-        // JUMP 0x2
-        operands = new int[1];
-        operands[0] = 2;
-        memData.add(core.encodeInstruction(BasicScalar.Instruction.JUMPL.name(), operands));
-
-        memData.add(core.nopInstruction()); // NOP instruction
-
-        // LOAD R3, 1 ; R3 <-- 1
-        operands = new int[2];
-        operands[0] = 3;
-        operands[1] = 1;
-        memData.add(core.encodeInstruction(BasicScalar.Instruction.LOAD.name(), operands));
-
-        // LOAD R4, 7 ; R4 <-- 7
-        operands[0] = 4;
-        operands[1] = 7;
-        memData.add(core.encodeInstruction(BasicScalar.Instruction.LOAD.name(), operands));
-
-        // STOREA R3, A0 ; A0 <-- R3
-        operands[0] = 3;
-        operands[1] = 0;
-        memData.add(core.encodeInstruction(BasicScalar.Instruction.STOREA.name(), operands));
-
-        // ADD R5, R3, R4 ; R5 <-- R3 + R4
-        operands = new int[3];
-        operands[0] = 5;
-        operands[1] = 3;
-        operands[2] = 4;
-        memData.add(core.encodeInstruction(BasicScalar.Instruction.ADD.name(), operands));
-
-        // STOREM R5, A0 ; MEM[A0] <-- R5
-        operands = new int[2];
-        operands[0] = 5;
-        operands[1] = 0;
-        memData.add(core.encodeInstruction(BasicScalar.Instruction.STOREM.name(), operands));
-
         VonNeumannArchitecture vonNeumannArchitecture = (VonNeumannArchitecture) architecture;
-        vonNeumannArchitecture.initMemory(memData, 0);
+        vonNeumannArchitecture.initMemory(options.getIntegerArrayList(PROGRAM));
     }
 
     @Override

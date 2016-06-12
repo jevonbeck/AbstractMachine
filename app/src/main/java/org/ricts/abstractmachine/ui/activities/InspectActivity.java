@@ -14,10 +14,27 @@ import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.compute.cores.ComputeCore;
 import org.ricts.abstractmachine.components.system.SystemArchitecture;
 import org.ricts.abstractmachine.devices.compute.core.BasicScalar;
+import org.ricts.abstractmachine.ui.fragments.CpuBasicsFragment;
 import org.ricts.abstractmachine.ui.fragments.InspectFragment;
 
 public abstract class InspectActivity extends AppCompatActivity implements InspectFragment.StepActionListener {
     private static final String TAG = "InspectActivity";
+
+    public static final String ARCH_TYPE = "architectureType";
+    public static final String CORE_NAME = "coreName";
+    public static final String CORE_DATA_WIDTH = "coreDataWidth";
+    public static final String INSTR_ADDR_WIDTH = "instructionAddressWidth";
+    public static final String DATA_ADDR_WIDTH = "dataAddressWidth";
+    public static final String PROGRAM = "program"; // instruction memory data (pure numbers)
+
+    public enum CoreNames {
+        BasicScalar, TestName, AnotherTest;
+
+        @Override
+        public String toString(){
+            return name();
+        }
+    }
 
     private ViewPager pager;
     private PagerAdapter pagerAdapter;
@@ -124,17 +141,39 @@ public abstract class InspectActivity extends AppCompatActivity implements Inspe
         sysClockTextView.setText(String.valueOf(architecture.timeElapsed()));
     }
 
-    private ComputeCore getComputeCore(Bundle options){
-        int byteMultiplierWidth = 0;
-        int dAdWidth = 3;
-        int iAdWidth = 3;
+    public static ComputeCore getComputeCore(Bundle options){
+        String coreName = options.getString(CORE_NAME);
+        int coreDataWidth = options.getInt(CORE_DATA_WIDTH);
+        int instrAddrWidth = options.getInt(INSTR_ADDR_WIDTH);
+        int dataAddrWidth = options.getInt(DATA_ADDR_WIDTH);
 
-        int stkAdWidth = 3;
-        int dRegAdWidth = 3;
-        int dAdrRegAdWidth = 1;
-        int iAdrRegAdWidth = 1;
+        // Create appropriate ComputeCore
+        CoreNames coreType = Enum.valueOf(CoreNames.class, coreName);
+        switch (coreType){
+            case TestName:
+            case AnotherTest:
+                // TODO: implement above cores
+            case BasicScalar:
+                int byteMultiplierWidth; // log_2(coreDataWidth/8)
+                switch (coreDataWidth){
+                    case 16:
+                        byteMultiplierWidth = 1;
+                        break;
+                    case 8:
+                    default:
+                        byteMultiplierWidth = 0;
+                        break;
+                }
 
-        return new BasicScalar(byteMultiplierWidth, dAdWidth, iAdWidth,
-                stkAdWidth,dRegAdWidth, dAdrRegAdWidth, iAdrRegAdWidth);
+                int stkAdWidth = 3;
+                int dRegAdWidth = 3;
+                int dAdrRegAdWidth = 1;
+                int iAdrRegAdWidth = 1;
+
+                return new BasicScalar(byteMultiplierWidth, dataAddrWidth, instrAddrWidth,
+                        stkAdWidth,dRegAdWidth, dAdrRegAdWidth, iAdrRegAdWidth);
+            default:
+                return null;
+        }
     }
 }

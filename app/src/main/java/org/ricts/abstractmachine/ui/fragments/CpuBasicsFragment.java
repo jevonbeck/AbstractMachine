@@ -2,7 +2,6 @@ package org.ricts.abstractmachine.ui.fragments;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,20 +13,12 @@ import android.widget.SpinnerAdapter;
 import android.widget.TextView;
 
 import org.ricts.abstractmachine.R;
-import org.ricts.abstractmachine.ui.activities.CpuConfigureActivity;
+import org.ricts.abstractmachine.ui.activities.InspectActivity;
+import org.ricts.abstractmachine.ui.activities.InspectActivity.CoreNames;
 import org.ricts.abstractmachine.ui.utils.wizard.WizardFragment;
 
 public class CpuBasicsFragment extends WizardFragment {
     private static final String TAG = "CpuBasicsFragment";
-
-    public enum CoreNames {
-        BasicScalar, TestName, AnotherTest;
-
-        @Override
-        public String toString(){
-            return name();
-        }
-    }
 
     private TextView dataAddrWidthLabel;
     private RadioGroup archRadiGroup, coreTypeRadioGroup,
@@ -35,6 +26,7 @@ public class CpuBasicsFragment extends WizardFragment {
     private Spinner coreSpinner;
     private boolean viewsAvailable = false;
 
+    private static final String CORE_TYPE = "coreType"; // key for core type (only useful in this UI)
     private static final CoreNames [] registerCores = {CoreNames.BasicScalar};
     private static final CoreNames [] accumulatorCores = {CoreNames.AnotherTest}; // TODO: put correct values
     private static final CoreNames [] stackCores = {CoreNames.TestName}; // TODO: put correct values
@@ -125,15 +117,16 @@ public class CpuBasicsFragment extends WizardFragment {
 
     @Override
     public void restorePageData(Bundle bundle) {
+        // TODO: review likelihood of 'viewsAvailable' being false
         if(viewsAvailable){
-            CharSequence archType = bundle.getCharSequence(CpuConfigureActivity.ARCH_TYPE);
+            CharSequence archType = bundle.getCharSequence(InspectActivity.ARCH_TYPE);
             if(archType.equals(getString(R.string.architecture_type_von_neumann))){
                 archRadiGroup.check(R.id.vonNeumannButton);
             }
             else if(archType.equals(getString(R.string.architecture_type_harvard))){
                 archRadiGroup.check(R.id.harvardButton);
 
-                switch (bundle.getInt(CpuConfigureActivity.DATA_ADDR_WIDTH)){
+                switch (bundle.getInt(InspectActivity.DATA_ADDR_WIDTH)){
                     case 3:
                         dataAddrWidthRadioGroup.check(R.id.dataThreeBitButton);
                         break;
@@ -150,7 +143,7 @@ public class CpuBasicsFragment extends WizardFragment {
                 }
             }
 
-            CharSequence coreType = bundle.getCharSequence(CpuConfigureActivity.CORE_TYPE);
+            CharSequence coreType = bundle.getCharSequence(CORE_TYPE);
             if(coreType.equals(getString(R.string.compute_core_type_register))){
                 coreTypeRadioGroup.check(R.id.registerTypeButton);
             }
@@ -161,7 +154,7 @@ public class CpuBasicsFragment extends WizardFragment {
                 coreTypeRadioGroup.check(R.id.stackTypeButton);
             }
 
-            switch (bundle.getInt(CpuConfigureActivity.CORE_DATA_WIDTH)){
+            switch (bundle.getInt(InspectActivity.CORE_DATA_WIDTH)){
                 case 8:
                     bitWidthRadioGroup.check(R.id.eightBitButton);
                     break;
@@ -171,7 +164,7 @@ public class CpuBasicsFragment extends WizardFragment {
                 default:
             }
 
-            switch (bundle.getInt(CpuConfigureActivity.INSTR_ADDR_WIDTH)){
+            switch (bundle.getInt(InspectActivity.INSTR_ADDR_WIDTH)){
                 case 3:
                     instrAddrWidthRadioGroup.check(R.id.insThreeBitButton);
                     break;
@@ -187,7 +180,7 @@ public class CpuBasicsFragment extends WizardFragment {
                 default:
             }
 
-            String coreName = bundle.getString(CpuConfigureActivity.CORE_NAME);
+            String coreName = bundle.getString(InspectActivity.CORE_NAME);
             SpinnerAdapter spinAdapter = coreSpinner.getAdapter();
             int itemCount = spinAdapter.getCount();
 
@@ -205,23 +198,24 @@ public class CpuBasicsFragment extends WizardFragment {
 
     @Override
     public void savePageData(Bundle bundle) {
-        bundle.putCharSequence(CpuConfigureActivity.ARCH_TYPE, getSelectedButtonText(archRadiGroup));
-        bundle.putCharSequence(CpuConfigureActivity.CORE_TYPE, getSelectedButtonText(coreTypeRadioGroup));
-        bundle.putString(CpuConfigureActivity.CORE_NAME, getComputeCoreName());
-        bundle.putInt(CpuConfigureActivity.CORE_DATA_WIDTH, Integer.valueOf(
+        bundle.putCharSequence(CORE_TYPE, getSelectedButtonText(coreTypeRadioGroup));
+
+        bundle.putCharSequence(InspectActivity.ARCH_TYPE, getSelectedButtonText(archRadiGroup));
+        bundle.putString(InspectActivity.CORE_NAME, getComputeCoreName());
+        bundle.putInt(InspectActivity.CORE_DATA_WIDTH, Integer.valueOf(
                 getSelectedButtonText(bitWidthRadioGroup).toString() ));
 
         int instrMemSize = Integer.valueOf( getSelectedButtonText(instrAddrWidthRadioGroup).toString() );
         int instrAddrWidth = getAddressWidthFromSize(instrMemSize);
-        bundle.putInt(CpuConfigureActivity.INSTR_ADDR_WIDTH, instrAddrWidth);
+        bundle.putInt(InspectActivity.INSTR_ADDR_WIDTH, instrAddrWidth);
 
         switch (archRadiGroup.getCheckedRadioButtonId()){
             case R.id.vonNeumannButton:
-                bundle.putInt(CpuConfigureActivity.DATA_ADDR_WIDTH, instrAddrWidth);
+                bundle.putInt(InspectActivity.DATA_ADDR_WIDTH, instrAddrWidth);
                 break;
             case R.id.harvardButton:
                 int dataMemSize = Integer.valueOf( getSelectedButtonText(dataAddrWidthRadioGroup).toString() );
-                bundle.putInt(CpuConfigureActivity.DATA_ADDR_WIDTH, getAddressWidthFromSize(dataMemSize) );
+                bundle.putInt(InspectActivity.DATA_ADDR_WIDTH, getAddressWidthFromSize(dataMemSize) );
                 break;
         }
 

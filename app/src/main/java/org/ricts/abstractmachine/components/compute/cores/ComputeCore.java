@@ -149,6 +149,10 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
         return formatNumberInHex(instruction, instrWidth);
     }
 
+    public String instrAddrValueString(int address) {
+        return formatNumberInHex(address, iAddrWidth);
+    }
+
     public int encodeInstruction(String iMneumonic, int [] operands) {
 		return instrDecoder.encode(getGroupName(iMneumonic), iMneumonic, operands);
 	}

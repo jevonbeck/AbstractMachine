@@ -17,16 +17,6 @@ public class CpuConfigureActivity extends WizardActivity implements WizardFragme
         CpuBasicsFragment.PagerAdapterUpdater {
     private static final String TAG = "CpuConfigureActivity";
 
-    public static final String ARCH_TYPE = "architectureType";
-    public static final String CORE_TYPE = "coreType";
-    public static final String CORE_NAME = "coreName";
-    public static final String CORE_DATA_WIDTH = "coreDataWidth";
-    public static final String INSTR_ADDR_WIDTH = "instructionAddressWidth";
-    public static final String DATA_ADDR_WIDTH = "dataAddressWidth";
-    public static final String PROGRAM = "program"; // instruction memory data (pure numbers)
-    public static final String PROGRAM_DATA = "programData"; // program (including UI metadata)
-
-
     @Override
     protected PagerAdapter createAdapter() {
         CpuConfigureAdapter adapter = new CpuConfigureAdapter(getSupportFragmentManager(), dataBundle);
@@ -36,13 +26,14 @@ public class CpuConfigureActivity extends WizardActivity implements WizardFragme
 
     @Override
     protected Intent nextActivityIntent() {
-        String archType = dataBundle.getString(ARCH_TYPE);
+        String archType = dataBundle.getString(InspectActivity.ARCH_TYPE);
 
-        if(archType.equals(getString(R.string.architecture_type_von_neumann))){
-            return new Intent(this, VonNeumannActivity.class);
-        }
-        else if(archType.equals(getString(R.string.architecture_type_harvard))){
-            return new Intent(this, VonNeumannActivity.class); // TODO: replace with Harvard when created
+        if(archType != null) {
+            if (archType.equals(getString(R.string.architecture_type_von_neumann))) {
+                return new Intent(this, VonNeumannActivity.class);
+            } else if (archType.equals(getString(R.string.architecture_type_harvard))) {
+                return new Intent(this, VonNeumannActivity.class); // TODO: replace with Harvard when created
+            }
         }
 
         return null;
@@ -83,8 +74,9 @@ public class CpuConfigureActivity extends WizardActivity implements WizardFragme
 
         @Override
         public int getCount() {
-            if(dataBun.getString(ARCH_TYPE) != null){
-                return dataBun.getString(ARCH_TYPE).equals(harvardArchType) ? 3 : 2;
+            String archType = dataBun.getString(InspectActivity.ARCH_TYPE);
+            if(archType != null){
+                return archType.equals(harvardArchType) ? 3 : 2;
             }
             else {
                 return 2;
