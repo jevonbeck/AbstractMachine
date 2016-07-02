@@ -25,7 +25,8 @@ public abstract class InspectActivity extends AppCompatActivity implements Inspe
     public static final String CORE_DATA_WIDTH = "coreDataWidth";
     public static final String INSTR_ADDR_WIDTH = "instructionAddressWidth";
     public static final String DATA_ADDR_WIDTH = "dataAddressWidth";
-    public static final String PROGRAM = "program"; // instruction memory data (pure numbers)
+    public static final String PROGRAM_MEMORY = "programMemory"; // instruction memory data (pure numbers)
+    public static final String DATA_MEMORY = "dataMemory"; // data memory (pure numbers)
 
     public enum CoreNames {
         BasicScalar, TestName, AnotherTest;

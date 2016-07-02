@@ -25,7 +25,7 @@ public class VonNeumannActivity extends InspectActivity {
     @Override
     protected void initSystemArchitecture(SystemArchitecture architecture, Bundle options) {
         VonNeumannArchitecture vonNeumannArchitecture = (VonNeumannArchitecture) architecture;
-        vonNeumannArchitecture.initMemory(options.getIntegerArrayList(PROGRAM));
+        vonNeumannArchitecture.initMemory(options.getIntegerArrayList(PROGRAM_MEMORY));
     }
 
     @Override

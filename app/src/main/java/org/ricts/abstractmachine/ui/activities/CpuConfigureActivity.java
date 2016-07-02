@@ -9,6 +9,7 @@ import android.support.v4.view.PagerAdapter;
 
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.ui.fragments.CpuBasicsFragment;
+import org.ricts.abstractmachine.ui.fragments.DataMemFragment;
 import org.ricts.abstractmachine.ui.fragments.InstrMemFragment;
 import org.ricts.abstractmachine.ui.utils.wizard.WizardActivity;
 import org.ricts.abstractmachine.ui.utils.wizard.WizardFragment;
@@ -66,7 +67,7 @@ public class CpuConfigureActivity extends WizardActivity implements WizardFragme
                 case 1:
                     return new InstrMemFragment();
                 case 2:
-                    return new CpuBasicsFragment(); // TODO: change me too!!!
+                    return new DataMemFragment();
                     default:
                         return null;
             }

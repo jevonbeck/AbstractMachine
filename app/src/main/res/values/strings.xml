@@ -43,6 +43,7 @@
     <string name="arg2_hint">Operand 2</string>
     <string name="arg3_hint">Operand 3</string>
     <string name="arg4_hint">Operand 4</string>
+    <string name="data_hint">Data Value</string>
     <string name="label_hint">Label</string>
     <string name="comment_hint">Comment</string>
     <string name="filename_hint">File name</string>
@@ -56,6 +57,7 @@
     <string name="save_message_positive">File saved</string>
     <string name="save_message_negative">Save failed!</string>
     <string name="nothing_to_save_message">Nothing to save!</string>
+    <string name="file_too_long_message">File bigger than memory size. Program may NOT work as expected!</string>
     <string name="invalid_filename_message">Invalid filename</string>
     <string name="file_list_dialog_title">Select file</string>
     <string name="filename_dialog_title">Create file</string>
