@@ -23,6 +23,11 @@ public class DataMemFragment extends MemFragment {
     }
 
     @Override
+    protected int titleStringResource() {
+        return R.string.data_memory_title;
+    }
+
+    @Override
     protected AssemblyMemoryData.MemoryType memoryType() {
         return AssemblyMemoryData.MemoryType.DATA;
     }

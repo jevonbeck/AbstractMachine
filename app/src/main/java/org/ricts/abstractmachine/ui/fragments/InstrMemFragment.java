@@ -25,6 +25,11 @@ public class InstrMemFragment extends MemFragment {
     }
 
     @Override
+    protected int titleStringResource() {
+        return R.string.program_memory_title;
+    }
+
+    @Override
     protected AssemblyMemoryData.MemoryType memoryType() {
         return AssemblyMemoryData.MemoryType.INSTRUCTION;
     }

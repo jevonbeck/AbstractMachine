@@ -16,6 +16,8 @@
     <string name="data_string">Data: </string>
     <string name="title_activity_von_neumann">VonNeumannActivity</string>
     <string name="title_activity_test">TestActivity</string>
+    <string name="program_memory_title">Program Memory</string>
+    <string name="data_memory_title">Data Memory</string>
 
     <string name="control_unit_state_label">Next Act:</string>
     <string name="program_counter_label">PC:</string>

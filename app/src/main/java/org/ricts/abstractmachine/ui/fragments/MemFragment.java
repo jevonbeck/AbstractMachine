@@ -41,6 +41,7 @@ public abstract class MemFragment extends WizardFragment {
     private static final String TAG = "MemFragment";
 
     protected abstract String memoryTypeString();
+    protected abstract int titleStringResource();
     protected abstract AssemblyMemoryData.MemoryType memoryType();
     protected abstract MemoryContentsDialogFragment getMemoryContentsDialogFragment(
             AssemblyMemoryData data, ComputeCore core, MemoryContentsDialogFragment.ListUpdater updater);
@@ -70,11 +71,15 @@ public abstract class MemFragment extends WizardFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View rootView = inflater.inflate(R.layout.fragment_instruction_memory, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_memory, container, false);
         memoryContentsListView = (ListView) rootView.findViewById(R.id.listView);
         saveButton = (Button) rootView.findViewById(R.id.saveButton);
         loadButton = (Button) rootView.findViewById(R.id.loadButton);
         newButton = (Button) rootView.findViewById(R.id.newButton);
+
+        TextView titleTextView = (TextView) rootView.findViewById(R.id.titleText);
+        titleTextView.setText(getString(titleStringResource()));
+
         return rootView;
     }
 
