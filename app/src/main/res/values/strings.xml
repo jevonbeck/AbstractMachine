@@ -71,6 +71,7 @@
     <string name="inspectactivity_step_button_text">Step</string>
     <string name="inspectactivity_run_button_text">Run</string>
     <string name="inspectactivity_stop_button_text">Stop</string>
+    <string name="inspectactivity_reset_button_text">Reset</string>
     <string name="inspectactivity_system_clock_label">Time elapsed: </string>
 
     <string name="title_activity_memory_port_multiplexer_tutorial">

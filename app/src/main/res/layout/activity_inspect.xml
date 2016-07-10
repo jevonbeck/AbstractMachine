@@ -46,6 +46,13 @@
             android:layout_weight="1"
             android:text="@string/inspectactivity_stop_button_text"
             />
+        <Button
+            android:id="@+id/resetButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/inspectactivity_reset_button_text"
+            />
     </LinearLayout>
 
     <TextView

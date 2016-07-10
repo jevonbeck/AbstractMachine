@@ -55,7 +55,7 @@ public abstract class InspectActivity extends AppCompatActivity implements Inspe
         setContentView(R.layout.activity_inspect);
 
         /** Initialise main data **/
-        Bundle options = getIntent().getExtras();
+        final Bundle options = getIntent().getExtras();
         architecture = createSystemArchitecture(getComputeCore(options), options);
         initSystemArchitecture(architecture, options);
         pagerAdapter = createAdapter(architecture);
@@ -85,6 +85,16 @@ public abstract class InspectActivity extends AppCompatActivity implements Inspe
             @Override
             public void onClick(View arg0) {
                 isRunning = false;
+            }
+        });
+
+        Button resetButton = (Button) findViewById(R.id.resetButton);
+        resetButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View arg0) {
+                isRunning = false;
+                initSystemArchitecture(architecture, options);
+                updateSystemTime();
             }
         });
 
@@ -139,6 +149,10 @@ public abstract class InspectActivity extends AppCompatActivity implements Inspe
         Log.d(TAG, "architecture.advanceTime() start");
         architecture.advanceTime();
         Log.d(TAG, "architecture.advanceTime() end");
+        updateSystemTime();
+    }
+
+    private void updateSystemTime(){
         sysClockTextView.setText(String.valueOf(architecture.timeElapsed()));
     }
 

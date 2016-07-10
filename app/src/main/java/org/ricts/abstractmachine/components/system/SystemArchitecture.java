@@ -26,6 +26,12 @@ public abstract class SystemArchitecture {
 		sysClock += result; 
 	}
 
+    public void reset(){
+        processorCore.reset();
+        mainCore.reset();
+        sysClock = 0;
+    }
+
     public ObservableComputeCore getComputeCore(){
         return mainCore;
     }
