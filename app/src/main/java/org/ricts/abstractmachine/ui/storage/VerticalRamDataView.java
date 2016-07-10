@@ -66,7 +66,7 @@ public class VerticalRamDataView extends CustomDimenRecyclerView {
 
                     float scaleFactor = getContext().getResources().getDisplayMetrics().density;
                     int result = Math.abs(addrBounds.width()) + Math.abs(dataBounds.width()) +
-                            (int) (4 * scaleFactor);
+                            (int) (8 * scaleFactor);
 
                     return Math.min(result, parentWidth);
                 }
