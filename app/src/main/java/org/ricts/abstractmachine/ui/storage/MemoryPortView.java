@@ -4,7 +4,6 @@ import android.content.Context;
 import android.util.AttributeSet;
 import android.view.animation.Animation;
 
-import org.ricts.abstractmachine.components.devicetype.Device;
 import org.ricts.abstractmachine.components.observables.ObservableRAM;
 import org.ricts.abstractmachine.components.storage.RAM;
 import org.ricts.abstractmachine.ui.device.DevicePin;
@@ -42,23 +41,19 @@ public class MemoryPortView extends ReadPortView {
             ObservableRAM observedRam = (ObservableRAM) observable;
             RAM ram = observedRam.getType();
 
-            final int address = params.getAddress();
-            final int data = params.getData();
-            int dataWidth = ram.dataWidth();
-            int addressWidth = ram.addressWidth();
+            int address = params.getAddress();
+            int data = params.getData();
 
             // Setup correct data in pin UI
             DevicePin pin = pinArray[PinNames.ADDRESS.ordinal()];
-            pin.dataWidth = addressWidth;
-            pin.data = Device.formatNumberInHex(address, addressWidth);
+            pin.data = ram.addressString(address);
             pin.direction = inDirection;
             pin.action = DevicePin.PinAction.MOVING;
             pin.startBehaviour = DevicePin.AnimStartBehaviour.DELAY;
             pin.animationDelay = startDelay;
 
             pin = pinArray[PinNames.DATA.ordinal()];
-            pin.dataWidth = dataWidth;
-            pin.data = Device.formatNumberInHex(data, dataWidth);
+            pin.data = ram.dataString(data);
             pin.direction = inDirection;
             pin.action = DevicePin.PinAction.MOVING;
             pin.startBehaviour = DevicePin.AnimStartBehaviour.DELAY;

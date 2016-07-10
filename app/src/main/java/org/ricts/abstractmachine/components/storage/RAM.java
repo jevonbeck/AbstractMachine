@@ -11,4 +11,8 @@ public class RAM extends ROM implements MemoryPort{
     public void write(int address, int data){
         dataArray[address & addressBitMask] = data & dataBitMask;
     }
+
+    public String dataString(int data){
+        return formatNumberInHex(data, dataWidth);
+    }
 }

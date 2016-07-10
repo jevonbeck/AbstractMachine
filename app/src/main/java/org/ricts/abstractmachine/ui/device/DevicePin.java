@@ -22,7 +22,6 @@ public class DevicePin {
 	public DevicePin(DevicePin pin){
 		data = pin.data;
 		name = pin.name;
-		dataWidth = pin.dataWidth;
 		direction = pin.direction;
 		action = pin.action;
 		startBehaviour = pin.startBehaviour;
@@ -32,7 +31,6 @@ public class DevicePin {
 
 	public String data = "";
 	public String name = "";
-	public int dataWidth;
 	public PinDirection direction = PinDirection.LEFT;
 	public PinAction action = PinAction.STATIONARY;
 	public AnimStartBehaviour startBehaviour = AnimStartBehaviour.IMMEDIATE;

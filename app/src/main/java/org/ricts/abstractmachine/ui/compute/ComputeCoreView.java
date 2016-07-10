@@ -10,8 +10,6 @@ import android.widget.TextView;
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.compute.cores.ComputeCore;
 import org.ricts.abstractmachine.components.observables.ObservableComputeCore;
-import org.ricts.abstractmachine.components.devicetype.Device;
-import org.ricts.abstractmachine.components.interfaces.ControlUnitInterface;
 import org.ricts.abstractmachine.ui.device.DevicePin;
 import org.ricts.abstractmachine.ui.device.DeviceView;
 import org.ricts.abstractmachine.ui.device.MultiPinView;
@@ -89,13 +87,12 @@ public class ComputeCoreView extends DeviceView implements Observer {
                 mainBody.updateInstructionView();
             }
             else{
-                ControlUnitInterface controlUnit = params.getControlUnit();
                 int pcPreExecute = params.getPcPreExecute();
-                int pcPostExecute = controlUnit.getPC();
+                int pcPostExecute = params.getPcPostExecute();
 
                 final boolean isDataMemInstruction = mainCore.isDataMemoryInstruction(instruction);
                 final boolean isHaltInstruction = mainCore.isHaltInstruction(instruction);
-                final String pcPostExecuteString = Device.formatNumberInHex(pcPostExecute, mainCore.iAddrWidth());
+                final String pcPostExecuteString = mainCore.instrAddrValueString(pcPostExecute);
                 final boolean updatePC = pcPreExecute != pcPostExecute;
 
                 pins.setCommandResponder(new PinsView.CommandOnlyResponder() {
@@ -134,7 +131,7 @@ public class ComputeCoreView extends DeviceView implements Observer {
                 });
 
                 // actually begin the animation
-                pins.executeInstruction(Device.formatNumberInHex(instruction, mainCore.instrWidth()));
+                pins.executeInstruction(mainCore.instrValueString(instruction));
             }
         }
     }
@@ -202,7 +199,6 @@ public class ComputeCoreView extends DeviceView implements Observer {
             DevicePin[] pinData = new DevicePin[PinNames.values().length];
             DevicePin pin = new DevicePin();
             pin.name = "command";
-            pin.dataWidth = 2;
             pinData[PinNames.COMMAND.ordinal()] = pin;
 
             pin = new DevicePin();

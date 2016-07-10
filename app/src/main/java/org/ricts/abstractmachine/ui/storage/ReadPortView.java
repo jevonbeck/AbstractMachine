@@ -4,7 +4,6 @@ import android.content.Context;
 import android.util.AttributeSet;
 import android.view.animation.Animation;
 
-import org.ricts.abstractmachine.components.devicetype.Device;
 import org.ricts.abstractmachine.components.observables.ObservableROM;
 import org.ricts.abstractmachine.components.storage.ROM;
 import org.ricts.abstractmachine.ui.device.DevicePin;
@@ -47,7 +46,6 @@ public class ReadPortView extends MultiPinView implements Observer {
         DevicePin[] pinData = new DevicePin[PinNames.values().length];
         DevicePin pin = new DevicePin();
         pin.name = "command";
-        pin.dataWidth = 2;
         pinData[PinNames.COMMAND.ordinal()] = pin;
 
         pin = new DevicePin();
@@ -72,10 +70,7 @@ public class ReadPortView extends MultiPinView implements Observer {
             ObservableROM observedRom = (ObservableROM) observable;
             ROM rom = (ROM) observedRom.getType();
 
-            final int address = ((ObservableROM.ReadParams) o).getAddress();
-            final int readData = rom.read(address);
-            int dataWidth = rom.dataWidth();
-            int addressWidth = rom.addressWidth();
+            int address = ((ObservableROM.ReadParams) o).getAddress();
 
             // Setup correct data in pin UI
             DevicePin pin = pinArray[PinNames.COMMAND.ordinal()];
@@ -87,16 +82,14 @@ public class ReadPortView extends MultiPinView implements Observer {
             pin.animListener = null;
 
             pin = pinArray[PinNames.ADDRESS.ordinal()];
-            pin.dataWidth = addressWidth;
-            pin.data = Device.formatNumberInHex(address, addressWidth);
+            pin.data = rom.addressString(address);
             pin.direction = inDirection;
             pin.action = DevicePin.PinAction.MOVING;
             pin.startBehaviour = DevicePin.AnimStartBehaviour.DELAY;
             pin.animationDelay = startDelay;
 
             pin = pinArray[PinNames.DATA.ordinal()];
-            pin.dataWidth = dataWidth;
-            pin.data = Device.formatNumberInHex(readData, dataWidth);
+            pin.data = rom.dataAtAddressString(address);
             pin.direction = outDirection;
             pin.action = DevicePin.PinAction.MOVING;
             pin.startBehaviour = DevicePin.AnimStartBehaviour.DELAY;

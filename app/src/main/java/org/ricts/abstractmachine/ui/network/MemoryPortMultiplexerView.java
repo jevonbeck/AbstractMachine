@@ -69,7 +69,7 @@ public class MemoryPortMultiplexerView extends MultiplexerView implements Observ
         animateSelectPin(); // initiate select pin animation
         ((MemoryPortView) outputPins).update(
                 currentObservable, currentObject); // initiate output pin animation
-        ((MemoryPortView) inputPins[currentSel]).update(
+        ((MemoryPortView) inputPins[getSelection()]).update(
                 currentObservable, currentObject); // initiate selected input pin animation
     }
 }
