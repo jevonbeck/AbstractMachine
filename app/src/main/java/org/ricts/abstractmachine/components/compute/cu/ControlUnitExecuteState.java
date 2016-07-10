@@ -1,16 +1,15 @@
 package org.ricts.abstractmachine.components.compute.cu;
 
 import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
-import org.ricts.abstractmachine.components.interfaces.ControlUnitInterface;
 import org.ricts.abstractmachine.components.interfaces.MemoryPort;
 
 public class ControlUnitExecuteState extends ControlUnitState {
-    private ControlUnitInterface cu;
+    private ControlUnit cu;
     private MemoryPort dataMemory;
     private ComputeCoreInterface core;
 
     public ControlUnitExecuteState(ComputeCoreInterface proc,
-                                   MemoryPort dMemory, ControlUnitInterface controlUnit){
+                                   MemoryPort dMemory, ControlUnit controlUnit){
         super("execute");
         core = proc;
         dataMemory = dMemory;
@@ -19,7 +18,7 @@ public class ControlUnitExecuteState extends ControlUnitState {
 
     @Override
     public void performAction(){
-        core.executeInstruction(cu.getIR(), dataMemory, cu);
+        core.executeInstruction(cu.getPC(), cu.getIR(), dataMemory, cu);
     }
 
     @Override

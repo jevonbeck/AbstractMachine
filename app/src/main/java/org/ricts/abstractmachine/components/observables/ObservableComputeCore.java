@@ -16,7 +16,7 @@ public class ObservableComputeCore<T extends ComputeCore> extends ObservableType
 
     public static class ExecuteParams extends ObservableComputeCore.Params {
         protected enum Args{
-            INSTRUCTION, CONTROL_UNIT, PC_PRE_EXECUTED
+            INSTRUCTION, PC_PRE_EXECUTED, PC_POST_EXECUTED
         }
 
         public ExecuteParams(Object... objects){
@@ -27,27 +27,32 @@ public class ObservableComputeCore<T extends ComputeCore> extends ObservableType
             return (Integer) params[Args.INSTRUCTION.ordinal()];
         }
 
-        public ControlUnitInterface getControlUnit(){
-            return (ControlUnitInterface) params[Args.CONTROL_UNIT.ordinal()];
-        }
-
         public int getPcPreExecute() {
             return (Integer) params[Args.PC_PRE_EXECUTED.ordinal()];
+        }
+
+        public int getPcPostExecute(){
+            return (Integer) params[Args.PC_POST_EXECUTED.ordinal()];
         }
     }
 
     @Override
-    public void executeInstruction(int instruction, MemoryPort dataMemory, ControlUnitInterface cu) {
-        int pcPreExecute = cu.getPC();
-        observable_data.executeInstruction(instruction, dataMemory, cu);
-
+    public void executeInstruction(int programCounter, int instruction, MemoryPort dataMemory, ControlUnitInterface cu) {
+        observable_data.executeInstruction(programCounter, instruction, dataMemory, cu);
         setChanged();
-        notifyObservers(new ExecuteParams(instruction, cu, pcPreExecute));
+        notifyObservers(new ExecuteParams(instruction, programCounter, observable_data.getProgramCounterValue()));
     }
 
     @Override
     public int instrExecTime(int instruction, MemoryPort dataMemory) {
         return observable_data.instrExecTime(instruction, dataMemory);
+    }
+
+    @Override
+    public void reset() {
+        observable_data.reset();
+        setChanged();
+        notifyObservers();
     }
 
     @Override

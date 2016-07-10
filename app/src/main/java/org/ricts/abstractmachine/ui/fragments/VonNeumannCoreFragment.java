@@ -140,7 +140,8 @@ public class VonNeumannCoreFragment extends VonNeumannActivityFragment implement
         }
         else if(observable instanceof ObservableRAM){
             if(updateMuxView) {
-                if (controlUnit.isAboutToFetch()) {
+                ControlUnit cu = controlUnit.getType();
+                if (cu.isAboutToFetch()) {
                     muxView.setUpdateImmediately(true);
                     muxView.setSelection(MuxInputIds.INS_MEM.ordinal());
                 } else {

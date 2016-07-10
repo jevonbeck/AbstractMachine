@@ -28,6 +28,11 @@ public class VonNeumannCore implements ThreadProcessingUnit{
         cu.performNextAction(); // perform action for 'currentState' and go to next state
     }
 
+    @Override
+    public void reset() {
+        cu.reset();
+    }
+
     public ObservableControlUnit getControlUnit(){
         return cu;
     }

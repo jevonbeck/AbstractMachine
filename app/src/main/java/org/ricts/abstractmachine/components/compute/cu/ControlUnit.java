@@ -24,7 +24,7 @@ public class ControlUnit extends FiniteStateMachine implements ControlUnitInterf
         halt = new ControlUnitHaltState();
 
         // initialise
-        setStartExecFrom(0);
+        reset();
     }
 
     @Override
@@ -46,29 +46,8 @@ public class ControlUnit extends FiniteStateMachine implements ControlUnitInterf
     }
 
     @Override
-    public boolean isAboutToExecute(){
-        return currentState() == execute;
-    }
-
-    @Override
-    public void setNextExecFrom(int currentPC){
-        setPC(currentPC);
-        nextState = fetch;
-    }
-
-    @Override
-    public void setToExecuteState(){
-        setCurrentState(execute);
-    }
-
-    @Override
     public void setNextStateToHalt() {
         nextState = halt;
-    }
-
-    @Override
-    public boolean isAboutToFetch() {
-        return currentState() == fetch;
     }
 
     @Override
@@ -82,23 +61,8 @@ public class ControlUnit extends FiniteStateMachine implements ControlUnitInterf
     }
 
     @Override
-    public int getPC(){
-        return pc.read();
-    }
-
-    @Override
-    public int getIR() {
-        return ir.read();
-    }
-
-    @Override
     public void setPC(int currentPC){
         pc.write(currentPC);
-    }
-
-    @Override
-    public void setIR(int currentIR){
-        ir.write(currentIR);
     }
 
     @Override
@@ -108,9 +72,37 @@ public class ControlUnit extends FiniteStateMachine implements ControlUnitInterf
     }
 
     @Override
+    public void reset() {
+        setStartExecFrom(0);
+    }
+
+    public int getPC(){
+        return pc.read();
+    }
+
+    public int getIR() {
+        return ir.read();
+    }
+
+    public void setIR(int currentIR){
+        ir.write(currentIR);
+    }
+
     public void fetchInstruction(ReadPort instructionCache){
         setIR(instructionCache.read(pc.read())); // IR = iCache[PC]
         setPC(pc.read() + 1); // PC += 1
+    }
+
+    public void setToExecuteState(){
+        setCurrentState(execute);
+    }
+
+    public boolean isAboutToFetch() {
+        return currentState() == fetch;
+    }
+
+    public boolean isAboutToExecute(){
+        return currentState() == execute;
     }
 
     public boolean isAboutToHalt(){

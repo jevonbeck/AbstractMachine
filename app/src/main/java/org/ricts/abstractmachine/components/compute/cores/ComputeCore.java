@@ -18,12 +18,15 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
 
     public abstract String [] getMneumonicList();
     public abstract int getOperandCount(String mneumonic);
+    public abstract int getProgramCounterValue();
+    public abstract void reset();
 
     protected abstract boolean isDataMemInstr(String groupName, int enumOrdinal);
     protected abstract boolean isHaltInstr(String groupName, int enumOrdinal);
     protected abstract void fetchOpsExecuteInstr(String groupName, int enumOrdinal, int[] operands, MemoryPort dataMemory);
 	protected abstract void updateProgramCounter(String groupName, int enumOrdinal, int[] operands, ControlUnitInterface cu);
     protected abstract int executionTime(String groupName, int enumOrdinal, MemoryPort dataMemory);
+    protected abstract void updateProgramCounterReg(int programCounter);
     protected abstract String insToString(String groupName, int enumOrdinal, int[] operands);
     protected abstract String getGroupName(String mneumonic);
 
@@ -48,7 +51,9 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
 	}
 
     @Override
-    public void executeInstruction(int instruction, MemoryPort dataMemory, ControlUnitInterface cu) {
+    public void executeInstruction(int programCounter, int instruction, MemoryPort dataMemory, ControlUnitInterface cu) {
+        updateProgramCounterReg(programCounter);
+
 		int instruct = instruction & instrBitMask;
 		if(instrDecoder.isValidInstruction(instruct)){
 			// decode instruction
