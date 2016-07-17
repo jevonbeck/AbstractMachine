@@ -189,7 +189,7 @@ public class CpuCoreView extends RelativeLayout implements Observer {
             stateView.setText(controlUnit.currentState().getName());
             pc.setText(controlUnit.getPcReg().dataString());
             irText = controlUnit.getIrReg().dataString();
-            if(updateIrImmediately)
+            if(updateIrImmediately || (o != null &&  o instanceof Boolean))
                 updateIrText();
         }
         else if(observable instanceof ObservableComputeCore){
@@ -215,6 +215,9 @@ public class CpuCoreView extends RelativeLayout implements Observer {
                         }
                     })).start();
                 }
+            }
+            else if(o instanceof Boolean){ // update is from a reset
+                instructionView.setText(null);
             }
         }
     }

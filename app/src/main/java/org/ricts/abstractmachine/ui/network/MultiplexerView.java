@@ -70,7 +70,7 @@ public abstract class MultiplexerView extends RelativeLayout {
         middle.setBackgroundColor(context.getResources().getColor(R.color.mux_fill_color));
 
         selectPinData = new DevicePin();
-        selectPinData.name = "select";
+        selectPinData.name = context.getResources().getString(R.string.pin_name_select);
         switch (outputPosition) {
             case 2: // top
                 if(selectPosition == 0){

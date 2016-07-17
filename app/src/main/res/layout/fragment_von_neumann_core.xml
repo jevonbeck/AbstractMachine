@@ -38,7 +38,7 @@
         class="org.ricts.abstractmachine.ui.compute.ControlUnitView"
         android:id="@+id/control_unit"
         android:layout_width="wrap_content"
-        android:layout_height="140dp"
+        android:layout_height="130dp"
         android:layout_below="@id/cuExtension"
         android:layout_toRightOf="@+id/mux"
         />

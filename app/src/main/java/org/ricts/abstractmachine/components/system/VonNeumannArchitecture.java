@@ -14,6 +14,7 @@ public class VonNeumannArchitecture extends SystemArchitecture {
 
     public VonNeumannArchitecture(ComputeCore core, int memAccessTime){
         super(core);
+        core.setCuIsPipelined(false);
 
         mainMemory = new ObservableRAM(new RAM(core.instrWidth(), core.iAddrWidth(), memAccessTime));
 
@@ -28,7 +29,7 @@ public class VonNeumannArchitecture extends SystemArchitecture {
     }
 
     public void initMemory(List<Integer> data, int addrOffset){
-        mainMemory.getType().setData(data, addrOffset);
+        mainMemory.setData(data, addrOffset);
     }
 
     public ObservableRAM getMainMemory(){

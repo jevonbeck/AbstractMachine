@@ -36,10 +36,15 @@ public class RamView extends RomView {
 
     @Override
     public void update(Observable observable, Object o) {
-        if(updatePins)
-            memoryPins.update(observable, o); // initialise animation
-        else if(o instanceof ObservableRAM.WriteParams)
-            updateRomUI(); // immediately update ROM UI
+        if(o instanceof Boolean) { // update from a reset
+            updateRomUI();
+        }
+        else {
+            if(updatePins)
+                memoryPins.update(observable, o); // initialise animation
+            else if(o instanceof ObservableRAM.WriteParams)
+                updateRomUI(); // immediately update ROM UI
+        }
     }
 
     public void setWriteResponder(final MemoryPortView.WriteResponder responder){
@@ -55,9 +60,5 @@ public class RamView extends RomView {
                 responder.onWriteStart();
             }
         });
-    }
-
-    private void updateRomUI(){
-        dataAdapter.notifyDataSetChanged();
     }
 }

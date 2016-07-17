@@ -71,8 +71,21 @@
     <string name="inspectactivity_step_button_text">Step</string>
     <string name="inspectactivity_run_button_text">Run</string>
     <string name="inspectactivity_stop_button_text">Stop</string>
-    <string name="inspectactivity_reset_button_text">Reset</string>
+    <string name="inspectactivity_reset_button_text">Replay</string>
     <string name="inspectactivity_system_clock_label">Time elapsed: </string>
+
+    <string name="pin_name_command">command</string>
+    <string name="pin_name_address">address</string>
+    <string name="pin_name_data">data</string>
+    <string name="pin_name_pc_val">PC data</string>
+    <string name="pin_name_ir_val">IR data</string>
+    <string name="pin_name_select">select</string>
+    <string name="pin_data_execute">execute</string>
+    <string name="pin_data_set_next">Set Next</string>
+    <string name="pin_data_halt">halt</string>
+    <string name="pin_data_done">done</string>
+    <string name="pin_data_read">read</string>
+    <string name="pin_data_write">write</string>
 
     <string name="title_activity_memory_port_multiplexer_tutorial">
         MemoryPortMultiplexerTutorialActivity

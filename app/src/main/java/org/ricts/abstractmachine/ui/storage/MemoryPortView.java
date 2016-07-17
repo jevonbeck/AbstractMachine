@@ -4,6 +4,7 @@ import android.content.Context;
 import android.util.AttributeSet;
 import android.view.animation.Animation;
 
+import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.observables.ObservableRAM;
 import org.ricts.abstractmachine.components.storage.RAM;
 import org.ricts.abstractmachine.ui.device.DevicePin;
@@ -20,6 +21,7 @@ public class MemoryPortView extends ReadPortView {
     }
 
     private WriteResponder writeResponder;
+    private String writeString;
 
     /** Standard Constructors **/
     public MemoryPortView(Context context) {
@@ -32,6 +34,7 @@ public class MemoryPortView extends ReadPortView {
 
     public MemoryPortView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
+        writeString = context.getResources().getString(R.string.pin_data_write);
     }
 
     @Override
@@ -61,7 +64,7 @@ public class MemoryPortView extends ReadPortView {
             pin.animListener = null;
 
             pin = pinArray[PinNames.COMMAND.ordinal()];
-            pin.data = "write";
+            pin.data = writeString;
             pin.direction = inDirection;
             pin.action = DevicePin.PinAction.MOVING;
             pin.startBehaviour = DevicePin.AnimStartBehaviour.DELAY;

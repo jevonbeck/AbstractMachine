@@ -52,7 +52,7 @@ public class ObservableComputeCore<T extends ComputeCore> extends ObservableType
     public void reset() {
         observable_data.reset();
         setChanged();
-        notifyObservers();
+        notifyObservers(true); // to differentiate that this update is a reset!
     }
 
     @Override

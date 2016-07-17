@@ -29,7 +29,7 @@ public class ObservableControlUnit extends ObservableFSM<ControlUnit> implements
     public void reset() {
         observable_data.reset();
         setChanged();
-        notifyObservers();
+        notifyObservers(true); // to differentiate that this update is a reset!
     }
 
     @Override

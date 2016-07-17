@@ -16,6 +16,8 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
 	protected int dAddrWidth;
 	protected int dataWidth;
 
+    private boolean pipelinedControlUnit = false;
+
     public abstract String [] getMneumonicList();
     public abstract int getOperandCount(String mneumonic);
     public abstract int getProgramCounterValue();
@@ -148,6 +150,14 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
             return  insToString(groupName, enumOrdinal, operands);
         }
         return "Ins invalid!";
+    }
+
+    public void setCuIsPipelined(boolean pipelined){
+        pipelinedControlUnit = pipelined;
+    }
+
+    public boolean cuIsPipelined(){
+        return pipelinedControlUnit;
     }
 
     public String instrValueString(int instruction) {

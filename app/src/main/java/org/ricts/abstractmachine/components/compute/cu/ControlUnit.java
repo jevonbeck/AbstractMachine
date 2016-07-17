@@ -74,6 +74,7 @@ public class ControlUnit extends FiniteStateMachine implements ControlUnitInterf
     @Override
     public void reset() {
         setStartExecFrom(0);
+        setIR(0);
     }
 
     public int getPC(){

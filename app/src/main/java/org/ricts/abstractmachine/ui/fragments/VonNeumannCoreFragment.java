@@ -129,7 +129,7 @@ public class VonNeumannCoreFragment extends VonNeumannActivityFragment implement
         if(observable instanceof ObservableControlUnit){
             ControlUnit cu = ((ObservableControlUnit) observable).getType();
 
-            if(cu.isAboutToExecute()){
+            if(cu.isAboutToExecute() || (o != null &&  o instanceof Boolean)){
                 muxSelectView.setText(MuxInputIds.INS_MEM.getOrdinalText());
             }
             else{

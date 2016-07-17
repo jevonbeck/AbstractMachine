@@ -3,6 +3,8 @@ package org.ricts.abstractmachine.components.observables;
 import org.ricts.abstractmachine.components.interfaces.ReadPort;
 import org.ricts.abstractmachine.components.storage.ROM;
 
+import java.util.List;
+
 /**
  * Created by Jevon on 16/01/2016.
  */
@@ -35,5 +37,11 @@ public class ObservableROM<T extends ROM> extends ObservableType<T> implements R
     @Override
     public int accessTime() {
         return observable_data.accessTime();
+    }
+
+    public void setData(List<Integer> data, int addrOffset) {
+        observable_data.setData(data, addrOffset);
+        setChanged();
+        notifyObservers(true);
     }
 }

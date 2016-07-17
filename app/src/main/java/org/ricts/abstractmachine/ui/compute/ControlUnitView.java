@@ -127,7 +127,7 @@ public class ControlUnitView extends RelativeLayout implements Observer{
         pcText = controlUnit.getPcReg().dataString();
         irText = controlUnit.getIrReg().dataString();
 
-        if(updateImmediately){
+        if(updateImmediately || (o != null &&  o instanceof Boolean)){
             updatePC();
             updateIR();
             updateState();
