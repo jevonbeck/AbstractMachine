@@ -16,7 +16,7 @@ public class ObservableComputeCore<T extends ComputeCore> extends ObservableType
 
     public static class ExecuteParams extends ObservableComputeCore.Params {
         protected enum Args{
-            INSTRUCTION, PC_PRE_EXECUTED, PC_POST_EXECUTED
+            INSTRUCTION, PC_PRE_EXECUTED, PC_POST_EXECUTED, CU_IS_PIPELINED
         }
 
         public ExecuteParams(Object... objects){
@@ -34,13 +34,18 @@ public class ObservableComputeCore<T extends ComputeCore> extends ObservableType
         public int getPcPostExecute(){
             return (Integer) params[Args.PC_POST_EXECUTED.ordinal()];
         }
+
+        public boolean getCuIsPipelined(){
+            return (Boolean) params[Args.CU_IS_PIPELINED.ordinal()];
+        }
     }
 
     @Override
     public void executeInstruction(int programCounter, int instruction, MemoryPort dataMemory, ControlUnitInterface cu) {
         observable_data.executeInstruction(programCounter, instruction, dataMemory, cu);
         setChanged();
-        notifyObservers(new ExecuteParams(instruction, programCounter, observable_data.getProgramCounterValue()));
+        notifyObservers(new ExecuteParams(instruction, programCounter,
+                observable_data.getProgramCounterValue(), cu.isPipelined()));
     }
 
     @Override
@@ -56,8 +61,15 @@ public class ObservableComputeCore<T extends ComputeCore> extends ObservableType
     }
 
     @Override
-    public int nopInstruction() {
-        return observable_data.nopInstruction();
+    public int getNopInstruction() {
+        return observable_data.getNopInstruction();
+    }
+
+    @Override
+    public void checkInterrupts(ControlUnitInterface cu) {
+        observable_data.checkInterrupts(cu);
+        setChanged();
+        notifyObservers(); // TODO: determine if arguments needed
     }
 
     @Override

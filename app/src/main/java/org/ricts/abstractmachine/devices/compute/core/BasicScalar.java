@@ -240,7 +240,6 @@ public class BasicScalar extends ComputeCore {
         instrWidth = instrDecoder.instructionWidth();
         instrBitMask = bitMaskOfWidth(instrWidth);
 
-        nopMneumonic = Instruction.NOP.name();
         reset();
     }
 
@@ -298,9 +297,9 @@ public class BasicScalar extends ComputeCore {
     }
 
     @Override
-    public boolean isDataMemInstr(String groupName, int enumOrdinal) {
+    public boolean isDataMemInstr(String groupName, int groupIndex) {
         InstructionGrouping grouping = Enum.valueOf(InstructionGrouping.class, groupName);
-        Instruction instruction = grouping.decode(enumOrdinal);
+        Instruction instruction = grouping.decode(groupIndex);
 
         switch (grouping){
             case DataMemOps:
@@ -317,15 +316,21 @@ public class BasicScalar extends ComputeCore {
     }
 
     @Override
-    protected boolean isHaltInstr(String groupName, int enumOrdinal) {
+    protected boolean isHaltInstr(String groupName, int groupIndex) {
         InstructionGrouping grouping = Enum.valueOf(InstructionGrouping.class, groupName);
-        return grouping == InstructionGrouping.NoOperands && grouping.decode(enumOrdinal) == Instruction.HALT;
+        return grouping == InstructionGrouping.NoOperands && grouping.decode(groupIndex) == Instruction.HALT;
     }
 
     @Override
-    protected void fetchOpsExecuteInstr(String groupName, int enumOrdinal, int[] operands, MemoryPort dataMemory) {
+    protected boolean isSleepInstr(String groupName, int groupIndex) {
+        // TODO: implement sleep instruction?
+        return false;
+    }
+
+    @Override
+    protected void fetchOpsExecuteInstr(String groupName, int groupIndex, int[] operands, MemoryPort dataMemory) {
         InstructionGrouping grouping = Enum.valueOf(InstructionGrouping.class, groupName);
-        Instruction instruction = grouping.decode(enumOrdinal);
+        Instruction instruction = grouping.decode(groupIndex);
 
         int regAddr, destRegAddr, sourceRegAddr, byteLiteral;
         switch (grouping){
@@ -522,9 +527,9 @@ public class BasicScalar extends ComputeCore {
     }
 
     @Override
-    protected void updateProgramCounter(String groupName, int enumOrdinal, int[] operands, ControlUnitInterface cu) {
+    protected void updateProgramCounter(String groupName, int groupIndex, int[] operands, ControlUnitInterface cu) {
         InstructionGrouping grouping = Enum.valueOf(InstructionGrouping.class, groupName);
-        Instruction instruction = grouping.decode(enumOrdinal);
+        Instruction instruction = grouping.decode(groupIndex);
 
         int dRegAddr, bitIndex;
         switch (grouping){
@@ -624,9 +629,15 @@ public class BasicScalar extends ComputeCore {
     }
 
     @Override
-    public int executionTime(String groupName, int enumOrdinal, MemoryPort dataMemory) {
+    protected void checkInterrupts() {
+        // TODO: Do nothing for now! Implement appropriate logic when interrupts are implemented
+        // TODO: update internal PC to vector location if interrupt
+    }
+
+    @Override
+    public int executionTime(String groupName, int groupIndex, MemoryPort dataMemory) {
         InstructionGrouping grouping = Enum.valueOf(InstructionGrouping.class, groupName);
-        Instruction instruction = grouping.decode(enumOrdinal);
+        Instruction instruction = grouping.decode(groupIndex);
 
         switch (grouping){
             case DataMemOps:
@@ -644,14 +655,14 @@ public class BasicScalar extends ComputeCore {
     }
 
     @Override
-    protected void updateProgramCounterReg(int programCounter) {
+    protected void updateProgramCounterRegs(int programCounter) {
         pcReg.write(programCounter);
     }
 
     @Override
-    protected String insToString(String groupName, int enumOrdinal, int[] operands) {
+    protected String insToString(String groupName, int groupIndex, int[] operands) {
         InstructionGrouping grouping = Enum.valueOf(InstructionGrouping.class, groupName);
-        Instruction instruction = grouping.decode(enumOrdinal);
+        Instruction instruction = grouping.decode(groupIndex);
 
         int regAddr, dRegAddr, destRegAddr, sourceRegAddr, bitIndex, iAddrRegAddr;
         switch (grouping){
@@ -760,9 +771,9 @@ public class BasicScalar extends ComputeCore {
                 mneumonicToGroupMap.get(mneumonic) : "";
     }
 
-    private void updatePC(ControlUnitInterface cu, int newPcValue){
-        pcReg.write(newPcValue);
-        cu.setPC(newPcValue);
+    @Override
+    protected String nopMneumonic() {
+        return Instruction.NOP.name();
     }
 
     private void updateAluCarry() {

@@ -10,7 +10,7 @@ public class ControlUnit extends FiniteStateMachine implements ControlUnitInterf
     private Register pc; // Program Counter
     private Register ir; // Instruction Register
 
-    private ControlUnitState fetch, execute, halt;
+    private ControlUnitState fetch, execute, halt, sleep;
     private State nextState = null;
 
     public ControlUnit(ComputeCoreInterface core, ReadPort instructionCache,
@@ -22,6 +22,7 @@ public class ControlUnit extends FiniteStateMachine implements ControlUnitInterf
         fetch = new ControlUnitFetchState(this, instructionCache);
         execute = new ControlUnitExecuteState(core, dataMemory, this);
         halt = new ControlUnitHaltState();
+        sleep = new ControlUnitSleepState(core, this);
 
         // initialise
         reset();
@@ -41,6 +42,8 @@ public class ControlUnit extends FiniteStateMachine implements ControlUnitInterf
             return execute;
         else if(currentState == execute)
             return fetch;
+        else if(currentState == sleep)
+            return sleep;
 
         return halt;
     }
@@ -48,6 +51,21 @@ public class ControlUnit extends FiniteStateMachine implements ControlUnitInterf
     @Override
     public void setNextStateToHalt() {
         nextState = halt;
+    }
+
+    @Override
+    public void setNextStateToSleep() {
+        nextState = sleep;
+    }
+
+    @Override
+    public boolean isInHaltState(){
+        return currentState() == halt;
+    }
+
+    @Override
+    public boolean isInSleepState(){
+        return currentState() == sleep;
     }
 
     @Override
@@ -61,24 +79,49 @@ public class ControlUnit extends FiniteStateMachine implements ControlUnitInterf
     }
 
     @Override
-    public void setPC(int currentPC){
-        pc.write(currentPC);
+    public void setNextFetch(int instructionAddress){
+        setPC(instructionAddress);
+        nextState = fetch;
     }
 
     @Override
-    public void setStartExecFrom(int currentPC){
-        setPC(currentPC);
-        setCurrentState(fetch);
+    public void setNextFetchAndExecute(int instructionAddress, int nopInstruction) {
+        // This method is only implemented by pipelined control unit
     }
 
     @Override
     public void reset() {
-        setStartExecFrom(0);
+        setPC(0);
         setIR(0);
+        setToFetchState();
+    }
+
+    @Override
+    public boolean isPipelined() {
+        return false;
+    }
+
+    @Override
+    public String getPCDataString() {
+        return pc.dataString();
+    }
+
+    @Override
+    public String getIRDataString() {
+        return ir.dataString();
+    }
+
+    @Override
+    public String getCurrentStateString(){
+        return currentState().getName();
     }
 
     public int getPC(){
         return pc.read();
+    }
+
+    public void setPC(int currentPC){
+        pc.write(currentPC);
     }
 
     public int getIR() {
@@ -94,27 +137,19 @@ public class ControlUnit extends FiniteStateMachine implements ControlUnitInterf
         setPC(pc.read() + 1); // PC += 1
     }
 
+    public void setToFetchState(){
+        setCurrentState(fetch);
+    }
+
     public void setToExecuteState(){
         setCurrentState(execute);
     }
 
-    public boolean isAboutToFetch() {
+    public boolean isInFetchState() {
         return currentState() == fetch;
     }
 
-    public boolean isAboutToExecute(){
+    public boolean isInExecuteState(){
         return currentState() == execute;
-    }
-
-    public boolean isAboutToHalt(){
-        return currentState() == halt;
-    }
-
-    public Register getPcReg(){
-        return pc;
-    }
-
-    public Register getIrReg(){
-        return ir;
     }
 }

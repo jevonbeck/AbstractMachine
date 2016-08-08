@@ -1,9 +1,8 @@
 package org.ricts.abstractmachine.components.system;
 
-import org.ricts.abstractmachine.components.compute.cores.HarvardCore;
-import org.ricts.abstractmachine.components.observables.ObservableControlUnit;
-import org.ricts.abstractmachine.components.observables.ObservableRAM;
 import org.ricts.abstractmachine.components.compute.cores.ComputeCore;
+import org.ricts.abstractmachine.components.compute.cores.HarvardCore;
+import org.ricts.abstractmachine.components.observables.ObservableRAM;
 import org.ricts.abstractmachine.components.observables.ObservableROM;
 import org.ricts.abstractmachine.components.storage.RAM;
 import org.ricts.abstractmachine.components.storage.ROM;
@@ -13,7 +12,7 @@ import java.util.List;
 public class HarvardArchitecture extends SystemArchitecture {
     private ObservableROM<ROM> instructionCache;
     private ObservableRAM dataRAM;
-    private ObservableControlUnit cu1, cu2;
+    //private ObservableControlUnit cu1, cu2;
 
     public HarvardArchitecture(ComputeCore core, int iMemAccessTime, int dMemAccessTime) {
         super(core);
@@ -22,10 +21,10 @@ public class HarvardArchitecture extends SystemArchitecture {
         dataRAM = new ObservableRAM(new RAM(core.dataWidth(), core.dAddrWidth(), dMemAccessTime));
 
         HarvardCore hCore = new HarvardCore(mainCore, instructionCache, dataRAM);
-        cu1 = hCore.getCu1();
-        cu2 = hCore.getCu2();
+        //cu1 = hCore.getCu1();
+        //cu2 = hCore.getCu2();
 
-        processorCore = hCore;
+        tpu = hCore;
     }
 
     public void initInstructionCache(List<Integer> data, int addrOffset){
@@ -52,6 +51,7 @@ public class HarvardArchitecture extends SystemArchitecture {
         return instructionCache;
     }
 
+    /*
     public ObservableControlUnit getCu1(){
         return cu1;
     }
@@ -59,4 +59,5 @@ public class HarvardArchitecture extends SystemArchitecture {
     public ObservableControlUnit getCu2(){
         return cu2;
     }
+    */
 }

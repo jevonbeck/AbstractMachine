@@ -43,7 +43,7 @@ public class ComputeCoreView extends DeviceView implements Observer {
     private StepActionResponder stepResponder;
 
     private boolean updateImmediately;
-    private String haltString, doneString;
+    private String haltString, sleepString, doneString;
 
     public ComputeCoreView(Context context) {
         this(context, null);
@@ -60,6 +60,7 @@ public class ComputeCoreView extends DeviceView implements Observer {
 
         haltString = context.getResources().getString(R.string.pin_data_halt);
         doneString = context.getResources().getString(R.string.pin_data_done);
+        sleepString = context.getResources().getString(R.string.pin_data_sleep);
     }
 
     @Override
@@ -94,15 +95,17 @@ public class ComputeCoreView extends DeviceView implements Observer {
                 int pcPreExecute = params.getPcPreExecute();
                 int pcPostExecute = params.getPcPostExecute();
 
+                final boolean cuIsPipelined = params.getCuIsPipelined();
                 final boolean isDataMemInstruction = mainCore.isDataMemoryInstruction(instruction);
                 final boolean isHaltInstruction = mainCore.isHaltInstruction(instruction);
+                final boolean isSleepInstruction = mainCore.isSleepInstruction(instruction);
                 final String pcPostExecuteString = mainCore.instrAddrValueString(pcPostExecute);
                 final boolean updatePC = pcPreExecute != pcPostExecute;
 
                 pins.setCommandResponder(new PinsView.CommandOnlyResponder() {
                     @Override
                     public void onCommandCompleted() {
-                        if(isHaltInstruction){
+                        if(isHaltInstruction || isSleepInstruction){
                             if(haltResponder != null) {
                                 haltResponder.onHaltCompleted();
                             }
@@ -122,14 +125,17 @@ public class ComputeCoreView extends DeviceView implements Observer {
                         /** Start one of these animations if applicable (they are mutually exclusive) **/
                         if (isHaltInstruction) {
                             pins.sendCommandOnly(haltString);
+                        }
+                        else if (isSleepInstruction) {
+                            pins.sendCommandOnly(sleepString);
                         } else if (isDataMemInstruction) {
                             if (memoryCommandResponder != null) {
                                 memoryCommandResponder.onMemoryCommandIssued();
                             }
                         } else if (updatePC) {
                             pins.updatePC(pcPostExecuteString,
-                                    mainCore.instrValueString(mainCore.nopInstruction()),
-                                    mainCore.cuIsPipelined());
+                                    mainCore.instrValueString(mainCore.getNopInstruction()),
+                                    cuIsPipelined);
                         } else {
                             sendDoneCommand();
                         }
@@ -281,7 +287,7 @@ public class ComputeCoreView extends DeviceView implements Observer {
             updateResponder = responder;
         }
 
-        public void updatePC(String pcAddress, String pcValue, boolean cuIsPipelined){
+        public void updatePC(String pcValue, String irValue, boolean cuIsPipelined){
             // Setup correct data in pin UI
             DevicePin pin = pinArray[PinNames.COMMAND.ordinal()];
             pin.data = setNextString;
@@ -292,7 +298,7 @@ public class ComputeCoreView extends DeviceView implements Observer {
             pin.animListener = null;
 
             pin = pinArray[PinNames.INSTRUCTION.ordinal()];
-            pin.data = pcAddress;
+            pin.data = irValue;
             pin.direction = outDirection;
             pin.action = cuIsPipelined ? DevicePin.PinAction.MOVING : DevicePin.PinAction.STATIONARY;
             pin.startBehaviour = DevicePin.AnimStartBehaviour.DELAY;

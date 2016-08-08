@@ -8,29 +8,29 @@ import org.ricts.abstractmachine.components.interfaces.MemoryPort;
 
 public abstract class ComputeCore extends Device implements ComputeCoreInterface {
 	protected IsaDecoder instrDecoder;
-	protected String nopMneumonic;
-	
+
 	protected int instrWidth;  
 	protected int instrBitMask;
 	protected int iAddrWidth;
 	protected int dAddrWidth;
 	protected int dataWidth;
 
-    private boolean pipelinedControlUnit = false;
-
     public abstract String [] getMneumonicList();
     public abstract int getOperandCount(String mneumonic);
     public abstract int getProgramCounterValue();
     public abstract void reset();
 
-    protected abstract boolean isDataMemInstr(String groupName, int enumOrdinal);
-    protected abstract boolean isHaltInstr(String groupName, int enumOrdinal);
-    protected abstract void fetchOpsExecuteInstr(String groupName, int enumOrdinal, int[] operands, MemoryPort dataMemory);
-	protected abstract void updateProgramCounter(String groupName, int enumOrdinal, int[] operands, ControlUnitInterface cu);
-    protected abstract int executionTime(String groupName, int enumOrdinal, MemoryPort dataMemory);
-    protected abstract void updateProgramCounterReg(int programCounter);
-    protected abstract String insToString(String groupName, int enumOrdinal, int[] operands);
+    protected abstract boolean isDataMemInstr(String groupName, int groupIndex);
+    protected abstract boolean isHaltInstr(String groupName, int groupIndex);
+    protected abstract boolean isSleepInstr(String groupName, int groupIndex);
+    protected abstract void fetchOpsExecuteInstr(String groupName, int groupIndex, int[] operands, MemoryPort dataMemory);
+	protected abstract void updateProgramCounter(String groupName, int groupIndex, int[] operands, ControlUnitInterface cu);
+    protected abstract void checkInterrupts();
+    protected abstract int executionTime(String groupName, int groupIndex, MemoryPort dataMemory);
+    protected abstract void updateProgramCounterRegs(int programCounter);
+    protected abstract String insToString(String groupName, int groupIndex, int[] operands);
     protected abstract String getGroupName(String mneumonic);
+    protected abstract String nopMneumonic();
 
 	@Override
 	public int instrWidth(){
@@ -54,7 +54,7 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
 
     @Override
     public void executeInstruction(int programCounter, int instruction, MemoryPort dataMemory, ControlUnitInterface cu) {
-        updateProgramCounterReg(programCounter);
+        updateProgramCounterRegs(programCounter);
 
 		int instruct = instruction & instrBitMask;
 		if(instrDecoder.isValidInstruction(instruct)){
@@ -62,7 +62,7 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
 			int decoderIndex = instrDecoder.getDecoderIndex(instruct);
 			
 			String groupName = instrDecoder.groupName(decoderIndex);
-			int enumOrdinal = instrDecoder.decode(instruct, decoderIndex);
+			int groupIndex = instrDecoder.decode(instruct, decoderIndex);
 			
 			int[] operands = new int [instrDecoder.operandCount(decoderIndex)];
 			for(int x=0; x != operands.length; ++x){
@@ -70,10 +70,10 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
 			}
 						
 			// fetch operands and execute instruction
-			fetchOpsExecuteInstr(groupName, enumOrdinal, operands, dataMemory);
+			fetchOpsExecuteInstr(groupName, groupIndex, operands, dataMemory);
 
 			// update Program Counter based on execution result
-			updateProgramCounter(groupName, enumOrdinal, operands, cu);
+			updateProgramCounter(groupName, groupIndex, operands, cu);
 		}
         else {
             cu.setNextStateToHalt();
@@ -88,14 +88,30 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
 			int decoderIndex = instrDecoder.getDecoderIndex(instruct);
 			
 			String groupName = instrDecoder.groupName(decoderIndex);
-			int enumOrdinal = instrDecoder.decode(instruct, decoderIndex);
+			int groupIndex = instrDecoder.decode(instruct, decoderIndex);
 						
 			// determine execute time for instruction
-			return executionTime(groupName, enumOrdinal, dataMemory);			
+			return executionTime(groupName, groupIndex, dataMemory);			
 		}
 		
 		return -1;
 	}
+
+    @Override
+    public void checkInterrupts(ControlUnitInterface cu) {
+        int before = getProgramCounterValue();
+        checkInterrupts();
+        int after = getProgramCounterValue();
+
+        if(before != after){
+            writeToControlUnit(cu);
+        }
+    }
+
+    @Override
+    public int getNopInstruction() {
+        return encodeInstruction(nopMneumonic(), new int [0]);
+    }
 
     public boolean isHaltInstruction(int instruction) {
         int instruct = instruction & instrBitMask;
@@ -104,19 +120,29 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
             int decoderIndex = instrDecoder.getDecoderIndex(instruct);
 
             String groupName = instrDecoder.groupName(decoderIndex);
-            int enumOrdinal = instrDecoder.decode(instruct, decoderIndex);
+            int groupIndex = instrDecoder.decode(instruct, decoderIndex);
 
             // determine if instruction halts the CPU
-            return isHaltInstr(groupName, enumOrdinal);
+            return isHaltInstr(groupName, groupIndex);
         }
         return true;
     }
 
-    @Override
-    public int nopInstruction() {
-        return encodeInstruction(nopMneumonic, new int [0]);
-    }
+    public boolean isSleepInstruction(int instruction) {
+        int instruct = instruction & instrBitMask;
+        if(instrDecoder.isValidInstruction(instruct)){
+            // decode instruction
+            int decoderIndex = instrDecoder.getDecoderIndex(instruct);
 
+            String groupName = instrDecoder.groupName(decoderIndex);
+            int groupIndex = instrDecoder.decode(instruct, decoderIndex);
+
+            // determine if instruction halts the CPU
+            return isSleepInstr(groupName, groupIndex);
+        }
+        return false;
+    }
+    
     public boolean isDataMemoryInstruction(int instruction){
         int instruct = instruction & instrBitMask;
         if(instrDecoder.isValidInstruction(instruct)){
@@ -124,10 +150,10 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
             int decoderIndex = instrDecoder.getDecoderIndex(instruct);
 
             String groupName = instrDecoder.groupName(decoderIndex);
-            int enumOrdinal = instrDecoder.decode(instruct, decoderIndex);
+            int groupIndex = instrDecoder.decode(instruct, decoderIndex);
 
             // determine if instruction accesses data memory
-            return isDataMemInstr(groupName, enumOrdinal);
+            return isDataMemInstr(groupName, groupIndex);
         }
         return false;
     }
@@ -139,7 +165,7 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
             int decoderIndex = instrDecoder.getDecoderIndex(instruct);
 
             String groupName = instrDecoder.groupName(decoderIndex);
-            int enumOrdinal = instrDecoder.decode(instruct, decoderIndex);
+            int groupIndex = instrDecoder.decode(instruct, decoderIndex);
 
             int[] operands = new int [instrDecoder.operandCount(decoderIndex)];
             for(int x=0; x != operands.length; ++x){
@@ -147,17 +173,9 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
             }
 
             // print string version of instruction
-            return  insToString(groupName, enumOrdinal, operands);
+            return  insToString(groupName, groupIndex, operands);
         }
         return "Ins invalid!";
-    }
-
-    public void setCuIsPipelined(boolean pipelined){
-        pipelinedControlUnit = pipelined;
-    }
-
-    public boolean cuIsPipelined(){
-        return pipelinedControlUnit;
     }
 
     public String instrValueString(int instruction) {
@@ -179,4 +197,20 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
     public int encodeInstruction(String iMneumonic, int [] operands) {
 		return instrDecoder.encode(getGroupName(iMneumonic), iMneumonic, operands);
 	}
+
+    protected void updatePC(ControlUnitInterface cu, int newPcValue){
+        updateProgramCounterRegs(newPcValue);
+        checkInterrupts();
+        writeToControlUnit(cu);
+    }
+
+    private void writeToControlUnit(ControlUnitInterface cu){
+        int newPcValue = getProgramCounterValue();
+        if(cu.isPipelined()){
+            cu.setNextFetchAndExecute(newPcValue, getNopInstruction());
+        }
+        else {
+            cu.setNextFetch(newPcValue);
+        }
+    }
 }

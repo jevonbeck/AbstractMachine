@@ -8,12 +8,13 @@ import android.widget.TextView;
 
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.compute.cores.ComputeCore;
-import org.ricts.abstractmachine.components.compute.cu.ControlUnit;
+import org.ricts.abstractmachine.components.interfaces.ControlUnitInterface;
 import org.ricts.abstractmachine.components.observables.ObservableComputeCore;
 import org.ricts.abstractmachine.components.observables.ObservableControlUnit;
 import org.ricts.abstractmachine.ui.storage.MemoryPortView;
 import org.ricts.abstractmachine.ui.storage.RamView;
 import org.ricts.abstractmachine.ui.storage.ReadPortView;
+import org.ricts.abstractmachine.ui.storage.RomView;
 
 import java.util.Observable;
 import java.util.Observer;
@@ -148,14 +149,40 @@ public class CpuCoreView extends RelativeLayout implements Observer {
         updateIrImmediately = false;
     }
 
-    public void initCpu(ControlUnit controlUnit, RamView mainMemory){
+    public void initCpu(ControlUnitInterface controlUnit, RomView instructionCache, RamView dataMemory){
         /** initialise variables **/
-        stateView.setText(controlUnit.currentState().getName());
-        pc.setText(controlUnit.getPcReg().dataString());
-        ir.setText(controlUnit.getIrReg().dataString());
+        stateView.setText(controlUnit.getCurrentStateString());
+        pc.setText(controlUnit.getPCDataString());
+        ir.setText(controlUnit.getIRDataString());
 
         /** setup callback behaviour **/
-        mainMemory.setReadResponder(new ReadPortView.ReadResponder() {
+        dataMemory.setReadResponder(new ReadPortView.ReadResponder() {
+            @Override
+            public void onReadFinished() {
+                responder.onAnimationEnd(); // only update when read is finished
+            }
+
+            @Override
+            public void onReadStart() {
+
+            }
+        });
+
+        dataMemory.setWriteResponder(new MemoryPortView.WriteResponder() {
+            @Override
+            public void onWriteFinished() {
+                responder.onAnimationEnd(); // only update when write is finished
+            }
+
+            @Override
+            public void onWriteStart() {
+
+            }
+        });
+
+        // N.B: Set instructionCache ReadResponder second to cater for Von Neumann case, i.e., when
+        // instructionCache == dataMemory. In this way the correct ReadResponder will be active.
+        instructionCache.setReadResponder(new ReadPortView.ReadResponder() {
             @Override
             public void onReadFinished() {
                 updateIrText(); // only update ir when read finished
@@ -167,28 +194,16 @@ public class CpuCoreView extends RelativeLayout implements Observer {
 
             }
         });
-
-        mainMemory.setWriteResponder(new MemoryPortView.WriteResponder() {
-            @Override
-            public void onWriteFinished() {
-                responder.onAnimationEnd(); // only update when write is finished
-            }
-
-            @Override
-            public void onWriteStart() {
-
-            }
-        });
     }
 
     @Override
     public void update(Observable observable, Object o) {
         if(observable instanceof ObservableControlUnit){
-            ControlUnit controlUnit = ((ObservableControlUnit) observable).getType();
+            ControlUnitInterface controlUnit = ((ObservableControlUnit) observable).getType();
+            stateView.setText(controlUnit.getCurrentStateString());
+            pc.setText(controlUnit.getPCDataString());
+            irText = controlUnit.getIRDataString();
 
-            stateView.setText(controlUnit.currentState().getName());
-            pc.setText(controlUnit.getPcReg().dataString());
-            irText = controlUnit.getIrReg().dataString();
             if(updateIrImmediately || (o != null &&  o instanceof Boolean))
                 updateIrText();
         }

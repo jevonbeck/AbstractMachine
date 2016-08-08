@@ -5,14 +5,13 @@ import org.ricts.abstractmachine.components.interfaces.ThreadProcessingUnit;
 import org.ricts.abstractmachine.components.observables.ObservableComputeCore;
 
 public abstract class SystemArchitecture {
-	protected ThreadProcessingUnit processorCore;
+	protected ThreadProcessingUnit tpu;
     protected ObservableComputeCore mainCore;
 
     private int sysClock; // system clock
   	
 	public SystemArchitecture(ComputeCore core){
         mainCore = new ObservableComputeCore<ComputeCore>(core);
-
         sysClock = 0;
 	}
 	
@@ -21,13 +20,13 @@ public abstract class SystemArchitecture {
 	}
 	
 	public void advanceTime(){
-		int result = processorCore.nextActionTransitionTime();
-		processorCore.triggerNextAction();
+		int result = tpu.nextActionTransitionTime();
+		tpu.triggerNextAction();
 		sysClock += result; 
 	}
 
     public void reset(){
-        processorCore.reset();
+        tpu.reset();
         mainCore.reset();
         sysClock = 0;
     }

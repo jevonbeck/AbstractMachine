@@ -1,26 +1,26 @@
 package org.ricts.abstractmachine.components.observables;
 
-import org.ricts.abstractmachine.components.compute.cu.ControlUnit;
+
 import org.ricts.abstractmachine.components.interfaces.ControlUnitInterface;
 
 /**
  * Created by Jevon on 23/01/2016.
  */
-public class ObservableControlUnit extends ObservableFSM<ControlUnit> implements ControlUnitInterface {
-    public ObservableControlUnit(ControlUnit type) {
+public class ObservableControlUnit extends ObservableType<ControlUnitInterface> implements ControlUnitInterface {
+    public ObservableControlUnit(ControlUnitInterface type) {
         super(type);
     }
 
     @Override
-    public void setPC(int currentPC) {
-        observable_data.setPC(currentPC);
+    public void setNextFetch(int instructionAddress) {
+        observable_data.setNextFetch(instructionAddress);
         setChanged();
         notifyObservers();
     }
 
     @Override
-    public void setStartExecFrom(int currentPC) {
-        observable_data.setStartExecFrom(currentPC);
+    public void setNextFetchAndExecute(int instructionAddress, int nopInstruction) {
+        observable_data.setNextFetchAndExecute(instructionAddress, nopInstruction);
         setChanged();
         notifyObservers();
     }
@@ -40,6 +40,13 @@ public class ObservableControlUnit extends ObservableFSM<ControlUnit> implements
     }
 
     @Override
+    public void setNextStateToSleep() {
+        observable_data.setNextStateToSleep();
+        setChanged();
+        notifyObservers();
+    }
+
+    @Override
     public void performNextAction() {
         observable_data.performNextAction();
         setChanged();
@@ -47,19 +54,37 @@ public class ObservableControlUnit extends ObservableFSM<ControlUnit> implements
     }
 
     @Override
+    public boolean isPipelined() {
+        return observable_data.isPipelined();
+    }
+
+    @Override
+    public boolean isInHaltState() {
+        return observable_data.isInHaltState();
+    }
+
+    @Override
+    public boolean isInSleepState() {
+        return observable_data.isInSleepState();
+    }
+
+    @Override
     public int nextActionDuration() {
         return observable_data.nextActionDuration();
     }
 
-    public void setIR(int currentIR) {
-        observable_data.setIR(currentIR);
-        setChanged();
-        notifyObservers();
+    @Override
+    public String getPCDataString() {
+        return observable_data.getPCDataString();
     }
 
-    public void setToExecuteState() {
-        observable_data.setToExecuteState();
-        setChanged();
-        notifyObservers();
+    @Override
+    public String getIRDataString() {
+        return observable_data.getIRDataString();
+    }
+
+    @Override
+    public String getCurrentStateString() {
+        return observable_data.getCurrentStateString();
     }
 }

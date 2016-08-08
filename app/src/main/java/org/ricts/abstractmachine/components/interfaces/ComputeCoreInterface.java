@@ -9,5 +9,7 @@ public interface ComputeCoreInterface extends ComputeDevice{
     void executeInstruction(int programCounter, int instruction, MemoryPort dataMemory, ControlUnitInterface cu);
     int instrExecTime(int instruction, MemoryPort dataMemory);
     void reset();
-    int nopInstruction();
+    int getNopInstruction();
+
+    void checkInterrupts(ControlUnitInterface cu);
 }

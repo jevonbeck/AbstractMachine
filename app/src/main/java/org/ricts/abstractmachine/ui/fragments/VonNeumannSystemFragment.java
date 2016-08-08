@@ -39,7 +39,7 @@ public class VonNeumannSystemFragment extends VonNeumannActivityFragment {
     protected void bindObservablesToViews(){
         /** Initialise Views **/
         memory.setDataSource(mainMemory.getType());
-        cpu.initCpu(controlUnit.getType(), memory);
+        cpu.initCpu(controlUnit.getType(), memory, memory);
 
         /** Add observers to observables **/
         mainMemory.addObserver(memory);

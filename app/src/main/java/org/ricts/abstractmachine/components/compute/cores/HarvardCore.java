@@ -5,7 +5,6 @@ import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
 import org.ricts.abstractmachine.components.interfaces.MemoryPort;
 import org.ricts.abstractmachine.components.interfaces.ReadPort;
 import org.ricts.abstractmachine.components.interfaces.ThreadProcessingUnit;
-import org.ricts.abstractmachine.components.observables.ObservableControlUnit;
 
 public class HarvardCore implements ThreadProcessingUnit{
 	private PipelinedControlUnit pipelinedCU;
@@ -16,7 +15,7 @@ public class HarvardCore implements ThreadProcessingUnit{
 	
 	@Override
 	public void setStartExecFrom(int currentPC){
-        pipelinedCU.setStartExecFrom(currentPC);
+        pipelinedCU.setNextFetch(currentPC);
 	}  
 	
 	@Override
@@ -34,11 +33,4 @@ public class HarvardCore implements ThreadProcessingUnit{
         pipelinedCU.reset();
     }
 
-    public ObservableControlUnit getCu1(){
-        return pipelinedCU.getCu1();
-    }
-
-    public ObservableControlUnit getCu2(){
-        return pipelinedCU.getCu2();
-    }
 }

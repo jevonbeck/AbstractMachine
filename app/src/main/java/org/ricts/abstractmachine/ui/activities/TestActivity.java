@@ -47,7 +47,7 @@ public class TestActivity extends Activity {
         memData.add(core.encodeInstruction(BasicScalarEnums.InstrAddressLiteral.enumName(),
                 BasicScalarEnums.InstrAddressLiteral.JUMP.name(), operands));
 
-        memData.add(core.nopInstruction()); // NOP instruction
+        memData.add(core.getNopInstruction()); // NOP instruction
 
         // LOAD R3, 1 ; R3 <-- 1
         operands = new int[2];

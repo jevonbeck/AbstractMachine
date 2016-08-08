@@ -8,8 +8,8 @@ import android.widget.TextView;
 
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.compute.cu.ControlUnit;
+import org.ricts.abstractmachine.components.interfaces.ControlUnitInterface;
 import org.ricts.abstractmachine.components.observables.ObservableControlUnit;
-import org.ricts.abstractmachine.ui.storage.MemoryPortView;
 import org.ricts.abstractmachine.ui.storage.ReadPortView;
 
 import java.util.Observable;
@@ -121,11 +121,10 @@ public class ControlUnitView extends RelativeLayout implements Observer{
 
     @Override
     public void update(Observable observable, Object o) {
-        ControlUnit controlUnit = ((ObservableControlUnit) observable).getType();
-
-        stateText = controlUnit.currentState().getName();
-        pcText = controlUnit.getPcReg().dataString();
-        irText = controlUnit.getIrReg().dataString();
+        ControlUnitInterface controlUnit = ((ObservableControlUnit) observable).getType();
+        stateText = controlUnit.getCurrentStateString();
+        pcText = controlUnit.getPCDataString();
+        irText = controlUnit.getIRDataString();
 
         if(updateImmediately || (o != null &&  o instanceof Boolean)){
             updatePC();
@@ -133,22 +132,28 @@ public class ControlUnitView extends RelativeLayout implements Observer{
             updateState();
         }
         else {
-            if(!controlUnit.isAboutToHalt()){
+            if ( !(controlUnit.isInHaltState() || controlUnit.isInSleepState()) ) {
                 updateState();
             }
 
-            if(controlUnit.isAboutToExecute()){
+            if(controlUnit instanceof ControlUnit) {
+                ControlUnit cu = (ControlUnit) controlUnit;
+                if (cu.isInExecuteState()) { // just initiated a fetch
+                    updatePC();
+                }
+            }
+            else {
                 updatePC();
             }
         }
     }
 
-    public void initCU(ControlUnit controlUnit, ComputeCoreView coreView,
-                       MemoryPortView instructionCache){
+    public void initCU(ControlUnitInterface controlUnit, ComputeCoreView coreView,
+                       ReadPortView instructionCache){
         /** initialise variables **/
-        stateView.setText(controlUnit.currentState().getName());
-        pc.setText(controlUnit.getPcReg().dataString());
-        ir.setText(controlUnit.getIrReg().dataString());
+        stateView.setText(controlUnit.getCurrentStateString());
+        pc.setText(controlUnit.getPCDataString());
+        ir.setText(controlUnit.getIRDataString());
 
         /** setup callback behaviour **/
         instructionCache.setReadResponder(new ReadPortView.ReadResponder() {

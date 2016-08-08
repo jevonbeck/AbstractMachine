@@ -83,6 +83,7 @@
     <string name="pin_data_execute">execute</string>
     <string name="pin_data_set_next">Set Next</string>
     <string name="pin_data_halt">halt</string>
+    <string name="pin_data_sleep">sleep</string>
     <string name="pin_data_done">done</string>
     <string name="pin_data_read">read</string>
     <string name="pin_data_write">write</string>

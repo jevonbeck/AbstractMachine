@@ -127,9 +127,9 @@ public class VonNeumannCoreFragment extends VonNeumannActivityFragment implement
     @Override
     public void update(Observable observable, Object o) {
         if(observable instanceof ObservableControlUnit){
-            ControlUnit cu = ((ObservableControlUnit) observable).getType();
+            ControlUnit cu = (ControlUnit) ((ObservableControlUnit) observable).getType();
 
-            if(cu.isAboutToExecute() || (o != null &&  o instanceof Boolean)){
+            if(cu.isInExecuteState() || (o != null &&  o instanceof Boolean)){
                 muxSelectView.setText(MuxInputIds.INS_MEM.getOrdinalText());
             }
             else{
@@ -140,8 +140,8 @@ public class VonNeumannCoreFragment extends VonNeumannActivityFragment implement
         }
         else if(observable instanceof ObservableRAM){
             if(updateMuxView) {
-                ControlUnit cu = controlUnit.getType();
-                if (cu.isAboutToFetch()) {
+                ControlUnit cu = (ControlUnit) controlUnit.getType();
+                if (cu.isInFetchState()) {
                     muxView.setUpdateImmediately(true);
                     muxView.setSelection(MuxInputIds.INS_MEM.ordinal());
                 } else {

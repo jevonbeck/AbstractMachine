@@ -14,14 +14,12 @@ public class VonNeumannArchitecture extends SystemArchitecture {
 
     public VonNeumannArchitecture(ComputeCore core, int memAccessTime){
         super(core);
-        core.setCuIsPipelined(false);
-
         mainMemory = new ObservableRAM(new RAM(core.instrWidth(), core.iAddrWidth(), memAccessTime));
 
         VonNeumannCore vCore = new VonNeumannCore(mainCore, mainMemory);
         controlUnit = vCore.getControlUnit();
 
-        processorCore = vCore;
+        tpu = vCore;
     }
 
     public void initMemory(List<Integer> data) {

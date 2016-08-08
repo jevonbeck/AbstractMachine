@@ -15,7 +15,7 @@ public class VonNeumannCore implements ThreadProcessingUnit{
 
     @Override
     public void setStartExecFrom(int currentPC) {
-        cu.setStartExecFrom(currentPC);
+        cu.setNextFetch(currentPC);
     }
 
     @Override
