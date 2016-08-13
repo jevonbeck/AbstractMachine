@@ -1,12 +1,12 @@
 package org.ricts.abstractmachine.components.compute.cu;
 
 import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
-import org.ricts.abstractmachine.components.interfaces.ControlUnitInterface;
+import org.ricts.abstractmachine.components.interfaces.CuDataInterface;
 import org.ricts.abstractmachine.components.interfaces.MemoryPort;
 import org.ricts.abstractmachine.components.interfaces.ReadPort;
 import org.ricts.abstractmachine.components.storage.Register;
 
-public class ControlUnit extends FiniteStateMachine implements ControlUnitInterface {
+public class ControlUnit extends FiniteStateMachine implements CuDataInterface {
     private Register pc; // Program Counter
     private Register ir; // Instruction Register
 

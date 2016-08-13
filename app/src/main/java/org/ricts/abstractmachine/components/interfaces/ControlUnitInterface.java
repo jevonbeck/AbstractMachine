@@ -12,13 +12,7 @@ public interface ControlUnitInterface {
 
     void setNextStateToHalt();
     void setNextStateToSleep();
-    boolean isInHaltState();
-    boolean isInSleepState();
 
     void performNextAction();
     int nextActionDuration();
-
-    String getPCDataString();
-    String getIRDataString();
-    String getCurrentStateString();
 }

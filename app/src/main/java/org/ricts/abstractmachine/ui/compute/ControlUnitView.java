@@ -8,7 +8,7 @@ import android.widget.TextView;
 
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.compute.cu.ControlUnit;
-import org.ricts.abstractmachine.components.interfaces.ControlUnitInterface;
+import org.ricts.abstractmachine.components.interfaces.CuDataInterface;
 import org.ricts.abstractmachine.components.observables.ObservableControlUnit;
 import org.ricts.abstractmachine.ui.storage.ReadPortView;
 
@@ -121,7 +121,7 @@ public class ControlUnitView extends RelativeLayout implements Observer{
 
     @Override
     public void update(Observable observable, Object o) {
-        ControlUnitInterface controlUnit = ((ObservableControlUnit) observable).getType();
+        CuDataInterface controlUnit = ((ObservableControlUnit) observable).getType();
         stateText = controlUnit.getCurrentStateString();
         pcText = controlUnit.getPCDataString();
         irText = controlUnit.getIRDataString();
@@ -148,7 +148,7 @@ public class ControlUnitView extends RelativeLayout implements Observer{
         }
     }
 
-    public void initCU(ControlUnitInterface controlUnit, ComputeCoreView coreView,
+    public void initCU(CuDataInterface controlUnit, ComputeCoreView coreView,
                        ReadPortView instructionCache){
         /** initialise variables **/
         stateView.setText(controlUnit.getCurrentStateString());

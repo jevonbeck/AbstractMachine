@@ -8,7 +8,7 @@ import android.widget.TextView;
 
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.compute.cores.ComputeCore;
-import org.ricts.abstractmachine.components.interfaces.ControlUnitInterface;
+import org.ricts.abstractmachine.components.interfaces.CuDataInterface;
 import org.ricts.abstractmachine.components.observables.ObservableComputeCore;
 import org.ricts.abstractmachine.components.observables.ObservableControlUnit;
 import org.ricts.abstractmachine.ui.storage.MemoryPortView;
@@ -149,7 +149,7 @@ public class CpuCoreView extends RelativeLayout implements Observer {
         updateIrImmediately = false;
     }
 
-    public void initCpu(ControlUnitInterface controlUnit, RomView instructionCache, RamView dataMemory){
+    public void initCpu(CuDataInterface controlUnit, RomView instructionCache, RamView dataMemory){
         /** initialise variables **/
         stateView.setText(controlUnit.getCurrentStateString());
         pc.setText(controlUnit.getPCDataString());
@@ -199,7 +199,7 @@ public class CpuCoreView extends RelativeLayout implements Observer {
     @Override
     public void update(Observable observable, Object o) {
         if(observable instanceof ObservableControlUnit){
-            ControlUnitInterface controlUnit = ((ObservableControlUnit) observable).getType();
+            CuDataInterface controlUnit = ((ObservableControlUnit) observable).getType();
             stateView.setText(controlUnit.getCurrentStateString());
             pc.setText(controlUnit.getPCDataString());
             irText = controlUnit.getIRDataString();

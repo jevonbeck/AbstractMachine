@@ -1,13 +1,13 @@
 package org.ricts.abstractmachine.components.observables;
 
 
-import org.ricts.abstractmachine.components.interfaces.ControlUnitInterface;
+import org.ricts.abstractmachine.components.interfaces.CuDataInterface;
 
 /**
  * Created by Jevon on 23/01/2016.
  */
-public class ObservableControlUnit extends ObservableType<ControlUnitInterface> implements ControlUnitInterface {
-    public ObservableControlUnit(ControlUnitInterface type) {
+public class ObservableControlUnit extends ObservableType<CuDataInterface> implements CuDataInterface {
+    public ObservableControlUnit(CuDataInterface type) {
         super(type);
     }
 

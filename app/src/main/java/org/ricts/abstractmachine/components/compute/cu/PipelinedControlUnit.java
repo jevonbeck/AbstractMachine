@@ -2,14 +2,14 @@ package org.ricts.abstractmachine.components.compute.cu;
 
 import org.ricts.abstractmachine.components.devicetype.Device;
 import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
-import org.ricts.abstractmachine.components.interfaces.ControlUnitInterface;
+import org.ricts.abstractmachine.components.interfaces.CuDataInterface;
 import org.ricts.abstractmachine.components.interfaces.MemoryPort;
 import org.ricts.abstractmachine.components.interfaces.ReadPort;
 
 /**
  * Created by Jevon on 09/07/2016.
  */
-public class PipelinedControlUnit extends Device implements ControlUnitInterface {
+public class PipelinedControlUnit extends Device implements CuDataInterface {
     private int currentPCVal, currentIRVal;
     private int pcWidth, irWidth;
     private String currentState, activeString, haltString, sleepString;
