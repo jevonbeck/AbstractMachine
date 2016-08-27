@@ -12,43 +12,50 @@ import org.ricts.abstractmachine.components.compute.cores.ComputeCore;
 import org.ricts.abstractmachine.components.observables.ObservableComputeCore;
 import org.ricts.abstractmachine.components.observables.ObservableControlUnit;
 import org.ricts.abstractmachine.components.observables.ObservableRAM;
+import org.ricts.abstractmachine.components.observables.ObservableROM;
+import org.ricts.abstractmachine.components.storage.ROM;
+import org.ricts.abstractmachine.components.system.HarvardArchitecture;
 import org.ricts.abstractmachine.components.system.SystemArchitecture;
-import org.ricts.abstractmachine.components.system.VonNeumannArchitecture;
-import org.ricts.abstractmachine.ui.fragments.VonNeumannCoreFragment;
-import org.ricts.abstractmachine.ui.fragments.VonNeumannSystemFragment;
+import org.ricts.abstractmachine.ui.fragments.HarvardCoreFragment;
+import org.ricts.abstractmachine.ui.fragments.HarvardSystemFragment;
 
-public class VonNeumannActivity extends InspectActivity {
-
+/**
+ * Created by Jevon on 13/08/2016.
+ */
+public class HarvardActivity extends InspectActivity {
     @Override
     protected SystemArchitecture createSystemArchitecture(ComputeCore core, Bundle options) {
-        return new VonNeumannArchitecture(core, 10); // TODO: change me
+        return new HarvardArchitecture(core, 10, 5); // TODO: change me
     }
 
     @Override
     protected void initSystemArchitecture(SystemArchitecture architecture, Bundle options) {
-        VonNeumannArchitecture vonNeumannArchitecture = (VonNeumannArchitecture) architecture;
-        vonNeumannArchitecture.reset();
-        vonNeumannArchitecture.initMemory(options.getIntegerArrayList(PROGRAM_MEMORY));
+        HarvardArchitecture harvardArchitecture = (HarvardArchitecture) architecture;
+        harvardArchitecture.reset();
+        harvardArchitecture.initInstructionCache(options.getIntegerArrayList(PROGRAM_MEMORY));
+        harvardArchitecture.initDataMemory(options.getIntegerArrayList(DATA_MEMORY));
     }
 
     @Override
     protected PagerAdapter createAdapter(SystemArchitecture architecture) {
-        return new SystemViewAdapter(getSupportFragmentManager(), this, (VonNeumannArchitecture) architecture);
+        return new SystemViewAdapter(getSupportFragmentManager(), this, (HarvardArchitecture) architecture);
     }
 
     private static class SystemViewAdapter extends FragmentPagerAdapter {
         private static final String TAG = "SystemViewAdapter";
 
         private ObservableComputeCore mainCore;
-        private ObservableRAM mainMemory;
+        private ObservableROM<ROM> instructionCache;
+        private ObservableRAM dataMemory;
         private ObservableControlUnit cu;
 
         private String systemString, coreString;
 
-        public SystemViewAdapter(FragmentManager fm, Context context, VonNeumannArchitecture architecture) {
+        public SystemViewAdapter(FragmentManager fm, Context context, HarvardArchitecture architecture) {
             super(fm);
             mainCore = architecture.getComputeCore();
-            mainMemory = architecture.getMainMemory();
+            instructionCache = architecture.getInstructionCache();
+            dataMemory = architecture.getDataMemory();
             cu = architecture.getControlUnit();
 
             systemString = context.getString(R.string.architecture_activity_system_label);
@@ -59,9 +66,9 @@ public class VonNeumannActivity extends InspectActivity {
         public Fragment getItem(int position) {
             switch (position){
                 case 0:
-                    return VonNeumannSystemFragment.newInstance(mainCore, mainMemory, cu);
+                    return HarvardSystemFragment.newInstance(mainCore, instructionCache, dataMemory, cu);
                 case 1:
-                    return VonNeumannCoreFragment.newInstance(mainCore, mainMemory, cu);
+                    return HarvardCoreFragment.newInstance(mainCore, instructionCache, dataMemory, cu);
                 default:
                     return null;
             }

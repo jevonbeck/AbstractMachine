@@ -1,7 +1,7 @@
 package org.ricts.abstractmachine.components.compute.cores;
 
-import org.ricts.abstractmachine.components.devicetype.Device;
 import org.ricts.abstractmachine.components.compute.isa.IsaDecoder;
+import org.ricts.abstractmachine.components.devicetype.Device;
 import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
 import org.ricts.abstractmachine.components.interfaces.ControlUnitInterface;
 import org.ricts.abstractmachine.components.interfaces.MemoryPort;
@@ -15,6 +15,13 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
 	protected int dAddrWidth;
 	protected int dataWidth;
 
+    private boolean pcUpdated = false;
+    private ControlUnitState expectedControlUnitState = ControlUnitState.ACTIVE;
+
+    protected enum ControlUnitState {
+        ACTIVE, SLEEP, HALT
+    }
+
     public abstract String [] getMneumonicList();
     public abstract int getOperandCount(String mneumonic);
     public abstract int getProgramCounterValue();
@@ -24,7 +31,7 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
     protected abstract boolean isHaltInstr(String groupName, int groupIndex);
     protected abstract boolean isSleepInstr(String groupName, int groupIndex);
     protected abstract void fetchOpsExecuteInstr(String groupName, int groupIndex, int[] operands, MemoryPort dataMemory);
-	protected abstract void updateProgramCounter(String groupName, int groupIndex, int[] operands, ControlUnitInterface cu);
+	protected abstract void updateInternalControlUnitState(String groupName, int groupIndex, int[] operands);
     protected abstract void checkInterrupts();
     protected abstract int executionTime(String groupName, int groupIndex, MemoryPort dataMemory);
     protected abstract void updateProgramCounterRegs(int programCounter);
@@ -55,6 +62,8 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
     @Override
     public void executeInstruction(int programCounter, int instruction, MemoryPort dataMemory, ControlUnitInterface cu) {
         updateProgramCounterRegs(programCounter);
+        setExpectedControlUnitState(ControlUnitState.ACTIVE);
+        pcUpdated = false;
 
 		int instruct = instruction & instrBitMask;
 		if(instrDecoder.isValidInstruction(instruct)){
@@ -69,12 +78,34 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
 				operands[x] = instrDecoder.getOperand(x, instruct, decoderIndex);
 			}
 						
-			// fetch operands and execute instruction
+			// fetch/indirect operands and execute instruction
 			fetchOpsExecuteInstr(groupName, groupIndex, operands, dataMemory);
 
-			// update Program Counter based on execution result
-			updateProgramCounter(groupName, groupIndex, operands, cu);
-		}
+			// update internal Control Unit state based on execution result
+			updateInternalControlUnitState(groupName, groupIndex, operands);
+
+            // check for interrupts and vector internal Program Counter appropriately
+            int pcValueAfterExecute = getProgramCounterValue();
+            checkInterrupts();
+            int finalPC = getProgramCounterValue();
+
+            // apply changes to Control Unit as appropriate
+            boolean interruptOccurred = pcValueAfterExecute != finalPC;
+
+            switch (getExpectedControlUnitState()){
+                case ACTIVE:
+                    if(pcUpdated || interruptOccurred){
+                        writeToControlUnit(cu);
+                    }
+                    break;
+                case SLEEP:
+                    cu.setNextStateToSleep();
+                    break;
+                case HALT:
+                    cu.setNextStateToHalt();
+                    break;
+            }
+        }
         else {
             cu.setNextStateToHalt();
         }
@@ -198,10 +229,17 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
 		return instrDecoder.encode(getGroupName(iMneumonic), iMneumonic, operands);
 	}
 
-    protected void updatePC(ControlUnitInterface cu, int newPcValue){
-        updateProgramCounterRegs(newPcValue);
-        checkInterrupts();
-        writeToControlUnit(cu);
+    protected void updateProgramCounter(int programCounter){
+        updateProgramCounterRegs(programCounter);
+        pcUpdated = true;
+    }
+
+    protected void setExpectedControlUnitState(ControlUnitState state){
+        expectedControlUnitState = state;
+    }
+
+    private ControlUnitState getExpectedControlUnitState() {
+        return expectedControlUnitState;
     }
 
     private void writeToControlUnit(ControlUnitInterface cu){

@@ -6,82 +6,56 @@ import org.ricts.abstractmachine.components.interfaces.MemoryPort;
 import org.ricts.abstractmachine.components.interfaces.ReadPort;
 import org.ricts.abstractmachine.components.storage.Register;
 
-public class ControlUnit extends FiniteStateMachine implements CuDataInterface {
+public class ControlUnit implements CuDataInterface {
     private Register pc; // Program Counter
     private Register ir; // Instruction Register
 
-    private ControlUnitState fetch, execute, halt, sleep;
-    private State nextState = null;
+    private ControlUnitEngine engine;
 
     public ControlUnit(ComputeCoreInterface core, ReadPort instructionCache,
                        MemoryPort dataMemory){
         pc = new Register(core.iAddrWidth());
         ir = new Register(core.instrWidth());
-
-        // setup instruction cycle
-        fetch = new ControlUnitFetchState(this, instructionCache);
-        execute = new ControlUnitExecuteState(core, dataMemory, this);
-        halt = new ControlUnitHaltState();
-        sleep = new ControlUnitSleepState(core, this);
+        engine = new ControlUnitEngine(this, core, instructionCache, dataMemory);
 
         // initialise
         reset();
     }
 
     @Override
-    protected State getNextState(State currentState) {
-        if(nextState != null){ // If normal cycle interrupted ...
-            // ... next state determined by interrupting state
-            currentState = nextState;
-            nextState = null;
-            return currentState;
-        }
-
-        // Otherwise next state determined by current state
-        if(currentState == fetch)
-            return execute;
-        else if(currentState == execute)
-            return fetch;
-        else if(currentState == sleep)
-            return sleep;
-
-        return halt;
-    }
-
-    @Override
     public void setNextStateToHalt() {
-        nextState = halt;
+        engine.setNextStateToHalt();
     }
 
     @Override
     public void setNextStateToSleep() {
-        nextState = sleep;
+        engine.setNextStateToSleep();
     }
 
     @Override
     public boolean isInHaltState(){
-        return currentState() == halt;
+        return engine.isInHaltState();
     }
 
     @Override
     public boolean isInSleepState(){
-        return currentState() == sleep;
+        return engine.isInSleepState();
     }
 
     @Override
     public void performNextAction(){
-        triggerStateChange();
+        engine.triggerStateChange();
     }
 
     @Override
     public int nextActionDuration(){ // in clock cycles
-        return ((ControlUnitState) currentState()).actionDuration();
+        return engine.nextActionDuration();
     }
 
     @Override
     public void setNextFetch(int instructionAddress){
         setPC(instructionAddress);
-        nextState = fetch;
+        engine.setNextStateToFetch();
     }
 
     @Override
@@ -91,9 +65,21 @@ public class ControlUnit extends FiniteStateMachine implements CuDataInterface {
 
     @Override
     public void reset() {
-        setPC(0);
+        setStartExecFrom(0);
+    }
+
+    @Override
+    public void setStartExecFrom(int currentPC) {
+        setPC(currentPC);
         setIR(0);
         setToFetchState();
+    }
+
+    @Override
+    public void fetchInstruction(ReadPort instructionCache){
+        int pcValue = getPC();
+        setIR(instructionCache.read(pcValue)); // IR = iCache[PC]
+        setPC(pcValue + 1); // PC += 1
     }
 
     @Override
@@ -113,43 +99,36 @@ public class ControlUnit extends FiniteStateMachine implements CuDataInterface {
 
     @Override
     public String getCurrentStateString(){
-        return currentState().getName();
+        return engine.getCurrentStateString();
     }
 
+    @Override
     public int getPC(){
         return pc.read();
     }
 
-    public void setPC(int currentPC){
-        pc.write(currentPC);
-    }
-
+    @Override
     public int getIR() {
         return ir.read();
     }
 
-    public void setIR(int currentIR){
-        ir.write(currentIR);
-    }
-
-    public void fetchInstruction(ReadPort instructionCache){
-        setIR(instructionCache.read(pc.read())); // IR = iCache[PC]
-        setPC(pc.read() + 1); // PC += 1
-    }
-
-    public void setToFetchState(){
-        setCurrentState(fetch);
-    }
-
-    public void setToExecuteState(){
-        setCurrentState(execute);
-    }
-
     public boolean isInFetchState() {
-        return currentState() == fetch;
+        return engine.isInFetchState();
     }
 
     public boolean isInExecuteState(){
-        return currentState() == execute;
+        return engine.isInExecuteState();
+    }
+
+    private void setToFetchState(){
+        engine.setToFetchState();
+    }
+
+    private void setPC(int currentPC){
+        pc.write(currentPC);
+    }
+
+    private void setIR(int currentIR){
+        ir.write(currentIR);
     }
 }

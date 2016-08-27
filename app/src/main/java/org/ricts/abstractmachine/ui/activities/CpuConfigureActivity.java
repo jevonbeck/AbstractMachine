@@ -33,7 +33,7 @@ public class CpuConfigureActivity extends WizardActivity implements WizardFragme
             if (archType.equals(getString(R.string.architecture_type_von_neumann))) {
                 return new Intent(this, VonNeumannActivity.class);
             } else if (archType.equals(getString(R.string.architecture_type_harvard))) {
-                return new Intent(this, VonNeumannActivity.class); // TODO: replace with Harvard when created
+                return new Intent(this, HarvardActivity.class);
             }
         }
 

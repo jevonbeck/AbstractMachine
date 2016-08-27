@@ -5,6 +5,7 @@ package org.ricts.abstractmachine.components.interfaces;
  */
 public interface ControlUnitInterface {
     void reset();
+    void setStartExecFrom(int currentPC);
 
     boolean isPipelined();
     void setNextFetch(int instructionAddress);

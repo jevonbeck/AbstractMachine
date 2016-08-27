@@ -3,20 +3,24 @@ package org.ricts.abstractmachine.ui.fragments;
 import org.ricts.abstractmachine.components.observables.ObservableComputeCore;
 import org.ricts.abstractmachine.components.observables.ObservableControlUnit;
 import org.ricts.abstractmachine.components.observables.ObservableRAM;
+import org.ricts.abstractmachine.components.observables.ObservableROM;
+import org.ricts.abstractmachine.components.storage.ROM;
 
-public abstract class VonNeumannActivityFragment extends InspectFragment {
+public abstract class HarvardActivityFragment extends InspectFragment {
     protected ObservableComputeCore mainCore;
-    protected ObservableRAM mainMemory;
+    protected ObservableROM<ROM> instructionCache;
+    protected ObservableRAM dataMemory;
     protected ObservableControlUnit controlUnit;
 
-    public VonNeumannActivityFragment() {
+    public HarvardActivityFragment() {
         // Required empty public constructor
     }
 
-    public void setObservables(ObservableComputeCore core, ObservableRAM memData,
+    public void setObservables(ObservableComputeCore core, ObservableROM<ROM> iCache, ObservableRAM dataMem,
                                ObservableControlUnit controlUnitData){
         mainCore = core;
-        mainMemory = memData;
+        instructionCache = iCache;
+        dataMemory = dataMem;
         controlUnit = controlUnitData;
 
         observablesReady = true;

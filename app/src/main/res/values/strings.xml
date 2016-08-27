@@ -27,6 +27,8 @@
     <string name="architecture_type_label">Architecture Type:</string>
     <string name="architecture_type_harvard">Harvard</string>
     <string name="architecture_type_von_neumann">Von Neumann</string>
+    <string name="architecture_activity_system_label">System</string>
+    <string name="architecture_activity_core_label">Core</string>
 
     <string name="compute_core_type_label">Compute Core Type:</string>
     <string name="compute_core_type_register">Register</string>
@@ -82,6 +84,7 @@
     <string name="pin_name_select">select</string>
     <string name="pin_data_execute">execute</string>
     <string name="pin_data_set_next">Set Next</string>
+    <string name="pin_data_get_nop">Get NOP</string>
     <string name="pin_data_halt">halt</string>
     <string name="pin_data_sleep">sleep</string>
     <string name="pin_data_done">done</string>

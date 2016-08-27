@@ -1,12 +1,13 @@
 package org.ricts.abstractmachine.components.compute.cu;
 
+import org.ricts.abstractmachine.components.interfaces.CuInternalInterface;
 import org.ricts.abstractmachine.components.interfaces.ReadPort;
 
 public class ControlUnitFetchState extends ControlUnitState{
     private ReadPort instructionCache;
-    private ControlUnit controlUnit;
+    private CuInternalInterface controlUnit;
 
-    public ControlUnitFetchState(ControlUnit cu, ReadPort iCache){
+    public ControlUnitFetchState(CuInternalInterface cu, ReadPort iCache){
         super("fetch");
         controlUnit = cu;
         instructionCache = iCache;

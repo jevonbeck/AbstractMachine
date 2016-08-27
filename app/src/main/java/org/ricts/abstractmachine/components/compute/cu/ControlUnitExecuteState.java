@@ -1,15 +1,16 @@
 package org.ricts.abstractmachine.components.compute.cu;
 
 import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
+import org.ricts.abstractmachine.components.interfaces.CuInternalInterface;
 import org.ricts.abstractmachine.components.interfaces.MemoryPort;
 
 public class ControlUnitExecuteState extends ControlUnitState {
-    private ControlUnit cu;
+    private CuInternalInterface cu;
     private MemoryPort dataMemory;
     private ComputeCoreInterface core;
 
     public ControlUnitExecuteState(ComputeCoreInterface proc,
-                                   MemoryPort dMemory, ControlUnit controlUnit){
+                                   MemoryPort dMemory, CuInternalInterface controlUnit){
         super("execute");
         core = proc;
         dataMemory = dMemory;

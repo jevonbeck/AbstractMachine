@@ -1,27 +1,39 @@
 package org.ricts.abstractmachine.components.compute.cu;
 
-import org.ricts.abstractmachine.components.devicetype.Device;
 import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
 import org.ricts.abstractmachine.components.interfaces.CuDataInterface;
 import org.ricts.abstractmachine.components.interfaces.MemoryPort;
 import org.ricts.abstractmachine.components.interfaces.ReadPort;
+import org.ricts.abstractmachine.components.storage.Register;
 
 /**
  * Created by Jevon on 09/07/2016.
  */
-public class PipelinedControlUnit extends Device implements CuDataInterface {
-    private int currentPCVal, currentIRVal;
-    private int pcWidth, irWidth;
+public class PipelinedControlUnit implements CuDataInterface {
+    private boolean branched;
     private String currentState, activeString, haltString, sleepString;
 
     private ComputeCoreInterface mainCore;
-    private ControlUnit cu1; // Control Unit for TU 1
-    private ControlUnit cu2; // Control Unit for TU 2
+    private ControlUnitEngine cu1; // Control Unit for TU 1
+    private ControlUnitEngine cu2; // Control Unit for TU 2
+
+    private Register expectedPC, branchPC, realPC;
+    private Register expectedIR, branchIR, realIR;
 
     public PipelinedControlUnit(ComputeCoreInterface core, ReadPort instructionCache, MemoryPort dataMemory){
         mainCore = core;
-        pcWidth = mainCore.iAddrWidth();
-        irWidth = mainCore.instrWidth();
+
+        int iAddrWidth = core.iAddrWidth();
+        int instrWidth = core.instrWidth();
+        expectedPC = new Register(iAddrWidth);
+        expectedIR = new Register(instrWidth);
+
+        branchPC = new Register(iAddrWidth);
+        branchIR = new Register(instrWidth);
+
+        realPC = new Register(iAddrWidth);
+        realIR = new Register(instrWidth);
+
         activeString = "active";
         haltString = "halt";
         sleepString = "sleep";
@@ -30,10 +42,10 @@ public class PipelinedControlUnit extends Device implements CuDataInterface {
            During normal operation, one performs a fetch while the other executes... ALWAYS! */
 
         // thread unit 1 (TU 1) - initial state = 'fetch'
-        cu1 = new ControlUnit(core, instructionCache, dataMemory);
+        cu1 = new ControlUnitEngine(this, core, instructionCache, dataMemory);
 
         // thread unit 2 (TU 2) - initial state = 'execute'
-        cu2 = new ControlUnit(core, instructionCache, dataMemory);
+        cu2 = new ControlUnitEngine(this, core, instructionCache, dataMemory);
 
         // initialise thread units
         reset();
@@ -46,38 +58,36 @@ public class PipelinedControlUnit extends Device implements CuDataInterface {
 
     @Override
     public void setNextFetchAndExecute(int instructionAddress, int nopInstruction) {
-        currentPCVal = instructionAddress;
-        currentIRVal = nopInstruction;
-
-        if(isNormalExecution()){ // ensure that we are in normal execution ...
-            // N.B: This function is only called by the currently executing CU.
-            // As a result, only the currently executing CU should be updated.
-            ControlUnit executingCU = cu1.isInExecuteState() ? cu1 : cu2;
-            executingCU.setNextFetch(currentPCVal);
+        if(isNormalExecution()) { // if normal execution ...
+            // ... set branch registers
+            branched = true;
+            setBranchPC(instructionAddress);
+            setBranchIR(nopInstruction);
         }
-        else { // ... otherwise we need to explicitly set each CU
+        else { // ... we need to explicitly set each CU state
             currentState = activeString;
 
-            cu1.setPC(currentPCVal);
+            setRealPC(instructionAddress);
+            setRealIR(nopInstruction);
             cu1.setToFetchState();
-
-            cu2.setPC(currentPCVal + 1);
-            cu2.setIR(currentIRVal);
-            cu2.setToExecuteState(); // delay by 1 instruction cycle stage to facilitate pipeline
+            cu2.setToExecuteState();
         }
     }
 
     @Override
     public void reset() {
-        currentPCVal = 0;
-        currentIRVal = mainCore.getNopInstruction();
+        setStartExecFrom(0);
+    }
+
+    @Override
+    public void setStartExecFrom(int currentPC) {
         currentState = activeString;
+        branched = false;
 
-        cu1.reset();
-
-        cu2.setPC(currentPCVal + 1);
-        cu2.setIR(currentIRVal);
-        cu2.setToExecuteState(); // delay by 1 instruction cycle stage to facilitate pipeline
+        setRealPC(currentPC);
+        setRealIR(mainCore.getNopInstruction());
+        cu1.setToFetchState();
+        cu2.setToExecuteState();
     }
 
     @Override
@@ -114,34 +124,27 @@ public class PipelinedControlUnit extends Device implements CuDataInterface {
     @Override
     public void performNextAction() {
         // advance both thread units
-        cu1.performNextAction();
-        cu2.performNextAction();
+        cu1.triggerStateChange();
+        cu2.triggerStateChange();
 
         if(isNormalExecution()){
             /*
              * N.B: Only after both thread units have 'executed' can a proper assessment of thread unit synchronisation be made.
-             * If one unit executes while the other fetches, then for non-branching instruction, the PC should be the same for each unit.
+             * If one unit executes while the other fetches, then for non-branching instruction, the PC should be one more than the previous value.
              * This is true since the fetch stage increments the PC, while the execute stage only modifies PC if the instruction is branching.
              * If a branch is detected, the next instruction to execute should be a NOP.
              * */
-            int val1 = cu1.getPC();
-            int val2 = cu2.getPC();
 
-            // newIR is obtained from thread unit that just fetched an instruction
-            // newPC is obtained from thread unit that just executed an instruction
-            // thread unit that fetched an instruction is loaded with newPC + 1 (always assumes no branching)
-
-            ControlUnit nextExecutingCU = cu1.isInExecuteState() ? cu1 : cu2;
-            if(val1 != val2){ // if branch has occurred ...
-                nextExecutingCU.setIR(currentIRVal); // ... don't execute instruction that was just fetched!
-                // currentPCVal and currentIRVal will already have been set
+            if(branched){ // if branch has occurred ...
+                // ... don't execute instruction that was just fetched!
+                setRealPC(getBranchPC());
+                setRealIR(getBranchIR());
+                branched = false;
             }
             else {
-                currentPCVal = val1; // it doesn't matter which value is used to set currentPCVal
-                currentIRVal = nextExecutingCU.getIR();
+                setRealPC(getExpectedPC());
+                setRealIR(getExpectedIR());
             }
-
-            nextExecutingCU.setPC(currentPCVal + 1); // fetch this instruction after executing
         }
     }
 
@@ -151,13 +154,30 @@ public class PipelinedControlUnit extends Device implements CuDataInterface {
     }
 
     @Override
+    public void fetchInstruction(ReadPort instructionCache) {
+        int pcValue = getPC();
+        setExpectedIR(instructionCache.read(pcValue)); // IR = iCache[PC]
+        setExpectedPC(pcValue + 1); // PC += 1
+    }
+
+    @Override
+    public int getPC() {
+        return realPC.read();
+    }
+
+    @Override
+    public int getIR() {
+        return realIR.read();
+    }
+
+    @Override
     public String getPCDataString() {
-        return formatNumberInHex(currentPCVal, pcWidth);
+        return realPC.dataString();
     }
 
     @Override
     public String getIRDataString() {
-        return formatNumberInHex(currentIRVal, irWidth);
+        return realIR.dataString();
     }
 
     @Override
@@ -165,15 +185,55 @@ public class PipelinedControlUnit extends Device implements CuDataInterface {
         return currentState;
     }
 
+    public ControlUnitEngine getCu1(){
+        return cu1;
+    }
+
+    public ControlUnitEngine getCu2(){
+        return cu2;
+    }
+
     private boolean isNormalExecution(){
         return currentState.equals(activeString);
     }
 
-    public ControlUnit getCu1(){
-        return cu1;
+    private int getExpectedPC(){
+        return expectedPC.read();
     }
 
-    public ControlUnit getCu2(){
-        return cu2;
+    private void setExpectedPC(int currentPC){
+        expectedPC.write(currentPC);
+    }
+
+    private int getExpectedIR(){
+        return expectedIR.read();
+    }
+
+    private void setExpectedIR(int currentIR){
+        expectedIR.write(currentIR);
+    }
+
+    private int getBranchPC(){
+        return branchPC.read();
+    }
+
+    private void setBranchPC(int currentPC){
+        branchPC.write(currentPC);
+    }
+
+    private int getBranchIR(){
+        return branchIR.read();
+    }
+
+    private void setBranchIR(int currentIR){
+        branchIR.write(currentIR);
+    }
+
+    private void setRealPC(int currentPC){
+        realPC.write(currentPC);
+    }
+
+    private void setRealIR(int currentIR){
+        realIR.write(currentIR);
     }
 }

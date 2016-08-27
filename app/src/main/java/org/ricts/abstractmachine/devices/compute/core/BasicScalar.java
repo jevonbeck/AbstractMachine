@@ -527,7 +527,7 @@ public class BasicScalar extends ComputeCore {
     }
 
     @Override
-    protected void updateProgramCounter(String groupName, int groupIndex, int[] operands, ControlUnitInterface cu) {
+    protected void updateInternalControlUnitState(String groupName, int groupIndex, int[] operands) {
         InstructionGrouping grouping = Enum.valueOf(InstructionGrouping.class, groupName);
         Instruction instruction = grouping.decode(groupIndex);
 
@@ -537,13 +537,13 @@ public class BasicScalar extends ComputeCore {
                 // Instructions with 0 operands
                 switch (instruction) {
                     case POP: // cu <-- predefinedStack.pop(); updateUnderflowFlag(); ('return' control-flow construct)
-                        updatePC(cu, callStack.pop());
+                        updateProgramCounter(callStack.pop());
                         intFlagsReg.write(setBitValueAtIndex(InterruptFlags.STACKUFLOW.ordinal(), intFlagsReg.read(), callStack.isEmpty()));
                         break;
                     case NOP: // do nothing
                         break;
                     case HALT: // tell Control Unit to stop execution
-                        cu.setNextStateToHalt();
+                        setExpectedControlUnitState(ControlUnitState.HALT);
                         break;
                 }
                 break;
@@ -551,7 +551,7 @@ public class BasicScalar extends ComputeCore {
                 // Instructions with 1 instruction address literal
                 switch (instruction) {
                     case JUMPL: // cu <-- INSTRLIT ('goto'/'break'/'continue' control-flow construct)
-                        updatePC(cu, operands[0]);
+                        updateProgramCounter(operands[0]);
                         break;
                 }
                 break;
@@ -559,7 +559,7 @@ public class BasicScalar extends ComputeCore {
                 // Instructions with 1 instruction address register
                 switch (instruction) {
                     case JUMP: // cu <-- IADREG ('goto'/'break'/'continue' control-flow construct)
-                        updatePC(cu, instrAddrRegs[operands[0]].read());
+                        updateProgramCounter(instrAddrRegs[operands[0]].read());
                         break;
                     case PUSH: // predefStack.push(IADREG); updateOverflowFlag(); (part of 'function-call' control-flow construct)
                         callStack.push(instrAddrRegs[operands[0]].read());
@@ -594,12 +594,12 @@ public class BasicScalar extends ComputeCore {
                 switch (instruction) {
                     case JUMPIFBCL: // IF (!DREG[BITINDEX]) cu <-- IADLITERAL ('for'/'while'/'if-else' sourceReg[bitIndex])
                         if (!getBitAtIndex(bitIndex, dataRegs[dRegAddr].read())) {
-                            updatePC(cu, iAddrLiteral);
+                            updateProgramCounter(iAddrLiteral);
                         }
                         break;
                     case JUMPIFBSL: // IF (DREG[BITINDEX]) cu <-- IADLITERAL ('do-while' sourceReg[bitIndex])
                         if (getBitAtIndex(bitIndex, dataRegs[dRegAddr].read())) {
-                            updatePC(cu, iAddrLiteral);
+                            updateProgramCounter(iAddrLiteral);
                         }
                         break;
                 }
@@ -613,12 +613,12 @@ public class BasicScalar extends ComputeCore {
                 switch (instruction) {
                     case JUMPIFBC: // IF (!DREG[BITINDEX]) cu <-- IADREG ('for'/'while'/'if-else' sourceReg[bitIndex])
                         if (!getBitAtIndex(bitIndex, dataRegs[dRegAddr].read())) {
-                            updatePC(cu, iAddrRegValue);
+                            updateProgramCounter(iAddrRegValue);
                         }
                         break;
                     case JUMPIFBS: // IF (DREG[BITINDEX]) cu <-- IADREG ('do-while' sourceReg[bitIndex])
                         if (getBitAtIndex(bitIndex, dataRegs[dRegAddr].read())) {
-                            updatePC(cu, iAddrRegValue);
+                            updateProgramCounter(iAddrRegValue);
                         }
                         break;
                 }

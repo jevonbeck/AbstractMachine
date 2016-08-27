@@ -68,6 +68,7 @@ public class VonNeumannSystemFragment extends VonNeumannActivityFragment {
      *
      * @param core Processing core architecture
      * @param memData System memory
+     * @param cu Control Unit
      * @return A new instance of fragment VonNeumannSystemFragment.
      */
     public static VonNeumannSystemFragment newInstance(ObservableComputeCore core, ObservableRAM memData,

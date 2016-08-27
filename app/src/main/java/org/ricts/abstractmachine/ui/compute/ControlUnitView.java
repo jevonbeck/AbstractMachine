@@ -126,10 +126,18 @@ public class ControlUnitView extends RelativeLayout implements Observer{
         pcText = controlUnit.getPCDataString();
         irText = controlUnit.getIRDataString();
 
-        if(updateImmediately || (o != null &&  o instanceof Boolean)){
+        if(updateImmediately){
             updatePC();
-            updateIR();
             updateState();
+            updateIR();
+        }
+        else if (o != null && o instanceof Boolean) {
+            updatePC();
+            updateState();
+
+            if(controlUnit instanceof ControlUnit) {
+                updateIR();
+            }
         }
         else {
             if ( !(controlUnit.isInHaltState() || controlUnit.isInSleepState()) ) {
@@ -169,10 +177,16 @@ public class ControlUnitView extends RelativeLayout implements Observer{
             }
         });
 
-        coreView.setUpdatePcResponder(new ComputeCoreView.PinsView.UpdateResponder() {
+        coreView.setUpdateResponder(new ComputeCoreView.UpdateResponder() {
             @Override
             public void onUpdatePcCompleted() {
                 updatePC();
+                stepResponder.onAnimationEnd();
+            }
+
+            @Override
+            public void onUpdateIrCompleted() {
+                updateIR();
                 stepResponder.onAnimationEnd();
             }
         });

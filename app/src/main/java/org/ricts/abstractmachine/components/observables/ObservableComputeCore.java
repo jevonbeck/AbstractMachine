@@ -40,6 +40,16 @@ public class ObservableComputeCore<T extends ComputeCore> extends ObservableType
         }
     }
 
+    public static class GetNopParams extends ObservableComputeCore.Params {
+        public GetNopParams(Object... objects){
+            super(objects);
+        }
+
+        public int getNopInstruction() {
+            return (Integer) params[0];
+        }
+    }
+
     @Override
     public void executeInstruction(int programCounter, int instruction, MemoryPort dataMemory, ControlUnitInterface cu) {
         observable_data.executeInstruction(programCounter, instruction, dataMemory, cu);
@@ -62,7 +72,10 @@ public class ObservableComputeCore<T extends ComputeCore> extends ObservableType
 
     @Override
     public int getNopInstruction() {
-        return observable_data.getNopInstruction();
+        int nopInstruction = observable_data.getNopInstruction();
+        setChanged();
+        notifyObservers(new GetNopParams(nopInstruction));
+        return nopInstruction;
     }
 
     @Override

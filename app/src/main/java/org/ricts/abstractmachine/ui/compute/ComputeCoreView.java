@@ -27,6 +27,11 @@ public class ComputeCoreView extends DeviceView implements Observer {
         void onHaltCompleted();
     }
 
+    public interface UpdateResponder {
+        void onUpdatePcCompleted();
+        void onUpdateIrCompleted();
+    }
+
     public interface MemoryCommandResponder {
         void onMemoryCommandIssued();
     }
@@ -147,6 +152,15 @@ public class ComputeCoreView extends DeviceView implements Observer {
                         mainCore.instrValueString(instruction));
             }
         }
+        else if(o instanceof ObservableComputeCore.GetNopParams) {
+            if(!updateImmediately){
+                ComputeCore mainCore = (ComputeCore) ((ObservableComputeCore) observable).getType();
+                ObservableComputeCore.GetNopParams params = (ObservableComputeCore.GetNopParams) o;
+                int nopInstruction = params.getNopInstruction();
+
+                pins.fetchNop(mainCore.instrValueString(nopInstruction));
+            }
+        }
         else if(o instanceof Boolean) { // update is from a reset
             mainBody.setInstructionText(null);
             mainBody.updateInstructionView();
@@ -157,7 +171,7 @@ public class ComputeCoreView extends DeviceView implements Observer {
         pins.sendCommandOnly(doneString);
     }
 
-    public void setUpdatePcResponder(PinsView.UpdateResponder updateResponder){
+    public void setUpdateResponder(UpdateResponder updateResponder){
         pins.setUpdateResponder(updateResponder);
     }
 
@@ -183,14 +197,10 @@ public class ComputeCoreView extends DeviceView implements Observer {
         private CommandOnlyResponder cmdResponder;
 
         private int startDelay;
-        private String executeString, setNextString;
+        private String executeString, setNextString, getNopString;
 
         public interface ExecuteResponder {
             void onExecuteCompleted();
-        }
-
-        public interface UpdateResponder {
-            void onUpdatePcCompleted();
         }
 
         public interface CommandOnlyResponder {
@@ -234,6 +244,7 @@ public class ComputeCoreView extends DeviceView implements Observer {
             startDelay = (int) (0.25 * getDelay(1));
             executeString = context.getResources().getString(R.string.pin_data_execute);
             setNextString = context.getResources().getString(R.string.pin_data_set_next);
+            getNopString = context.getResources().getString(R.string.pin_data_get_nop);
         }
 
         public void setExecuteResponder(ExecuteResponder execResponder) {
@@ -329,6 +340,47 @@ public class ComputeCoreView extends DeviceView implements Observer {
 
                 }
             };
+
+            updateView(); // Animate pin UI
+        }
+
+        public void fetchNop(String nopValue){
+            // Setup correct data in pin UI
+            DevicePin pin = pinArray[PinNames.COMMAND.ordinal()];
+            pin.data = getNopString;
+            pin.direction = inDirection;
+            pin.action = DevicePin.PinAction.MOVING;
+            pin.startBehaviour = DevicePin.AnimStartBehaviour.IMMEDIATE;
+            pin.animListener = null;
+
+            pin = pinArray[PinNames.INSTRUCTION.ordinal()];
+            pin.data = nopValue;
+            pin.direction = outDirection;
+            pin.action = DevicePin.PinAction.MOVING;
+            pin.startBehaviour = DevicePin.AnimStartBehaviour.DELAY;
+            pin.animationDelay = -1;
+            pin.animListener = new Animation.AnimationListener(){
+                @Override
+                public void onAnimationEnd(Animation animation) {
+                    if(updateResponder != null){
+                        updateResponder.onUpdateIrCompleted();
+                    }
+                }
+
+                @Override
+                public void onAnimationStart(Animation animation) {
+
+                }
+
+                @Override
+                public void onAnimationRepeat(Animation animation) {
+
+                }
+            };
+
+            pin = pinArray[PinNames.PROG_COUNT.ordinal()];
+            pin.action = DevicePin.PinAction.STATIONARY;
+            pin.animListener = null;
 
             updateView(); // Animate pin UI
         }

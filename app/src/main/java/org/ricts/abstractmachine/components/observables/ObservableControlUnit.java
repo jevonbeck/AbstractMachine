@@ -2,6 +2,7 @@ package org.ricts.abstractmachine.components.observables;
 
 
 import org.ricts.abstractmachine.components.interfaces.CuDataInterface;
+import org.ricts.abstractmachine.components.interfaces.ReadPort;
 
 /**
  * Created by Jevon on 23/01/2016.
@@ -33,6 +34,13 @@ public class ObservableControlUnit extends ObservableType<CuDataInterface> imple
     }
 
     @Override
+    public void setStartExecFrom(int currentPC) {
+        observable_data.setStartExecFrom(currentPC);
+        setChanged();
+        notifyObservers(true); // to differentiate that this update is equivalent to a reset!
+    }
+
+    @Override
     public void setNextStateToHalt() {
         observable_data.setNextStateToHalt();
         setChanged();
@@ -49,6 +57,13 @@ public class ObservableControlUnit extends ObservableType<CuDataInterface> imple
     @Override
     public void performNextAction() {
         observable_data.performNextAction();
+        setChanged();
+        notifyObservers();
+    }
+
+    @Override
+    public void fetchInstruction(ReadPort instructionCache) {
+        observable_data.fetchInstruction(instructionCache);
         setChanged();
         notifyObservers();
     }
@@ -86,5 +101,15 @@ public class ObservableControlUnit extends ObservableType<CuDataInterface> imple
     @Override
     public String getCurrentStateString() {
         return observable_data.getCurrentStateString();
+    }
+
+    @Override
+    public int getPC() {
+        return observable_data.getPC();
+    }
+
+    @Override
+    public int getIR() {
+        return observable_data.getIR();
     }
 }
