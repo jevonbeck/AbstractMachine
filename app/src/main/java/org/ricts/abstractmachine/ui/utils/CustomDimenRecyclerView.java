@@ -36,10 +36,12 @@ public class CustomDimenRecyclerView extends RecyclerView {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec){
-        int newWidthMeasureSpec = View.MeasureSpec.makeMeasureSpec(findWidth(widthMeasureSpec),
+        int finalWidth = getPaddingLeft() + findWidth(widthMeasureSpec) + getPaddingRight();
+        int newWidthMeasureSpec = View.MeasureSpec.makeMeasureSpec(finalWidth,
                 View.MeasureSpec.getMode(widthMeasureSpec));
 
-        int newHeightMeasureSpec = View.MeasureSpec.makeMeasureSpec(findHeight(heightMeasureSpec),
+        int finalHeight = getPaddingTop() + findHeight(heightMeasureSpec) + getPaddingBottom();
+        int newHeightMeasureSpec = View.MeasureSpec.makeMeasureSpec(finalHeight,
                 View.MeasureSpec.getMode(heightMeasureSpec));
 
         super.onMeasure(newWidthMeasureSpec, newHeightMeasureSpec);

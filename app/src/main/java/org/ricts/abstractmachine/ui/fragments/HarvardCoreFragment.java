@@ -33,7 +33,9 @@ public class HarvardCoreFragment extends HarvardActivityFragment implements Obse
     protected void initViews(View mainView) {
         coreView = (ComputeCoreView) mainView.findViewById(R.id.core);
         dataMemoryView = (MemoryPortView) mainView.findViewById(R.id.dataMemory);
+
         instructionCacheView = (ReadPortView) mainView.findViewById(R.id.instructionCache);
+        instructionCacheView.setReadDelayByMultiple(2);
 
         coreView.setMemoryCommandResponder(new ComputeCoreView.MemoryCommandResponder() {
             @Override
@@ -46,7 +48,7 @@ public class HarvardCoreFragment extends HarvardActivityFragment implements Obse
         coreView.setActionResponder(new ComputeCoreView.StepActionResponder() {
             @Override
             public void onAnimationEnd() {
-                mListener.onStepActionCompleted();
+                notifyStepActionListener();
             }
         });
 
@@ -77,7 +79,7 @@ public class HarvardCoreFragment extends HarvardActivityFragment implements Obse
         cuView.setActionResponder(new ControlUnitView.StepActionResponder() {
             @Override
             public void onAnimationEnd() {
-                mListener.onStepActionCompleted();
+                notifyStepActionListener();
             }
         });
     }

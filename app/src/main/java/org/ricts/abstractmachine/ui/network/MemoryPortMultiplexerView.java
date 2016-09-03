@@ -42,13 +42,13 @@ public class MemoryPortMultiplexerView extends MultiplexerView implements Observ
         MemoryPortView memoryPortPins =  (MemoryPortView) pinView;
 
         // implementations which use a MultiPinView subclass will probably want to do this
-        memoryPortPins.setStartDelay(1);
+        memoryPortPins.setStartDelayByMultiple(1);
     }
 
     @Override
     protected void initInputPinView(View pinView) {
         MemoryPortView memoryPortPins =  (MemoryPortView) pinView;
-        memoryPortPins.setReadAnimationDelay(3);
+        memoryPortPins.setReadDelayByMultiple(3);
     }
 
     @Override

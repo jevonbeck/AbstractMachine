@@ -196,7 +196,6 @@ public class ComputeCoreView extends DeviceView implements Observer {
         private ExecuteResponder executeResponder;
         private CommandOnlyResponder cmdResponder;
 
-        private int startDelay;
         private String executeString, setNextString, getNopString;
 
         public interface ExecuteResponder {
@@ -241,7 +240,7 @@ public class ComputeCoreView extends DeviceView implements Observer {
             setPinData(pinData);
 
             /*** Setup other vars ***/
-            startDelay = (int) (0.25 * getDelay(1));
+            setStartDelay(500);
             executeString = context.getResources().getString(R.string.pin_data_execute);
             setNextString = context.getResources().getString(R.string.pin_data_set_next);
             getNopString = context.getResources().getString(R.string.pin_data_get_nop);

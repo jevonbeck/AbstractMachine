@@ -62,7 +62,7 @@ public class ReadPortView extends MultiPinView implements Observer {
         setPinData(pinData);
 
         /*** Setup other vars ***/
-        setReadAnimationDelay(1);
+        setReadDelayByMultiple(1);
         startDelay = 0;
         readString = context.getResources().getString(R.string.pin_data_read);
     }
@@ -122,7 +122,7 @@ public class ReadPortView extends MultiPinView implements Observer {
         }
     }
 
-    public void setReadAnimationDelay(int delayMultiple){
+    public void setReadDelayByMultiple(int delayMultiple){
         readDelay = getDelay(delayMultiple);
     }
 

@@ -187,7 +187,6 @@ public class ControlUnitView extends RelativeLayout implements Observer{
             @Override
             public void onUpdateIrCompleted() {
                 updateIR();
-                stepResponder.onAnimationEnd();
             }
         });
 

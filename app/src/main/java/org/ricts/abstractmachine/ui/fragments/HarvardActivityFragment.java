@@ -12,6 +12,8 @@ public abstract class HarvardActivityFragment extends InspectFragment {
     protected ObservableRAM dataMemory;
     protected ObservableControlUnit controlUnit;
 
+    private int actionCount = 0;
+
     public HarvardActivityFragment() {
         // Required empty public constructor
     }
@@ -25,5 +27,13 @@ public abstract class HarvardActivityFragment extends InspectFragment {
 
         observablesReady = true;
         attemptInit();
+    }
+
+    protected void notifyStepActionListener(){
+        ++actionCount;
+
+        if((actionCount & 1) == 0) { // actionCount divisible by 2
+            mListener.onStepActionCompleted();
+        }
     }
 }

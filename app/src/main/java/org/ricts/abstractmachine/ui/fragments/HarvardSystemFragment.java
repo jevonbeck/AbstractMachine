@@ -29,7 +29,7 @@ public class HarvardSystemFragment extends HarvardActivityFragment {
         cpuView.setActionResponder(new CpuCoreView.StepActionResponder() {
             @Override
             public void onAnimationEnd() {
-                mListener.onStepActionCompleted(); // let Activity know that animations completed
+                notifyStepActionListener(); // let Activity know that animations completed
             }
         });
     }

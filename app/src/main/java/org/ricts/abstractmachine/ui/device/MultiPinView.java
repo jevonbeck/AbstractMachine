@@ -84,8 +84,12 @@ public class MultiPinView extends RelativeLayout {
         pinAdapter.notifyDataSetChanged(); // Animate pin UI
     }
 
-    public void setStartDelay(int delayMultiple){
+    public void setStartDelayByMultiple(int delayMultiple){
         startDelay = getDelay(delayMultiple);
+    }
+
+    public void setStartDelay(int delay){
+        startDelay = delay;
     }
 
     protected int getDelay(int multiple){

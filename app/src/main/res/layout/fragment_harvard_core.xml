@@ -18,14 +18,15 @@
         android:id="@+id/dataMemory"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerVertical="true"
+        android:layout_alignBottom="@+id/core"
+        android:paddingBottom="7dp"
         custom:pinPosition="right"
         />
 
     <view
         class="org.ricts.abstractmachine.ui.compute.ControlUnitView"
         android:id="@+id/control_unit"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="130dp"
         android:layout_below="@id/instructionCache"
         android:layout_toRightOf="@+id/dataMemory"
