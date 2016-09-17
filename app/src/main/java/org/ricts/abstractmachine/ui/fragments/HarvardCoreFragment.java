@@ -10,6 +10,7 @@ import org.ricts.abstractmachine.components.observables.ObservableROM;
 import org.ricts.abstractmachine.components.storage.ROM;
 import org.ricts.abstractmachine.ui.compute.ComputeCoreView;
 import org.ricts.abstractmachine.ui.compute.ControlUnitView;
+import org.ricts.abstractmachine.ui.compute.InspectActionResponder;
 import org.ricts.abstractmachine.ui.storage.MemoryPortView;
 import org.ricts.abstractmachine.ui.storage.ReadPortView;
 
@@ -76,10 +77,15 @@ public class HarvardCoreFragment extends HarvardActivityFragment implements Obse
         });
 
         cuView = (ControlUnitView) mainView.findViewById(R.id.control_unit);
-        cuView.setActionResponder(new ControlUnitView.StepActionResponder() {
+        cuView.setActionResponder(new InspectActionResponder() {
             @Override
-            public void onAnimationEnd() {
+            public void onStepAnimationEnd() {
                 notifyStepActionListener();
+            }
+
+            @Override
+            public void onResetAnimationEnd() {
+                mListener.onResetCompleted();
             }
         });
     }

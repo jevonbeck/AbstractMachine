@@ -8,12 +8,13 @@ import org.ricts.abstractmachine.components.observables.ObservableComputeCore;
 import org.ricts.abstractmachine.components.observables.ObservableControlUnit;
 import org.ricts.abstractmachine.components.observables.ObservableRAM;
 import org.ricts.abstractmachine.ui.compute.CpuCoreView;
+import org.ricts.abstractmachine.ui.compute.InspectActionResponder;
 import org.ricts.abstractmachine.ui.storage.RamView;
 
 /**
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
- * {@link StepActionListener} interface
+ * {@link InspectActionListener} interface
  * to handle interaction events.
  * Use the {@link VonNeumannSystemFragment#newInstance} factory method to
  * create an instance of this fragment.
@@ -27,10 +28,15 @@ public class VonNeumannSystemFragment extends VonNeumannActivityFragment {
         memory = (RamView) mainView.findViewById(R.id.memory);
 
         cpu = (CpuCoreView) mainView.findViewById(R.id.cpuView);
-        cpu.setActionResponder(new CpuCoreView.StepActionResponder() {
+        cpu.setActionResponder(new InspectActionResponder() {
             @Override
-            public void onAnimationEnd() {
+            public void onStepAnimationEnd() {
                 mListener.onStepActionCompleted(); // let Activity know that animations completed
+            }
+
+            @Override
+            public void onResetAnimationEnd() {
+                mListener.onResetCompleted();
             }
         });
     }

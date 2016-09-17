@@ -11,11 +11,11 @@ import android.view.ViewGroup;
 /**
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
- * {@link StepActionListener} interface
+ * {@link InspectActionListener} interface
  * to handle interaction events.
  */
 public abstract class InspectFragment extends Fragment {
-    protected StepActionListener mListener;
+    protected InspectActionListener mListener;
 
     protected boolean viewsReady = false, observablesReady = false;
 
@@ -44,11 +44,11 @@ public abstract class InspectFragment extends Fragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof StepActionListener) {
-            mListener = (StepActionListener) context;
+        if (context instanceof InspectActionListener) {
+            mListener = (InspectActionListener) context;
         } else {
             throw new RuntimeException(context.toString()
-                    + " must implement StepActionListener");
+                    + " must implement InspectActionListener");
         }
     }
 
@@ -68,8 +68,9 @@ public abstract class InspectFragment extends Fragment {
      * "http://developer.android.com/training/basics/fragments/communicating.html"
      * >Communicating with Other Fragments</a> for more information.
      */
-    public interface StepActionListener {
+    public interface InspectActionListener {
         void onStepActionCompleted();
+        void onResetCompleted();
     }
 
     public void setUserVisibility(boolean visibility){

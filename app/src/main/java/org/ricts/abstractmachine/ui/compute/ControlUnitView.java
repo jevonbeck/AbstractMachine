@@ -3,6 +3,7 @@ package org.ricts.abstractmachine.ui.compute;
 import android.content.Context;
 import android.graphics.Typeface;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -16,11 +17,7 @@ import java.util.Observable;
 import java.util.Observer;
 
 public class ControlUnitView extends RelativeLayout implements Observer{
-    public interface StepActionResponder {
-        void onAnimationEnd();
-    }
-
-    private StepActionResponder stepResponder;
+    private InspectActionResponder actionResponder;
 
     private TextView pc; // Program Counter
     private TextView ir; // Instruction Register
@@ -137,6 +134,7 @@ public class ControlUnitView extends RelativeLayout implements Observer{
 
             if(controlUnit instanceof ControlUnit) {
                 updateIR();
+                actionResponder.onResetAnimationEnd(); // ControlUnit case
             }
         }
         else {
@@ -168,7 +166,7 @@ public class ControlUnitView extends RelativeLayout implements Observer{
             @Override
             public void onReadFinished() {
                 updateIR(); // only update ir when read finished
-                stepResponder.onAnimationEnd();
+                actionResponder.onStepAnimationEnd();
             }
 
             @Override
@@ -181,12 +179,13 @@ public class ControlUnitView extends RelativeLayout implements Observer{
             @Override
             public void onUpdatePcCompleted() {
                 updatePC();
-                stepResponder.onAnimationEnd();
+                actionResponder.onStepAnimationEnd();
             }
 
             @Override
             public void onUpdateIrCompleted() {
                 updateIR();
+                actionResponder.onResetAnimationEnd();  // PipelinedControlUnit case
             }
         });
 
@@ -194,7 +193,7 @@ public class ControlUnitView extends RelativeLayout implements Observer{
             @Override
             public void onHaltCompleted() {
                 updateState();
-                stepResponder.onAnimationEnd();
+                actionResponder.onStepAnimationEnd();
             }
         });
     }
@@ -203,8 +202,8 @@ public class ControlUnitView extends RelativeLayout implements Observer{
         updateImmediately = immediately;
     }
 
-    public void setActionResponder(StepActionResponder responder){
-        stepResponder = responder;
+    public void setActionResponder(InspectActionResponder responder){
+        actionResponder = responder;
     }
 
     private void updatePC(){

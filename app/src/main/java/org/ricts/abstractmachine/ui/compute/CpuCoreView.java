@@ -3,6 +3,7 @@ package org.ricts.abstractmachine.ui.compute;
 import android.content.Context;
 import android.graphics.Typeface;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -23,11 +24,9 @@ import java.util.Observer;
  * Created by Jevon on 18/01/15.
  */
 public class CpuCoreView extends RelativeLayout implements Observer {
-    public interface StepActionResponder {
-        void onAnimationEnd();
-    }
+    private static final String TAG = "CpuCoreView";
 
-    private StepActionResponder responder;
+    private InspectActionResponder responder;
 
     private TextView pc, ir;
     private TextView stateView, instructionView;
@@ -159,7 +158,7 @@ public class CpuCoreView extends RelativeLayout implements Observer {
         dataMemory.setReadResponder(new ReadPortView.ReadResponder() {
             @Override
             public void onReadFinished() {
-                responder.onAnimationEnd(); // only update when read is finished
+                responder.onStepAnimationEnd(); // only update when read is finished
             }
 
             @Override
@@ -171,7 +170,7 @@ public class CpuCoreView extends RelativeLayout implements Observer {
         dataMemory.setWriteResponder(new MemoryPortView.WriteResponder() {
             @Override
             public void onWriteFinished() {
-                responder.onAnimationEnd(); // only update when write is finished
+                responder.onStepAnimationEnd(); // only update when write is finished
             }
 
             @Override
@@ -186,7 +185,7 @@ public class CpuCoreView extends RelativeLayout implements Observer {
             @Override
             public void onReadFinished() {
                 updateIrText(); // only update ir when read finished
-                responder.onAnimationEnd();
+                responder.onStepAnimationEnd();
             }
 
             @Override
@@ -204,8 +203,9 @@ public class CpuCoreView extends RelativeLayout implements Observer {
             pc.setText(controlUnit.getPCDataString());
             irText = controlUnit.getIRDataString();
 
-            if(updateIrImmediately || (o != null &&  o instanceof Boolean))
+            if(updateIrImmediately || (o != null &&  o instanceof Boolean)) {
                 updateIrText();
+            }
         }
         else if(observable instanceof ObservableComputeCore){
             if(o instanceof ObservableComputeCore.ExecuteParams) {
@@ -224,7 +224,7 @@ public class CpuCoreView extends RelativeLayout implements Observer {
                             postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
-                                    responder.onAnimationEnd();
+                                    responder.onStepAnimationEnd();
                                 }
                             }, 1);
                         }
@@ -233,6 +233,9 @@ public class CpuCoreView extends RelativeLayout implements Observer {
             }
             else if(o instanceof Boolean){ // update is from a reset
                 instructionView.setText(null);
+                if(!updateIrImmediately) {
+                    responder.onResetAnimationEnd();
+                }
             }
         }
     }
@@ -241,7 +244,7 @@ public class CpuCoreView extends RelativeLayout implements Observer {
         updateIrImmediately = immediately;
     }
 
-    public void setActionResponder(StepActionResponder resp){
+    public void setActionResponder(InspectActionResponder resp){
         responder = resp;
     }
 

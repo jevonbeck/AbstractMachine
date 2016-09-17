@@ -14,10 +14,9 @@ import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.compute.cores.ComputeCore;
 import org.ricts.abstractmachine.components.system.SystemArchitecture;
 import org.ricts.abstractmachine.devices.compute.core.BasicScalar;
-import org.ricts.abstractmachine.ui.fragments.CpuBasicsFragment;
 import org.ricts.abstractmachine.ui.fragments.InspectFragment;
 
-public abstract class InspectActivity extends AppCompatActivity implements InspectFragment.StepActionListener {
+public abstract class InspectActivity extends AppCompatActivity implements InspectFragment.InspectActionListener {
     private static final String TAG = "InspectActivity";
 
     public static final String ARCH_TYPE = "architectureType";
@@ -36,6 +35,8 @@ public abstract class InspectActivity extends AppCompatActivity implements Inspe
             return name();
         }
     }
+
+    Button advanceButton, runButton, stopButton, resetButton;
 
     private ViewPager pager;
     private PagerAdapter pagerAdapter;
@@ -63,36 +64,53 @@ public abstract class InspectActivity extends AppCompatActivity implements Inspe
         /** Setup UI **/
         isRunning = false;
 
-        Button advanceButton = (Button) findViewById(R.id.stepButton);
+        advanceButton = (Button) findViewById(R.id.stepButton);
+        runButton = (Button) findViewById(R.id.runButton);
+        stopButton = (Button) findViewById(R.id.stopButton);
+        stopButton.setEnabled(false);
+
         advanceButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View arg0) {
+            public void onClick(View view) {
+                view.setEnabled(false);
+                runButton.setEnabled(false);
+
                 advanceTime();
             }
         });
 
-        Button runButton = (Button) findViewById(R.id.runButton);
         runButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View arg0) {
+            public void onClick(View view) {
+                view.setEnabled(false);
+                advanceButton.setEnabled(false);
+                stopButton.setEnabled(true);
+
                 isRunning = true;
                 advanceTime();
             }
         });
 
-        Button stopButton = (Button) findViewById(R.id.stopButton);
         stopButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View arg0) {
+            public void onClick(View view) {
+                view.setEnabled(false);
+
                 isRunning = false;
             }
         });
 
-        Button resetButton = (Button) findViewById(R.id.resetButton);
+        resetButton = (Button) findViewById(R.id.resetButton);
         resetButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View arg0) {
+            public void onClick(View view) {
+                view.setEnabled(false);
+                advanceButton.setEnabled(false);
+                runButton.setEnabled(false);
+                stopButton.setEnabled(false);
+
                 isRunning = false;
+                updateFragmentVisibility();
                 initSystemArchitecture(architecture, options);
                 updateSystemTime();
             }
@@ -123,12 +141,38 @@ public abstract class InspectActivity extends AppCompatActivity implements Inspe
             advanceTime();
             Log.d(TAG, "onStepActionCompleted() advanceTime() end");
         }
+        else {
+            advanceButton.setEnabled(true);
+            runButton.setEnabled(true);
+            Log.d(TAG, "onStepActionCompleted()");
+        }
 
-        Log.d(TAG, "onStepActionCompleted()");
         Log.d(TAG, "isRunning = " + isRunning);
     }
 
+    @Override
+    public void onResetCompleted() {
+        advanceButton.setEnabled(true);
+        runButton.setEnabled(true);
+        resetButton.setEnabled(true);
+        Log.d(TAG, "onResetCompleted()");
+    }
+
     private void advanceTime(){
+        updateFragmentVisibility();
+
+        // Initiate animations
+        Log.d(TAG, "architecture.advanceTime() start");
+        architecture.advanceTime();
+        Log.d(TAG, "architecture.advanceTime() end");
+        updateSystemTime();
+    }
+
+    private void updateSystemTime(){
+        sysClockTextView.setText(String.valueOf(architecture.timeElapsed()));
+    }
+
+    private void updateFragmentVisibility(){
         int currentItemIndex = pager.getCurrentItem();
         int min = currentItemIndex - pagerOffScreenLimit;
         int max = currentItemIndex + pagerOffScreenLimit;
@@ -144,16 +188,6 @@ public abstract class InspectActivity extends AppCompatActivity implements Inspe
             ((InspectFragment) pagerAdapter.instantiateItem(pager, x))
                     .setUserVisibility(x == currentItemIndex);
         }
-
-        // Initiate animations
-        Log.d(TAG, "architecture.advanceTime() start");
-        architecture.advanceTime();
-        Log.d(TAG, "architecture.advanceTime() end");
-        updateSystemTime();
-    }
-
-    private void updateSystemTime(){
-        sysClockTextView.setText(String.valueOf(architecture.timeElapsed()));
     }
 
     public static ComputeCore getComputeCore(Bundle options){

@@ -9,6 +9,7 @@ import org.ricts.abstractmachine.components.observables.ObservableRAM;
 import org.ricts.abstractmachine.components.observables.ObservableROM;
 import org.ricts.abstractmachine.components.storage.ROM;
 import org.ricts.abstractmachine.ui.compute.CpuCoreView;
+import org.ricts.abstractmachine.ui.compute.InspectActionResponder;
 import org.ricts.abstractmachine.ui.storage.RamView;
 import org.ricts.abstractmachine.ui.storage.RomView;
 
@@ -26,10 +27,15 @@ public class HarvardSystemFragment extends HarvardActivityFragment {
         dataMemoryView = (RamView) mainView.findViewById(R.id.dataMemory);
 
         cpuView = (CpuCoreView) mainView.findViewById(R.id.cpuView);
-        cpuView.setActionResponder(new CpuCoreView.StepActionResponder() {
+        cpuView.setActionResponder(new InspectActionResponder() {
             @Override
-            public void onAnimationEnd() {
+            public void onStepAnimationEnd() {
                 notifyStepActionListener(); // let Activity know that animations completed
+            }
+
+            @Override
+            public void onResetAnimationEnd() {
+                mListener.onResetCompleted();
             }
         });
     }

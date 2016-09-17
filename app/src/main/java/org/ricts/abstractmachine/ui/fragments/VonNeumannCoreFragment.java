@@ -11,6 +11,7 @@ import org.ricts.abstractmachine.components.observables.ObservableControlUnit;
 import org.ricts.abstractmachine.components.observables.ObservableRAM;
 import org.ricts.abstractmachine.ui.compute.ComputeCoreView;
 import org.ricts.abstractmachine.ui.compute.ControlUnitView;
+import org.ricts.abstractmachine.ui.compute.InspectActionResponder;
 import org.ricts.abstractmachine.ui.network.MemoryPortMultiplexerView;
 import org.ricts.abstractmachine.ui.storage.MemoryPortView;
 import org.ricts.abstractmachine.ui.storage.ReadPortView;
@@ -21,7 +22,7 @@ import java.util.Observer;
 /**
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
- * {@link StepActionListener} interface
+ * {@link InspectActionListener} interface
  * to handle interaction events.
  * Use the {@link VonNeumannCoreFragment#newInstance} factory method to
  * create an instance of this fragment.
@@ -90,10 +91,15 @@ public class VonNeumannCoreFragment extends VonNeumannActivityFragment implement
         });
 
         cuView = (ControlUnitView) mainView.findViewById(R.id.control_unit);
-        cuView.setActionResponder(new ControlUnitView.StepActionResponder() {
+        cuView.setActionResponder(new InspectActionResponder() {
             @Override
-            public void onAnimationEnd() {
+            public void onStepAnimationEnd() {
                 mListener.onStepActionCompleted();
+            }
+
+            @Override
+            public void onResetAnimationEnd() {
+                mListener.onResetCompleted();
             }
         });
     }
