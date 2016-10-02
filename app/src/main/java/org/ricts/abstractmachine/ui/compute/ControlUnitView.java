@@ -3,26 +3,22 @@ package org.ricts.abstractmachine.ui.compute;
 import android.content.Context;
 import android.graphics.Typeface;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.compute.cu.ControlUnit;
-import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
-import org.ricts.abstractmachine.components.interfaces.ControlUnitInterface;
-import org.ricts.abstractmachine.components.interfaces.MemoryPort;
-import org.ricts.abstractmachine.components.interfaces.ReadPort;
-import org.ricts.abstractmachine.components.observables.ObservableComputeCore;
+import org.ricts.abstractmachine.components.interfaces.CuDataInterface;
 import org.ricts.abstractmachine.components.observables.ObservableControlUnit;
-import org.ricts.abstractmachine.components.observables.ObservableRegister;
-import org.ricts.abstractmachine.ui.storage.MemoryPortView;
 import org.ricts.abstractmachine.ui.storage.ReadPortView;
-import org.ricts.abstractmachine.ui.storage.RegDataView;
 
 import java.util.Observable;
 import java.util.Observer;
 
 public class ControlUnitView extends RelativeLayout implements Observer{
+    private InspectActionResponder actionResponder;
+
     private TextView pc; // Program Counter
     private TextView ir; // Instruction Register
     private TextView stateView; // Control Unit state
@@ -122,40 +118,55 @@ public class ControlUnitView extends RelativeLayout implements Observer{
 
     @Override
     public void update(Observable observable, Object o) {
-        ControlUnit controlUnit = ((ObservableControlUnit) observable).getType();
-
-        stateText = controlUnit.currentState().getName();
-        pcText = controlUnit.getPcReg().dataString();
-        irText = controlUnit.getIrReg().dataString();
+        CuDataInterface controlUnit = ((ObservableControlUnit) observable).getType();
+        stateText = controlUnit.getCurrentStateString();
+        pcText = controlUnit.getPCDataString();
+        irText = controlUnit.getIRDataString();
 
         if(updateImmediately){
             updatePC();
-            updateIR();
             updateState();
+            updateIR();
+        }
+        else if (o != null && o instanceof Boolean) {
+            updatePC();
+            updateState();
+
+            if(controlUnit instanceof ControlUnit) {
+                updateIR();
+                actionResponder.onResetAnimationEnd(); // ControlUnit case
+            }
         }
         else {
-            if(!controlUnit.isAboutToHalt()){
+            if ( !(controlUnit.isInHaltState() || controlUnit.isInSleepState()) ) {
                 updateState();
             }
 
-            if(controlUnit.isAboutToExecute()){
+            if(controlUnit instanceof ControlUnit) {
+                ControlUnit cu = (ControlUnit) controlUnit;
+                if (cu.isInExecuteState()) { // just initiated a fetch
+                    updatePC();
+                }
+            }
+            else {
                 updatePC();
             }
         }
     }
 
-    public void initCU(ControlUnit controlUnit, ComputeCoreView coreView,
-                       MemoryPortView instructionCache){
+    public void initCU(CuDataInterface controlUnit, ComputeCoreView coreView,
+                       ReadPortView instructionCache){
         /** initialise variables **/
-        stateView.setText(controlUnit.currentState().getName());
-        pc.setText(controlUnit.getPcReg().dataString());
-        ir.setText(controlUnit.getIrReg().dataString());
+        stateView.setText(controlUnit.getCurrentStateString());
+        pc.setText(controlUnit.getPCDataString());
+        ir.setText(controlUnit.getIRDataString());
 
         /** setup callback behaviour **/
         instructionCache.setReadResponder(new ReadPortView.ReadResponder() {
             @Override
             public void onReadFinished() {
                 updateIR(); // only update ir when read finished
+                actionResponder.onStepAnimationEnd();
             }
 
             @Override
@@ -164,10 +175,17 @@ public class ControlUnitView extends RelativeLayout implements Observer{
             }
         });
 
-        coreView.setUpdatePcResponder(new ComputeCoreView.PinsView.UpdateResponder() {
+        coreView.setUpdateResponder(new ComputeCoreView.UpdateResponder() {
             @Override
             public void onUpdatePcCompleted() {
                 updatePC();
+                actionResponder.onStepAnimationEnd();
+            }
+
+            @Override
+            public void onUpdateIrCompleted() {
+                updateIR();
+                actionResponder.onResetAnimationEnd();  // PipelinedControlUnit case
             }
         });
 
@@ -175,12 +193,17 @@ public class ControlUnitView extends RelativeLayout implements Observer{
             @Override
             public void onHaltCompleted() {
                 updateState();
+                actionResponder.onStepAnimationEnd();
             }
         });
     }
 
     public void setUpdateImmediately(boolean immediately){
         updateImmediately = immediately;
+    }
+
+    public void setActionResponder(InspectActionResponder responder){
+        actionResponder = responder;
     }
 
     private void updatePC(){

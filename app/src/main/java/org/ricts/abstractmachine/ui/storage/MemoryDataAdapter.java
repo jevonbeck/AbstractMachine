@@ -8,7 +8,6 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import org.ricts.abstractmachine.R;
-import org.ricts.abstractmachine.components.devicetype.Device;
 import org.ricts.abstractmachine.components.storage.ROM;
 
 /**
@@ -18,9 +17,7 @@ public class MemoryDataAdapter extends RecyclerView.Adapter<MemoryDataAdapter.Vi
     private int mViewType; // resourceId
     private int textViewID;
 
-    private int[] memoryArray;
-    private int addressWidth;
-    private int dataWidth;
+    private ROM dataSource;
 
     public MemoryDataAdapter(Context c, int resource, int textViewResourceId, ROM rom) throws Exception{
         super();
@@ -35,9 +32,7 @@ public class MemoryDataAdapter extends RecyclerView.Adapter<MemoryDataAdapter.Vi
         else {
             mViewType = resource;
             textViewID = textViewResourceId;
-            memoryArray = rom.dataArray();
-            dataWidth = rom.dataWidth();
-            addressWidth = rom.addressWidth();
+            dataSource = rom;
         }
     }
 
@@ -58,15 +53,15 @@ public class MemoryDataAdapter extends RecyclerView.Adapter<MemoryDataAdapter.Vi
         View convertView = viewHolder.itemView;
 
         TextView index = (TextView) convertView.findViewById(R.id.address);
-        index.setText(Device.formatNumberInHex(position, addressWidth));
+        index.setText(dataSource.addressString(position));
 
         TextView value = (TextView) convertView.findViewById(textViewID);
-        value.setText(Device.formatNumberInHex(memoryArray[position], dataWidth));
+        value.setText(dataSource.dataAtAddressString(position));
     }
 
     @Override
     public int getItemCount() {
-        return memoryArray.length;
+        return dataSource.size();
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {

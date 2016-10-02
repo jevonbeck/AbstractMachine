@@ -25,10 +25,6 @@
         </attr>
     </declare-styleable>
 
-    <declare-styleable name="OrientableTextView">
-        <attr name="android:orientation"/>
-    </declare-styleable>
-
     <declare-styleable name="VerticalTextView">
         <attr name="topDown" format="boolean"/>
     </declare-styleable>

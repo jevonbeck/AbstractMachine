@@ -15,6 +15,6 @@ public class ControlUnitHaltState extends ControlUnitState{
 
     @Override
     public void performAction() {
-        // TODO: Do nothing for now! Implement appropriate logic when interrupts are implemented
+        // Do nothing! This state is made for this purpose.
     }
 }

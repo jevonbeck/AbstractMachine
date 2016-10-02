@@ -55,7 +55,7 @@ public class Device {
         return (value) ? setBitAtIndex(bitIndex, number) : clearBitAtIndex(bitIndex, number);
     }
 
-    public static String formatNumberInHex(int number, int bitWidth){
+    protected static String formatNumberInHex(int number, int bitWidth){
         String temp = Integer.toHexString(number & bitMaskOfWidth(bitWidth));
 
         return "0x" + zeroPad((int) Math.ceil(bitWidth/4.0) - temp.length()) + temp;

@@ -10,8 +10,6 @@ import android.widget.TextView;
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.compute.cores.ComputeCore;
 import org.ricts.abstractmachine.components.observables.ObservableComputeCore;
-import org.ricts.abstractmachine.components.devicetype.Device;
-import org.ricts.abstractmachine.components.interfaces.ControlUnitInterface;
 import org.ricts.abstractmachine.ui.device.DevicePin;
 import org.ricts.abstractmachine.ui.device.DeviceView;
 import org.ricts.abstractmachine.ui.device.MultiPinView;
@@ -29,8 +27,17 @@ public class ComputeCoreView extends DeviceView implements Observer {
         void onHaltCompleted();
     }
 
+    public interface UpdateResponder {
+        void onUpdatePcCompleted();
+        void onUpdateIrCompleted();
+    }
+
     public interface MemoryCommandResponder {
         void onMemoryCommandIssued();
+    }
+
+    public interface StepActionResponder {
+        void onAnimationEnd();
     }
 
     private MainBodyView mainBody;
@@ -38,8 +45,10 @@ public class ComputeCoreView extends DeviceView implements Observer {
 
     private MemoryCommandResponder memoryCommandResponder;
     private HaltResponder haltResponder;
+    private StepActionResponder stepResponder;
 
     private boolean updateImmediately;
+    private String haltString, sleepString, doneString;
 
     public ComputeCoreView(Context context) {
         this(context, null);
@@ -53,6 +62,10 @@ public class ComputeCoreView extends DeviceView implements Observer {
         super(context, attrs, defStyleAttr);
         mainBody = (MainBodyView) mainView;
         pins = (PinsView) pinView;
+
+        haltString = context.getResources().getString(R.string.pin_data_halt);
+        doneString = context.getResources().getString(R.string.pin_data_done);
+        sleepString = context.getResources().getString(R.string.pin_data_sleep);
     }
 
     @Override
@@ -74,7 +87,7 @@ public class ComputeCoreView extends DeviceView implements Observer {
     @Override
     public void update(Observable observable, Object o) {
         if(o instanceof ObservableComputeCore.ExecuteParams) {
-            ComputeCore mainCore = (ComputeCore) ((ObservableComputeCore) observable).getType();
+            final ComputeCore mainCore = (ComputeCore) ((ObservableComputeCore) observable).getType();
             ObservableComputeCore.ExecuteParams params = (ObservableComputeCore.ExecuteParams) o;
             int instruction = params.getInstruction();
 
@@ -84,22 +97,26 @@ public class ComputeCoreView extends DeviceView implements Observer {
                 mainBody.updateInstructionView();
             }
             else{
-                ControlUnitInterface controlUnit = params.getControlUnit();
                 int pcPreExecute = params.getPcPreExecute();
-                int pcPostExecute = controlUnit.getPC();
+                int pcPostExecute = params.getPcPostExecute();
 
+                final boolean cuIsPipelined = params.getCuIsPipelined();
                 final boolean isDataMemInstruction = mainCore.isDataMemoryInstruction(instruction);
                 final boolean isHaltInstruction = mainCore.isHaltInstruction(instruction);
-                final String pcPostExecuteString = Device.formatNumberInHex(pcPostExecute, mainCore.iAddrWidth());
+                final boolean isSleepInstruction = mainCore.isSleepInstruction(instruction);
+                final String pcPostExecuteString = mainCore.instrAddrValueString(pcPostExecute);
                 final boolean updatePC = pcPreExecute != pcPostExecute;
 
                 pins.setCommandResponder(new PinsView.CommandOnlyResponder() {
                     @Override
                     public void onCommandCompleted() {
-                        if(isHaltInstruction){
+                        if(isHaltInstruction || isSleepInstruction){
                             if(haltResponder != null) {
                                 haltResponder.onHaltCompleted();
                             }
+                        }
+                        else{
+                            stepResponder.onAnimationEnd();
                         }
                     }
                 });
@@ -111,28 +128,50 @@ public class ComputeCoreView extends DeviceView implements Observer {
                         mainBody.updateInstructionView();
 
                         /** Start one of these animations if applicable (they are mutually exclusive) **/
-                        if(isHaltInstruction){
-                            pins.sendCommandOnly("setHalt");
+                        if (isHaltInstruction) {
+                            pins.sendCommandOnly(haltString);
                         }
-                        else if(isDataMemInstruction){
-                            if(memoryCommandResponder != null) {
+                        else if (isSleepInstruction) {
+                            pins.sendCommandOnly(sleepString);
+                        } else if (isDataMemInstruction) {
+                            if (memoryCommandResponder != null) {
                                 memoryCommandResponder.onMemoryCommandIssued();
                             }
-                        }
-
-                        if (updatePC) {
-                            pins.updatePC(pcPostExecuteString);
+                        } else if (updatePC) {
+                            pins.updatePC(pcPostExecuteString,
+                                    mainCore.instrValueString(mainCore.getNopInstruction()),
+                                    cuIsPipelined);
+                        } else {
+                            sendDoneCommand();
                         }
                     }
                 });
 
                 // actually begin the animation
-                pins.executeInstruction(Device.formatNumberInHex(instruction, mainCore.instrWidth()));
+                pins.executeInstruction(mainCore.instrAddrValueString(pcPreExecute),
+                        mainCore.instrValueString(instruction));
             }
+        }
+        else if(o instanceof ObservableComputeCore.GetNopParams) {
+            if(!updateImmediately){
+                ComputeCore mainCore = (ComputeCore) ((ObservableComputeCore) observable).getType();
+                ObservableComputeCore.GetNopParams params = (ObservableComputeCore.GetNopParams) o;
+                int nopInstruction = params.getNopInstruction();
+
+                pins.fetchNop(mainCore.instrValueString(nopInstruction));
+            }
+        }
+        else if(o instanceof Boolean) { // update is from a reset
+            mainBody.setInstructionText(null);
+            mainBody.updateInstructionView();
         }
     }
 
-    public void setUpdatePcResponder(PinsView.UpdateResponder updateResponder){
+    public void sendDoneCommand(){
+        pins.sendCommandOnly(doneString);
+    }
+
+    public void setUpdateResponder(UpdateResponder updateResponder){
         pins.setUpdateResponder(updateResponder);
     }
 
@@ -148,19 +187,19 @@ public class ComputeCoreView extends DeviceView implements Observer {
         updateImmediately = immediately;
     }
 
+    public void setActionResponder(StepActionResponder responder){
+        stepResponder = responder;
+    }
+
     public static class PinsView extends MultiPinView {
         private UpdateResponder updateResponder;
         private ExecuteResponder executeResponder;
         private CommandOnlyResponder cmdResponder;
 
-        private int startDelay;
+        private String executeString, setNextString, getNopString;
 
         public interface ExecuteResponder {
             void onExecuteCompleted();
-        }
-
-        public interface UpdateResponder {
-            void onUpdatePcCompleted();
         }
 
         public interface CommandOnlyResponder {
@@ -168,7 +207,7 @@ public class ComputeCoreView extends DeviceView implements Observer {
         }
 
         protected enum PinNames{
-            COMMAND, DATA
+            COMMAND, INSTRUCTION, PROG_COUNT
         }
 
         public PinsView(Context context) {
@@ -186,35 +225,48 @@ public class ComputeCoreView extends DeviceView implements Observer {
             // initialise pin names (memoryPins data)
             DevicePin[] pinData = new DevicePin[PinNames.values().length];
             DevicePin pin = new DevicePin();
-            pin.name = "command";
-            pin.dataWidth = 2;
+            pin.name = context.getResources().getString(R.string.pin_name_command);
             pinData[PinNames.COMMAND.ordinal()] = pin;
 
             pin = new DevicePin();
-            pin.name = "data";
-            pinData[PinNames.DATA.ordinal()] = pin;
+            pin.name = context.getResources().getString(R.string.pin_name_pc_val);
+            pinData[PinNames.PROG_COUNT.ordinal()] = pin;
+
+            pin = new DevicePin();
+            pin.name = context.getResources().getString(R.string.pin_name_ir_val);
+            pinData[PinNames.INSTRUCTION.ordinal()] = pin;
 
             /*** bind pin child to its data ***/
             setPinData(pinData);
 
             /*** Setup other vars ***/
-            startDelay = (int) (0.25 * getDelay(1));
+            setStartDelay(500);
+            executeString = context.getResources().getString(R.string.pin_data_execute);
+            setNextString = context.getResources().getString(R.string.pin_data_set_next);
+            getNopString = context.getResources().getString(R.string.pin_data_get_nop);
         }
 
         public void setExecuteResponder(ExecuteResponder execResponder) {
             executeResponder = execResponder;
         }
 
-        public void executeInstruction(String instruction){
+        public void executeInstruction(String programCounter, String instruction){
             // Setup correct data in pin UI
             DevicePin pin = pinArray[PinNames.COMMAND.ordinal()];
-            pin.data = "execute";
+            pin.data = executeString;
             pin.direction = inDirection;
             pin.action = DevicePin.PinAction.MOVING;
             pin.startBehaviour = DevicePin.AnimStartBehaviour.IMMEDIATE;
             pin.animListener = null;
 
-            pin = pinArray[PinNames.DATA.ordinal()];
+            pin = pinArray[PinNames.PROG_COUNT.ordinal()];
+            pin.data = programCounter;
+            pin.direction = inDirection;
+            pin.action = DevicePin.PinAction.MOVING;
+            pin.startBehaviour = DevicePin.AnimStartBehaviour.IMMEDIATE;
+            pin.animListener = null;
+
+            pin = pinArray[PinNames.INSTRUCTION.ordinal()];
             pin.data = instruction;
             pin.direction = inDirection;
             pin.action = DevicePin.PinAction.MOVING;
@@ -245,17 +297,25 @@ public class ComputeCoreView extends DeviceView implements Observer {
             updateResponder = responder;
         }
 
-        public void updatePC(String pcValue){
+        public void updatePC(String pcValue, String irValue, boolean cuIsPipelined){
             // Setup correct data in pin UI
             DevicePin pin = pinArray[PinNames.COMMAND.ordinal()];
-            pin.data = "setPC";
+            pin.data = setNextString;
             pin.direction = outDirection;
             pin.action = DevicePin.PinAction.MOVING;
             pin.startBehaviour = DevicePin.AnimStartBehaviour.DELAY;
             pin.animationDelay = startDelay;
             pin.animListener = null;
 
-            pin = pinArray[PinNames.DATA.ordinal()];
+            pin = pinArray[PinNames.INSTRUCTION.ordinal()];
+            pin.data = irValue;
+            pin.direction = outDirection;
+            pin.action = cuIsPipelined ? DevicePin.PinAction.MOVING : DevicePin.PinAction.STATIONARY;
+            pin.startBehaviour = DevicePin.AnimStartBehaviour.DELAY;
+            pin.animationDelay = startDelay;
+            pin.animListener = null;
+
+            pin = pinArray[PinNames.PROG_COUNT.ordinal()];
             pin.data = pcValue;
             pin.direction = outDirection;
             pin.action = DevicePin.PinAction.MOVING;
@@ -279,6 +339,47 @@ public class ComputeCoreView extends DeviceView implements Observer {
 
                 }
             };
+
+            updateView(); // Animate pin UI
+        }
+
+        public void fetchNop(String nopValue){
+            // Setup correct data in pin UI
+            DevicePin pin = pinArray[PinNames.COMMAND.ordinal()];
+            pin.data = getNopString;
+            pin.direction = inDirection;
+            pin.action = DevicePin.PinAction.MOVING;
+            pin.startBehaviour = DevicePin.AnimStartBehaviour.IMMEDIATE;
+            pin.animListener = null;
+
+            pin = pinArray[PinNames.INSTRUCTION.ordinal()];
+            pin.data = nopValue;
+            pin.direction = outDirection;
+            pin.action = DevicePin.PinAction.MOVING;
+            pin.startBehaviour = DevicePin.AnimStartBehaviour.DELAY;
+            pin.animationDelay = -1;
+            pin.animListener = new Animation.AnimationListener(){
+                @Override
+                public void onAnimationEnd(Animation animation) {
+                    if(updateResponder != null){
+                        updateResponder.onUpdateIrCompleted();
+                    }
+                }
+
+                @Override
+                public void onAnimationStart(Animation animation) {
+
+                }
+
+                @Override
+                public void onAnimationRepeat(Animation animation) {
+
+                }
+            };
+
+            pin = pinArray[PinNames.PROG_COUNT.ordinal()];
+            pin.action = DevicePin.PinAction.STATIONARY;
+            pin.animListener = null;
 
             updateView(); // Animate pin UI
         }
@@ -314,7 +415,12 @@ public class ComputeCoreView extends DeviceView implements Observer {
                 }
             };
 
-            pin = pinArray[PinNames.DATA.ordinal()];
+            pin = pinArray[PinNames.PROG_COUNT.ordinal()];
+            pin.action = DevicePin.PinAction.STATIONARY;
+            pin.startBehaviour = DevicePin.AnimStartBehaviour.IMMEDIATE;
+            pin.animListener = null;
+
+            pin = pinArray[PinNames.INSTRUCTION.ordinal()];
             pin.action = DevicePin.PinAction.STATIONARY;
             pin.startBehaviour = DevicePin.AnimStartBehaviour.IMMEDIATE;
             pin.animListener = null;

@@ -15,24 +15,8 @@ public class DevicePin {
 		IMMEDIATE, DELAY
 	}
 
-	public DevicePin(){
-
-	}
-
-	public DevicePin(DevicePin pin){
-		data = pin.data;
-		name = pin.name;
-		dataWidth = pin.dataWidth;
-		direction = pin.direction;
-		action = pin.action;
-		startBehaviour = pin.startBehaviour;
-		animListener = pin.animListener;
-		animationDelay = pin.animationDelay;
-	}
-
 	public String data = "";
 	public String name = "";
-	public int dataWidth;
 	public PinDirection direction = PinDirection.LEFT;
 	public PinAction action = PinAction.STATIONARY;
 	public AnimStartBehaviour startBehaviour = AnimStartBehaviour.IMMEDIATE;

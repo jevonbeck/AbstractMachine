@@ -16,11 +16,80 @@
     <string name="data_string">Data: </string>
     <string name="title_activity_von_neumann">VonNeumannActivity</string>
     <string name="title_activity_test">TestActivity</string>
+    <string name="program_memory_title">Program Memory</string>
+    <string name="data_memory_title">Data Memory</string>
 
     <string name="control_unit_state_label">Next Act:</string>
     <string name="program_counter_label">PC:</string>
     <string name="instruction_register_label">IR:</string>
     <string name="decoded_instruction_label">Ins:</string>
+
+    <string name="architecture_type_label">Architecture Type:</string>
+    <string name="architecture_type_harvard">Harvard</string>
+    <string name="architecture_type_von_neumann">Von Neumann</string>
+    <string name="architecture_activity_system_label">System</string>
+    <string name="architecture_activity_core_label">Core</string>
+
+    <string name="compute_core_type_label">Compute Core Type:</string>
+    <string name="compute_core_type_register">Register</string>
+    <string name="compute_core_type_acc">Accumulator</string>
+    <string name="compute_core_type_stack">Stack</string>
+
+    <string name="data_width_label">Data Width:</string>
+    <string name="instr_mem_size_label">Instruction Memory Size:</string>
+    <string name="data_mem_size_label">Data Memory Size:</string>
+    <string name="width_8">8</string>
+    <string name="width_16">16</string>
+    <string name="width_32">32</string>
+    <string name="width_64">64</string>
+
+    <string name="arg1_hint">Operand 1</string>
+    <string name="arg2_hint">Operand 2</string>
+    <string name="arg3_hint">Operand 3</string>
+    <string name="arg4_hint">Operand 4</string>
+    <string name="data_hint">Data Value</string>
+    <string name="label_hint">Label</string>
+    <string name="comment_hint">Comment</string>
+    <string name="filename_hint">File name</string>
+
+    <string name="positive_button_text">OK</string>
+    <string name="negative_button_text">Cancel</string>
+
+    <string name="new_button_text">New</string>
+    <string name="load_button_text">Load</string>
+    <string name="save_button_text">Save</string>
+    <string name="save_message_positive">File saved</string>
+    <string name="save_message_negative">Save failed!</string>
+    <string name="nothing_to_save_message">Nothing to save!</string>
+    <string name="file_too_long_message">File bigger than memory size. Program may NOT work as expected!</string>
+    <string name="invalid_filename_message">Invalid filename</string>
+    <string name="file_list_dialog_title">Select file</string>
+    <string name="filename_dialog_title">Create file</string>
+
+    <string name="wizardactivity_prev_button_text">Previous</string>
+    <string name="wizardactivity_next_button_text">Next</string>
+    <string name="wizardactivity_next_button_finish">Finish</string>
+
+    <string name="inspectactivity_step_button_text">Step</string>
+    <string name="inspectactivity_run_button_text">Run</string>
+    <string name="inspectactivity_stop_button_text">Stop</string>
+    <string name="inspectactivity_reset_button_text">Replay</string>
+    <string name="inspectactivity_system_clock_label">Time elapsed: </string>
+
+    <string name="pin_name_command">command</string>
+    <string name="pin_name_address">address</string>
+    <string name="pin_name_data">data</string>
+    <string name="pin_name_pc_val">PC data</string>
+    <string name="pin_name_ir_val">IR data</string>
+    <string name="pin_name_select">select</string>
+    <string name="pin_data_execute">execute</string>
+    <string name="pin_data_set_next">Set Next</string>
+    <string name="pin_data_get_nop">Get NOP</string>
+    <string name="pin_data_halt">halt</string>
+    <string name="pin_data_sleep">sleep</string>
+    <string name="pin_data_done">done</string>
+    <string name="pin_data_read">read</string>
+    <string name="pin_data_write">write</string>
 
     <string name="title_activity_memory_port_multiplexer_tutorial">
         MemoryPortMultiplexerTutorialActivity
@@ -48,8 +117,8 @@
     <item name="MultiplexerView_middle" type="id"/>
     <item name="MultiplexerView_first_triangle" type="id"/>
     <item name="MultiplexerView_last_triangle" type="id"/>
-    <item name="VonNeumannSystemFragment_main_view" type="id"/>
-    <item name="VonNeumannCoreFragment_main_view" type="id"/>
+    <item name="WizardActivity_ViewPager" type="id"/>
+    <item name="WizardActivity_PreviousButton" type="id"/>
 
     <!-- Custom View Attributes -->
     <integer name="DeviceView_pin_position_left">0</integer>
@@ -67,4 +136,5 @@
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="title_activity_inspect">InspectActivity</string>
 </resources>

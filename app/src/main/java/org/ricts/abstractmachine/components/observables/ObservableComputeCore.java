@@ -16,7 +16,7 @@ public class ObservableComputeCore<T extends ComputeCore> extends ObservableType
 
     public static class ExecuteParams extends ObservableComputeCore.Params {
         protected enum Args{
-            INSTRUCTION, CONTROL_UNIT, PC_PRE_EXECUTED
+            INSTRUCTION, PC_PRE_EXECUTED, PC_POST_EXECUTED, CU_IS_PIPELINED
         }
 
         public ExecuteParams(Object... objects){
@@ -27,22 +27,35 @@ public class ObservableComputeCore<T extends ComputeCore> extends ObservableType
             return (Integer) params[Args.INSTRUCTION.ordinal()];
         }
 
-        public ControlUnitInterface getControlUnit(){
-            return (ControlUnitInterface) params[Args.CONTROL_UNIT.ordinal()];
-        }
-
         public int getPcPreExecute() {
             return (Integer) params[Args.PC_PRE_EXECUTED.ordinal()];
+        }
+
+        public int getPcPostExecute(){
+            return (Integer) params[Args.PC_POST_EXECUTED.ordinal()];
+        }
+
+        public boolean getCuIsPipelined(){
+            return (Boolean) params[Args.CU_IS_PIPELINED.ordinal()];
+        }
+    }
+
+    public static class GetNopParams extends ObservableComputeCore.Params {
+        public GetNopParams(Object... objects){
+            super(objects);
+        }
+
+        public int getNopInstruction() {
+            return (Integer) params[0];
         }
     }
 
     @Override
-    public void executeInstruction(int instruction, MemoryPort dataMemory, ControlUnitInterface cu) {
-        int pcPreExecute = cu.getPC();
-        observable_data.executeInstruction(instruction, dataMemory, cu);
-
+    public void executeInstruction(int programCounter, int instruction, MemoryPort dataMemory, ControlUnitInterface cu) {
+        observable_data.executeInstruction(programCounter, instruction, dataMemory, cu);
         setChanged();
-        notifyObservers(new ExecuteParams(instruction, cu, pcPreExecute));
+        notifyObservers(new ExecuteParams(instruction, programCounter,
+                observable_data.getProgramCounterValue(), cu.isPipelined()));
     }
 
     @Override
@@ -51,8 +64,25 @@ public class ObservableComputeCore<T extends ComputeCore> extends ObservableType
     }
 
     @Override
-    public int nopInstruction() {
-        return observable_data.nopInstruction();
+    public void reset() {
+        observable_data.reset();
+        setChanged();
+        notifyObservers(true); // to differentiate that this update is a reset!
+    }
+
+    @Override
+    public int getNopInstruction() {
+        int nopInstruction = observable_data.getNopInstruction();
+        setChanged();
+        notifyObservers(new GetNopParams(nopInstruction));
+        return nopInstruction;
+    }
+
+    @Override
+    public void checkInterrupts(ControlUnitInterface cu) {
+        observable_data.checkInterrupts(cu);
+        setChanged();
+        notifyObservers(); // TODO: determine if arguments needed
     }
 
     @Override

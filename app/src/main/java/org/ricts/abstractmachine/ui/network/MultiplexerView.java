@@ -20,7 +20,6 @@ import org.ricts.abstractmachine.ui.utils.UiUtils;
 public abstract class MultiplexerView extends RelativeLayout {
     protected View [] inputPins;
     protected View outputPins;
-    protected int currentSel;
 
     private LinearLayout inputPinsLayout;
     private RightAngleTriangleView firstTriangle, lastTriangle, pinTriangle;
@@ -29,7 +28,7 @@ public abstract class MultiplexerView extends RelativeLayout {
     private int inputsPosition;
     private DevicePin selectPinData;
 
-    private int selectWidth, selMask;
+    private Mux muxData;
     private static final int dividerDefaultThickness = 30;
 
     protected abstract View createPinView(Context context, int pinPosition);
@@ -71,7 +70,7 @@ public abstract class MultiplexerView extends RelativeLayout {
         middle.setBackgroundColor(context.getResources().getColor(R.color.mux_fill_color));
 
         selectPinData = new DevicePin();
-        selectPinData.name = "select";
+        selectPinData.name = context.getResources().getString(R.string.pin_name_select);
         switch (outputPosition) {
             case 2: // top
                 if(selectPosition == 0){
@@ -254,7 +253,6 @@ public abstract class MultiplexerView extends RelativeLayout {
         }
 
         /*** Initialise other vars ***/
-        setSelection(0);
         selectPinData.action = DevicePin.PinAction.MOVING;
     }
 
@@ -318,12 +316,12 @@ public abstract class MultiplexerView extends RelativeLayout {
     }
 
     public int getSelection(){
-        return currentSel;
+        return muxData.getSelection();
     }
 
     public void setSelection(int sel){
-        currentSel = sel & selMask;
-        selectPinData.data = Device.formatNumberInHex(currentSel, selectWidth);
+        muxData.setSelection(sel);
+        selectPinData.data = muxData.getSelectionText();
     }
 
     public View [] getInputs(){
@@ -352,16 +350,15 @@ public abstract class MultiplexerView extends RelativeLayout {
     }
 
     public void setSelectWidth(int selW){
-        selectWidth = selW;
-        selMask = (1 << selectWidth) - 1; // bit mask of width selectWidth
-        selectPinData.dataWidth = selectWidth;
+        muxData = new Mux(selW);
+        setSelection(0);
 
         inputPinsLayout.removeAllViewsInLayout();
 
         initOutputPinView(outputPins);
 
         Context c = getContext();
-        inputPins = new View[(int) Math.pow(2,selectWidth)];
+        inputPins = new View[(int) Math.pow(2,selW)];
         for(int x=0; x < inputPins.length; ++x){
             inputPins[x] = createPinView(c, inputsPosition);
             initInputPinView(inputPins[x]);
@@ -384,6 +381,29 @@ public abstract class MultiplexerView extends RelativeLayout {
             case 1: // right
             default:
                 return 0;
+        }
+    }
+
+    private static class Mux extends Device {
+        private int currentSel, selectWidth, selMask;
+
+        public Mux(int selW){
+            selectWidth = selW;
+            selMask = bitMaskOfWidth(selectWidth);
+
+            currentSel = 0;
+        }
+
+        public int getSelection(){
+            return currentSel;
+        }
+
+        public void setSelection(int sel){
+            currentSel = sel & selMask;
+        }
+
+        public String getSelectionText(){
+            return formatNumberInHex(currentSel, selectWidth);
         }
     }
 }

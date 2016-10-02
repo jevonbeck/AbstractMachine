@@ -13,11 +13,11 @@ import org.ricts.abstractmachine.ui.device.DeviceView;
 import org.ricts.abstractmachine.ui.utils.CustomDimenRecyclerView;
 
 public class RomView extends DeviceView implements Observer {
-    protected MemoryDataAdapter dataAdapter;
     protected MemoryPortView memoryPins;
     protected boolean updatePins;
 
     private CustomDimenRecyclerView ramView;
+    private MemoryDataAdapter dataAdapter;
     private int ramItemLayout;
 
     /** Standard Constructors **/
@@ -96,5 +96,9 @@ public class RomView extends DeviceView implements Observer {
 
     public void setAnimatePins(boolean animate){
         updatePins = animate;
+    }
+
+    protected void updateRomUI(){
+        dataAdapter.notifyDataSetChanged();
     }
 }

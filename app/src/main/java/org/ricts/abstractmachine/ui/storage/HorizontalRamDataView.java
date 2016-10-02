@@ -51,26 +51,29 @@ public class HorizontalRamDataView extends CustomDimenRecyclerView {
             case View.MeasureSpec.AT_MOST:
                 //View item = getAdapter().getView(0, null, this);
                 RecyclerView.Adapter adapter = getAdapter();
-                RecyclerView.ViewHolder holder = adapter.createViewHolder(this, adapter.getItemViewType(0));
-                adapter.bindViewHolder(holder, 0);
+                if(adapter != null) {
+                    RecyclerView.ViewHolder holder = adapter.createViewHolder(this, adapter.getItemViewType(0));
+                    adapter.bindViewHolder(holder, 0);
 
-                View item = holder.itemView;
-                TextView addr = (TextView) item.findViewById(R.id.address);
-                TextView data = (TextView) item.findViewById(R.id.data);
+                    View item = holder.itemView;
+                    TextView addr = (TextView) item.findViewById(R.id.address);
+                    TextView data = (TextView) item.findViewById(R.id.data);
 
-                // Measure the text
-                Rect addrBounds = new Rect();
-                String text = (String) addr.getText();
-                addr.getPaint().getTextBounds(text, 0, text.length(), addrBounds);
+                    // Measure the text
+                    Rect addrBounds = new Rect();
+                    String text = (String) addr.getText();
+                    addr.getPaint().getTextBounds(text, 0, text.length(), addrBounds);
 
-                Rect dataBounds = new Rect();
-                text = (String) data.getText();
-                data.getPaint().getTextBounds(text, 0, text.length(), dataBounds);
+                    Rect dataBounds = new Rect();
+                    text = (String) data.getText();
+                    data.getPaint().getTextBounds(text, 0, text.length(), dataBounds);
 
-                int result = (Math.max(Math.abs(addrBounds.width()), Math.abs(dataBounds.width())) +
-                        3 + dividerThickness) * adapter.getItemCount();
+                    float scaleFactor = getContext().getResources().getDisplayMetrics().density;
+                    int result = (Math.max(Math.abs(addrBounds.width()), Math.abs(dataBounds.width())) +
+                            dividerThickness + (int) (2 * scaleFactor)) * adapter.getItemCount();
 
-                return Math.min(result, parentWidth);
+                    return Math.min(result, parentWidth);
+                }
             default:
                 return parentWidth;
         }
@@ -84,20 +87,23 @@ public class HorizontalRamDataView extends CustomDimenRecyclerView {
             case View.MeasureSpec.UNSPECIFIED:
             case View.MeasureSpec.AT_MOST:
                 RecyclerView.Adapter adapter = getAdapter();
-                RecyclerView.ViewHolder holder = adapter.createViewHolder(this, adapter.getItemViewType(0));
-                adapter.bindViewHolder(holder, 0);
+                if(adapter != null) {
+                    RecyclerView.ViewHolder holder = adapter.createViewHolder(this, adapter.getItemViewType(0));
+                    adapter.bindViewHolder(holder, 0);
 
-                View item = holder.itemView;
-                TextView addr = (TextView) item.findViewById(R.id.address);
+                    View item = holder.itemView;
+                    TextView addr = (TextView) item.findViewById(R.id.address);
 
-                // Measure the text
-                Rect bounds = new Rect();
-                String text = (String) addr.getText();
-                addr.getPaint().getTextBounds(text, 0, text.length(), bounds);
+                    // Measure the text
+                    Rect bounds = new Rect();
+                    String text = (String) addr.getText();
+                    addr.getPaint().getTextBounds(text, 0, text.length(), bounds);
 
-                int result = 2 * (Math.abs(bounds.height()) + 14);
+                    float scaleFactor = getContext().getResources().getDisplayMetrics().density;
+                    int result = 2 * (Math.abs(bounds.height()) + (int) (10*scaleFactor));
 
-                return Math.min(result, parentHeight);
+                    return Math.min(result, parentHeight);
+                }
             default:
                 return parentHeight;
         }

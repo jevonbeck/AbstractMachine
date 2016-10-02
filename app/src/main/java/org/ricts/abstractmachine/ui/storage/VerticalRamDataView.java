@@ -47,25 +47,29 @@ public class VerticalRamDataView extends CustomDimenRecyclerView {
             case MeasureSpec.UNSPECIFIED:
             case MeasureSpec.AT_MOST:
                 Adapter adapter = getAdapter();
-                ViewHolder holder = adapter.createViewHolder(this, adapter.getItemViewType(0));
-                adapter.bindViewHolder(holder, 0);
+                if(adapter != null) {
+                    ViewHolder holder = adapter.createViewHolder(this, adapter.getItemViewType(0));
+                    adapter.bindViewHolder(holder, 0);
 
-                View item = holder.itemView;
-                TextView addr = (TextView) item.findViewById(R.id.address);
-                TextView data = (TextView) item.findViewById(R.id.data);
+                    View item = holder.itemView;
+                    TextView addr = (TextView) item.findViewById(R.id.address);
+                    TextView data = (TextView) item.findViewById(R.id.data);
 
-                // Measure the text
-                Rect addrBounds = new Rect();
-                String text = (String) addr.getText();
-                addr.getPaint().getTextBounds(text, 0, text.length(), addrBounds);
+                    // Measure the text
+                    Rect addrBounds = new Rect();
+                    String text = (String) addr.getText();
+                    addr.getPaint().getTextBounds(text, 0, text.length(), addrBounds);
 
-                Rect dataBounds = new Rect();
-                text = (String) data.getText();
-                data.getPaint().getTextBounds(text, 0, text.length(), dataBounds);
+                    Rect dataBounds = new Rect();
+                    text = (String) data.getText();
+                    data.getPaint().getTextBounds(text, 0, text.length(), dataBounds);
 
-                int result = Math.abs(addrBounds.width()) + Math.abs(dataBounds.width()) + 6;
+                    float scaleFactor = getContext().getResources().getDisplayMetrics().density;
+                    int result = Math.abs(addrBounds.width()) + Math.abs(dataBounds.width()) +
+                            (int) (8 * scaleFactor);
 
-                return Math.min(result, parentWidth);
+                    return Math.min(result, parentWidth);
+                }
             default:
                 return parentWidth;
         }
@@ -79,20 +83,24 @@ public class VerticalRamDataView extends CustomDimenRecyclerView {
             case MeasureSpec.UNSPECIFIED:
             case MeasureSpec.AT_MOST:
                 Adapter adapter = getAdapter();
-                ViewHolder holder = adapter.createViewHolder(this, adapter.getItemViewType(0));
-                adapter.bindViewHolder(holder, 0);
+                if(adapter != null) {
+                    ViewHolder holder = adapter.createViewHolder(this, adapter.getItemViewType(0));
+                    adapter.bindViewHolder(holder, 0);
 
-                View item = holder.itemView;
-                TextView addr = (TextView) item.findViewById(R.id.address);
+                    View item = holder.itemView;
+                    TextView addr = (TextView) item.findViewById(R.id.address);
 
-                // Measure the text
-                Rect bounds = new Rect();
-                String text = (String) addr.getText();
-                addr.getPaint().getTextBounds(text, 0, text.length(), bounds);
+                    // Measure the text
+                    Rect bounds = new Rect();
+                    String text = (String) addr.getText();
+                    addr.getPaint().getTextBounds(text, 0, text.length(), bounds);
 
-                int result = adapter.getItemCount() * (Math.abs(bounds.height()) + 14 + dividerThickness);
+                    float scaleFactor = getContext().getResources().getDisplayMetrics().density;
+                    int result = adapter.getItemCount() * (Math.abs(bounds.height()) + dividerThickness +
+                            (int) (10*scaleFactor));
 
-                return Math.min(result, parentHeight);
+                    return Math.min(result, parentHeight);
+                }
             default:
                 return parentHeight;
         }

@@ -27,25 +27,17 @@ public class IsaDecoder extends Device {
 			opcodeNextIndex += currentDecoder.instructionCount();
 		}
 		
-		int extra = 0;
 		for(int x=0; x!= maxWidths.length-1; ++x){
 			int y=x+1; // current width under consideration
 			int relativeDiff = maxWidths[x] - maxWidths[y]; // nextHighestWidth - currentWidth
 			opcodeNextIndex <<= relativeDiff; // opcodeNextIndex *= Math.pow(2, relativeDiff)
-			int availableRange = (1+extra) << relativeDiff; // max no. of instructions allowed by diff without increasing opcodeCount
-			// availableRange = (1+extra)*Math.pow(2, relativeDiff)
-			
+
 			maxIndices = findAllMatch(instructionDecoders, maxWidths[y]); // find all InstructionGroups with current operand width
 			
 			for(int z : maxIndices){
-				instructionDecoders.get(z).startOpcodeRangeFrom(opcodeNextIndex);
-				
-				int instrCount = instructionDecoders.get(z).instructionCount();
-				int quotient = (instrCount/availableRange) << relativeDiff; // (instrCount/availableRange)*Math.pow(2, relativeDiff)
-				int remainder = instrCount%availableRange;
-				
-				opcodeNextIndex += quotient + remainder;
-				extra = availableRange - remainder;	
+                InstructionGroupDecoder currentDecoder = instructionDecoders.get(z);
+                currentDecoder.startOpcodeRangeFrom(opcodeNextIndex);
+				opcodeNextIndex += currentDecoder.instructionCount();
 			}
 		}
 		int opcodeMaxIndex = (opcodeNextIndex - 1) >>> (maxWidths[0] - maxWidths[maxWidths.length-1]);

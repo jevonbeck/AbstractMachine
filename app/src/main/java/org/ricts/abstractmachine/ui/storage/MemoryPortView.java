@@ -4,7 +4,7 @@ import android.content.Context;
 import android.util.AttributeSet;
 import android.view.animation.Animation;
 
-import org.ricts.abstractmachine.components.devicetype.Device;
+import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.observables.ObservableRAM;
 import org.ricts.abstractmachine.components.storage.RAM;
 import org.ricts.abstractmachine.ui.device.DevicePin;
@@ -21,6 +21,7 @@ public class MemoryPortView extends ReadPortView {
     }
 
     private WriteResponder writeResponder;
+    private String writeString;
 
     /** Standard Constructors **/
     public MemoryPortView(Context context) {
@@ -33,6 +34,7 @@ public class MemoryPortView extends ReadPortView {
 
     public MemoryPortView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
+        writeString = context.getResources().getString(R.string.pin_data_write);
     }
 
     @Override
@@ -42,23 +44,19 @@ public class MemoryPortView extends ReadPortView {
             ObservableRAM observedRam = (ObservableRAM) observable;
             RAM ram = observedRam.getType();
 
-            final int address = params.getAddress();
-            final int data = params.getData();
-            int dataWidth = ram.dataWidth();
-            int addressWidth = ram.addressWidth();
+            int address = params.getAddress();
+            int data = params.getData();
 
             // Setup correct data in pin UI
             DevicePin pin = pinArray[PinNames.ADDRESS.ordinal()];
-            pin.dataWidth = addressWidth;
-            pin.data = Device.formatNumberInHex(address, addressWidth);
+            pin.data = ram.addressString(address);
             pin.direction = inDirection;
             pin.action = DevicePin.PinAction.MOVING;
             pin.startBehaviour = DevicePin.AnimStartBehaviour.DELAY;
             pin.animationDelay = startDelay;
 
             pin = pinArray[PinNames.DATA.ordinal()];
-            pin.dataWidth = dataWidth;
-            pin.data = Device.formatNumberInHex(data, dataWidth);
+            pin.data = ram.dataString(data);
             pin.direction = inDirection;
             pin.action = DevicePin.PinAction.MOVING;
             pin.startBehaviour = DevicePin.AnimStartBehaviour.DELAY;
@@ -66,7 +64,7 @@ public class MemoryPortView extends ReadPortView {
             pin.animListener = null;
 
             pin = pinArray[PinNames.COMMAND.ordinal()];
-            pin.data = "write";
+            pin.data = writeString;
             pin.direction = inDirection;
             pin.action = DevicePin.PinAction.MOVING;
             pin.startBehaviour = DevicePin.AnimStartBehaviour.DELAY;

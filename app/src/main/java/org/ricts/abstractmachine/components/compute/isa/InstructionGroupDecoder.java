@@ -24,11 +24,14 @@ public class InstructionGroupDecoder extends Device {
 			operandDecoders[x] = new OpDecoder(opWidths[x], offset);
 			offset += opWidths[x];
 		}
-		
+
+        operandsCombinedWidth = offset;
+        /*
 		operandsCombinedWidth = 0;
 		for(int x=0; x != operandDecoders.length; ++x){
 			operandsCombinedWidth += operandDecoders[x].dataWidth();
-		}				
+		}
+        */
 	}
 	
 	public void startOpcodeRangeFrom(int startIndex){

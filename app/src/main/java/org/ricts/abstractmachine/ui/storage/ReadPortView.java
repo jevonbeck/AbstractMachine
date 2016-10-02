@@ -4,7 +4,7 @@ import android.content.Context;
 import android.util.AttributeSet;
 import android.view.animation.Animation;
 
-import org.ricts.abstractmachine.components.devicetype.Device;
+import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.observables.ObservableROM;
 import org.ricts.abstractmachine.components.storage.ROM;
 import org.ricts.abstractmachine.ui.device.DevicePin;
@@ -25,6 +25,7 @@ public class ReadPortView extends MultiPinView implements Observer {
     protected int readDelay;
 
     private ReadResponder readResponder;
+    private String readString;
 
     protected enum PinNames{
         COMMAND, ADDRESS, DATA
@@ -46,24 +47,24 @@ public class ReadPortView extends MultiPinView implements Observer {
         // initialise pin names (memoryPins data)
         DevicePin[] pinData = new DevicePin[PinNames.values().length];
         DevicePin pin = new DevicePin();
-        pin.name = "command";
-        pin.dataWidth = 2;
+        pin.name = context.getResources().getString(R.string.pin_name_command);
         pinData[PinNames.COMMAND.ordinal()] = pin;
 
         pin = new DevicePin();
-        pin.name = "address";
+        pin.name = context.getResources().getString(R.string.pin_name_address);
         pinData[PinNames.ADDRESS.ordinal()] = pin;
 
         pin = new DevicePin();
-        pin.name = "data";
+        pin.name = context.getResources().getString(R.string.pin_name_data);
         pinData[PinNames.DATA.ordinal()] = pin;
 
         /*** bind pin child to its data ***/
         setPinData(pinData);
 
         /*** Setup other vars ***/
-        setReadAnimationDelay(1);
+        setReadDelayByMultiple(1);
         startDelay = 0;
+        readString = context.getResources().getString(R.string.pin_data_read);
     }
 
     @Override
@@ -72,14 +73,11 @@ public class ReadPortView extends MultiPinView implements Observer {
             ObservableROM observedRom = (ObservableROM) observable;
             ROM rom = (ROM) observedRom.getType();
 
-            final int address = ((ObservableROM.ReadParams) o).getAddress();
-            final int readData = rom.read(address);
-            int dataWidth = rom.dataWidth();
-            int addressWidth = rom.addressWidth();
+            int address = ((ObservableROM.ReadParams) o).getAddress();
 
             // Setup correct data in pin UI
             DevicePin pin = pinArray[PinNames.COMMAND.ordinal()];
-            pin.data = "read";
+            pin.data = readString;
             pin.direction = inDirection;
             pin.action = DevicePin.PinAction.MOVING;
             pin.startBehaviour = DevicePin.AnimStartBehaviour.DELAY;
@@ -87,16 +85,14 @@ public class ReadPortView extends MultiPinView implements Observer {
             pin.animListener = null;
 
             pin = pinArray[PinNames.ADDRESS.ordinal()];
-            pin.dataWidth = addressWidth;
-            pin.data = Device.formatNumberInHex(address, addressWidth);
+            pin.data = rom.addressString(address);
             pin.direction = inDirection;
             pin.action = DevicePin.PinAction.MOVING;
             pin.startBehaviour = DevicePin.AnimStartBehaviour.DELAY;
             pin.animationDelay = startDelay;
 
             pin = pinArray[PinNames.DATA.ordinal()];
-            pin.dataWidth = dataWidth;
-            pin.data = Device.formatNumberInHex(readData, dataWidth);
+            pin.data = rom.dataAtAddressString(address);
             pin.direction = outDirection;
             pin.action = DevicePin.PinAction.MOVING;
             pin.startBehaviour = DevicePin.AnimStartBehaviour.DELAY;
@@ -126,7 +122,7 @@ public class ReadPortView extends MultiPinView implements Observer {
         }
     }
 
-    public void setReadAnimationDelay(int delayMultiple){
+    public void setReadDelayByMultiple(int delayMultiple){
         readDelay = getDelay(delayMultiple);
     }
 
