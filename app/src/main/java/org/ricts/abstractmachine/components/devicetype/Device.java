@@ -8,6 +8,9 @@ package org.ricts.abstractmachine.components.devicetype;
  *
  */
 public class Device {
+    protected static final int BYTE_WIDTH = 8;
+    protected static final int HEX_RADIX = 16;
+
     protected static int bitMaskOfWidth(int width){
         return ((1 << width) - 1);
     }
@@ -59,6 +62,16 @@ public class Device {
         String temp = Integer.toHexString(number & bitMaskOfWidth(bitWidth));
 
         return "0x" + zeroPad((int) Math.ceil(bitWidth/4.0) - temp.length()) + temp;
+    }
+
+    public static int parseHex(String text){
+        String pureNumber = text;
+        if(text.contains("x") || text.contains("X")) {
+            String lowerCase = text.toLowerCase();
+            pureNumber = lowerCase.substring(lowerCase.indexOf('x') + 1);
+        }
+
+        return Integer.parseInt(pureNumber, HEX_RADIX);
     }
 
     private static String zeroPad(int count){

@@ -41,7 +41,6 @@ public class FilenameDialogFragment extends DialogFragment {
         // TODO: scope text input
         final EditText mainView = new EditText(context);
         mainView.setHint(R.string.filename_hint);
-        // android:inputType = "textPersonName"
         mainView.setRawInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PERSON_NAME);
 
         /** Actually create the dialog **/
@@ -63,6 +62,7 @@ public class FilenameDialogFragment extends DialogFragment {
                     }
                 })
                 .setNegativeButton(R.string.negative_button_text, new DialogInterface.OnClickListener() {
+                    @Override
                     public void onClick(DialogInterface dialog, int id) {
                         FilenameDialogFragment.this.getDialog().cancel();
                     }

@@ -1,6 +1,8 @@
 package org.ricts.abstractmachine.components.compute.cores;
 
+import org.ricts.abstractmachine.components.compute.isa.InstructionGroupDecoder;
 import org.ricts.abstractmachine.components.compute.isa.IsaDecoder;
+import org.ricts.abstractmachine.components.compute.isa.OperandInfo;
 import org.ricts.abstractmachine.components.devicetype.Device;
 import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
 import org.ricts.abstractmachine.components.interfaces.ControlUnitInterface;
@@ -23,7 +25,11 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
     }
 
     public abstract String [] getMneumonicList();
-    public abstract int getOperandCount(String mneumonic);
+    public abstract OperandInfo[] getOperandInfoArray(String mneumonic);
+    public abstract OperandInfo getDataOperandInfo();
+    public abstract OperandInfo getDataRegOperandInfo();
+    public abstract OperandInfo getDataAddrOperandInfo();
+    public abstract OperandInfo getInstrAddrOperandInfo();
     public abstract int getProgramCounterValue();
     public abstract void reset();
 
@@ -68,14 +74,14 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
 		int instruct = instruction & instrBitMask;
 		if(instrDecoder.isValidInstruction(instruct)){
 			// decode instruction
-			int decoderIndex = instrDecoder.getDecoderIndex(instruct);
+            InstructionGroupDecoder decoder = instrDecoder.getDecoderForInstruction(instruct);
+
+			String groupName = decoder.groupName();
+			int groupIndex = decoder.decode(instruct);
 			
-			String groupName = instrDecoder.groupName(decoderIndex);
-			int groupIndex = instrDecoder.decode(instruct, decoderIndex);
-			
-			int[] operands = new int [instrDecoder.operandCount(decoderIndex)];
+			int[] operands = new int [decoder.operandCount()];
 			for(int x=0; x != operands.length; ++x){
-				operands[x] = instrDecoder.getOperand(x, instruct, decoderIndex);
+				operands[x] = decoder.getOperand(x, instruct);
 			}
 						
 			// fetch/indirect operands and execute instruction
@@ -116,13 +122,13 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
 		int instruct = instruction & instrBitMask;
 		if(instrDecoder.isValidInstruction(instruct)){
 			// decode instruction
-			int decoderIndex = instrDecoder.getDecoderIndex(instruct);
-			
-			String groupName = instrDecoder.groupName(decoderIndex);
-			int groupIndex = instrDecoder.decode(instruct, decoderIndex);
+            InstructionGroupDecoder decoder = instrDecoder.getDecoderForInstruction(instruct);
+
+            String groupName = decoder.groupName();
+            int groupIndex = decoder.decode(instruct);
 						
 			// determine execute time for instruction
-			return executionTime(groupName, groupIndex, dataMemory);			
+			return executionTime(groupName, groupIndex, dataMemory);
 		}
 		
 		return -1;
@@ -148,10 +154,10 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
         int instruct = instruction & instrBitMask;
         if(instrDecoder.isValidInstruction(instruct)){
             // decode instruction
-            int decoderIndex = instrDecoder.getDecoderIndex(instruct);
+            InstructionGroupDecoder decoder = instrDecoder.getDecoderForInstruction(instruct);
 
-            String groupName = instrDecoder.groupName(decoderIndex);
-            int groupIndex = instrDecoder.decode(instruct, decoderIndex);
+            String groupName = decoder.groupName();
+            int groupIndex = decoder.decode(instruct);
 
             // determine if instruction halts the CPU
             return isHaltInstr(groupName, groupIndex);
@@ -160,13 +166,12 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
     }
 
     public boolean isSleepInstruction(int instruction) {
-        int instruct = instruction & instrBitMask;
-        if(instrDecoder.isValidInstruction(instruct)){
+        if(instrDecoder.isValidInstruction(instruction)){
             // decode instruction
-            int decoderIndex = instrDecoder.getDecoderIndex(instruct);
+            InstructionGroupDecoder decoder = instrDecoder.getDecoderForInstruction(instruction);
 
-            String groupName = instrDecoder.groupName(decoderIndex);
-            int groupIndex = instrDecoder.decode(instruct, decoderIndex);
+            String groupName = decoder.groupName();
+            int groupIndex = decoder.decode(instruction);
 
             // determine if instruction halts the CPU
             return isSleepInstr(groupName, groupIndex);
@@ -178,10 +183,10 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
         int instruct = instruction & instrBitMask;
         if(instrDecoder.isValidInstruction(instruct)){
             // decode instruction
-            int decoderIndex = instrDecoder.getDecoderIndex(instruct);
+            InstructionGroupDecoder decoder = instrDecoder.getDecoderForInstruction(instruct);
 
-            String groupName = instrDecoder.groupName(decoderIndex);
-            int groupIndex = instrDecoder.decode(instruct, decoderIndex);
+            String groupName = decoder.groupName();
+            int groupIndex = decoder.decode(instruct);
 
             // determine if instruction accesses data memory
             return isDataMemInstr(groupName, groupIndex);
@@ -193,18 +198,18 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
         int instruct = instruction & instrBitMask;
         if(instrDecoder.isValidInstruction(instruct)){
             // decode instruction
-            int decoderIndex = instrDecoder.getDecoderIndex(instruct);
+            InstructionGroupDecoder decoder = instrDecoder.getDecoderForInstruction(instruct);
 
-            String groupName = instrDecoder.groupName(decoderIndex);
-            int groupIndex = instrDecoder.decode(instruct, decoderIndex);
+            String groupName = decoder.groupName();
+            int groupIndex = decoder.decode(instruct);
 
-            int[] operands = new int [instrDecoder.operandCount(decoderIndex)];
+            int[] operands = new int [decoder.operandCount()];
             for(int x=0; x != operands.length; ++x){
-                operands[x] = instrDecoder.getOperand(x, instruct, decoderIndex);
+                operands[x] = decoder.getOperand(x, instruct);
             }
 
             // print string version of instruction
-            return  insToString(groupName, groupIndex, operands);
+            return insToString(groupName, groupIndex, operands);
         }
         return "Ins invalid!";
     }

@@ -14,6 +14,7 @@ import android.widget.RadioGroup;
 
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.compute.cores.ComputeCore;
+import org.ricts.abstractmachine.components.compute.isa.OperandInfo;
 
 /**
  * Created by Jevon on 02/07/2016.
@@ -35,9 +36,9 @@ public class InstrMemFragment extends MemFragment {
     }
 
     @Override
-    protected MemoryContentsDialogFragment getMemoryContentsDialogFragment(
+    protected MemoryContentsDialogFragment getMemoryContentsDialogFragment(int position,
             AssemblyMemoryData data, ComputeCore core, MemoryContentsDialogFragment.ListUpdater updater) {
-        return InstrMemoryDialogFragment.newInstance(data, core, updater);
+        return InstrMemoryDialogFragment.newInstance(position, data, core, updater);
     }
 
     public static class InstrMemoryDialogFragment extends MemoryContentsDialogFragment {
@@ -46,10 +47,10 @@ public class InstrMemFragment extends MemFragment {
             // Required empty public constructor
         }
 
-        public static InstrMemoryDialogFragment newInstance(AssemblyMemoryData data, ComputeCore core,
+        public static InstrMemoryDialogFragment newInstance(int position, AssemblyMemoryData data, ComputeCore core,
                                                             ListUpdater updater){
             InstrMemoryDialogFragment fragment = new InstrMemoryDialogFragment();
-            fragment.init(data, core, updater);
+            fragment.init(position, data, core, updater);
             return fragment;
         }
 
@@ -83,7 +84,7 @@ public class InstrMemFragment extends MemFragment {
 
                     String mneumonic = button.getText().toString();
                     int operandCount = mneumonic.equals(DATA_MNEUMONIC) ?
-                            1 : mainCore.getOperandCount(mneumonic);
+                            1 : mainCore.getOperandInfoArray(mneumonic).length;
 
                     // update visibility of EditTexts to only enter appropriate number of operands
                     switch (operandCount){
@@ -172,29 +173,31 @@ public class InstrMemFragment extends MemFragment {
                             int encodedInstruction;
                             String instructionText;
                             if(mneumonic.equals(DATA_MNEUMONIC)){
-                                encodedInstruction = getSafeInt(operandOneEditText);
+                                encodedInstruction = getSafeInt(operandOneEditText, mainCore.getDataOperandInfo());
                                 instructionText = DATA_MNEUMONIC + " " +
                                         mainCore.instrValueString(encodedInstruction);
                                 operands = new int[1];
                                 operands[0] = encodedInstruction;
                             }
                             else{
-                                int operandCount = mainCore.getOperandCount(mneumonic);
+                                OperandInfo[] operandInfoArray = mainCore.getOperandInfoArray(mneumonic);
+                                int operandCount = operandInfoArray.length;
                                 operands = new int[operandCount];
                                 for(int x=0; x < operandCount; ++x){
                                     int editTextValue = -1;
+                                    OperandInfo operandInfo = operandInfoArray[x];
                                     switch (x){
                                         case 0:
-                                            editTextValue = getSafeInt(operandOneEditText);
+                                            editTextValue = getSafeInt(operandOneEditText, operandInfo);
                                             break;
                                         case 1:
-                                            editTextValue = getSafeInt(operandTwoEditText);
+                                            editTextValue = getSafeInt(operandTwoEditText, operandInfo);
                                             break;
                                         case 2:
-                                            editTextValue = getSafeInt(operandThreeEditText);
+                                            editTextValue = getSafeInt(operandThreeEditText, operandInfo);
                                             break;
                                         case 3:
-                                            editTextValue = getSafeInt(operandFourEditText);
+                                            editTextValue = getSafeInt(operandFourEditText, operandInfo);
                                             break;
                                     }
                                     operands[x] = editTextValue;
@@ -204,12 +207,22 @@ public class InstrMemFragment extends MemFragment {
                                 instructionText = mainCore.instrString(encodedInstruction);
                             }
 
+                            // update instruction address mapping, if any
+                            OperandInfo instrOpInfo = mainCore.getInstrAddrOperandInfo();
+                            String labelText = labelEditText.getText().toString();
+                            if(!labelText.equals("")){
+                                instrOpInfo.addMapping(labelText, memoryAddress);
+                            }
+                            else {
+                                instrOpInfo.removeMapping(memoryAddress);
+                            }
+
                             // update instruction data in list
                             memoryData.setMneumonic(mneumonic);
                             memoryData.setOperands(operands);
                             memoryData.setMemoryContents(instructionText);
                             memoryData.setNumericValue(mainCore.instrValueString(encodedInstruction));
-                            memoryData.setLabel(labelEditText.getText().toString());
+                            memoryData.setLabel(labelText);
                             memoryData.setComment(commentEditText.getText().toString());
                             mUpdater.notifyUpdate();
                         }

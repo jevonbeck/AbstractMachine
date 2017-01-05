@@ -23,6 +23,8 @@ import android.widget.Toast;
 
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.compute.cores.ComputeCore;
+import org.ricts.abstractmachine.components.compute.isa.OperandInfo;
+import org.ricts.abstractmachine.components.devicetype.Device;
 import org.ricts.abstractmachine.ui.activities.InspectActivity;
 import org.ricts.abstractmachine.ui.utils.wizard.WizardFragment;
 
@@ -43,7 +45,7 @@ public abstract class MemFragment extends WizardFragment {
     protected abstract String memoryTypeString();
     protected abstract int titleStringResource();
     protected abstract AssemblyMemoryData.MemoryType memoryType();
-    protected abstract MemoryContentsDialogFragment getMemoryContentsDialogFragment(
+    protected abstract MemoryContentsDialogFragment getMemoryContentsDialogFragment(int position,
             AssemblyMemoryData data, ComputeCore core, MemoryContentsDialogFragment.ListUpdater updater);
 
     protected static final String DATA_MNEUMONIC = "DATA";
@@ -51,16 +53,16 @@ public abstract class MemFragment extends WizardFragment {
     private static final String INSTR_DIALOG_TAG = "instructionFragment";
     private static final String FILE_DIALOG_TAG = "filenameFragment";
     private static final String LOADFILE_DIALOG_TAG = "loadFileFragment";
+    private static final String MAPPING_DIALOG_TAG = "mappingFragment";
     private static final String PROGRAM_ADAPTER_DATA = "programMetaData"; // key for instruction UI metadata
     private static final String DATA_ADAPTER_DATA = "dataMetaData"; // key for data memory UI metadata
-    private static final int HEX_RADIX = 16;
     private static final String INS_SEPERATOR = ",";
     private static final String INS_DATA_SEPERATOR = ";";
 
     private ComputeCore mainCore;
     private ArrayList<AssemblyMemoryData> adapterData;
     private ListView memoryContentsListView;
-    private Button saveButton, loadButton, newButton;
+    private Button mappingButton, saveButton, loadButton, newButton;
     private String currentFile;
 
     public MemFragment() {
@@ -73,6 +75,7 @@ public abstract class MemFragment extends WizardFragment {
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_memory, container, false);
         memoryContentsListView = (ListView) rootView.findViewById(R.id.listView);
+        mappingButton = (Button) rootView.findViewById(R.id.mappingButton);
         saveButton = (Button) rootView.findViewById(R.id.saveButton);
         loadButton = (Button) rootView.findViewById(R.id.loadButton);
         newButton = (Button) rootView.findViewById(R.id.newButton);
@@ -94,10 +97,9 @@ public abstract class MemFragment extends WizardFragment {
         String key = getAdapterDataKey();
         bundle.putParcelableArrayList(key, adapterData);
 
-        ArrayList<Integer> memoryContents = new ArrayList<Integer>();
+        ArrayList<Integer> memoryContents = new ArrayList<>();
         for(AssemblyMemoryData data: adapterData){
-            String formattedValue = data.getNumericValue();
-            memoryContents.add( parseHex( formattedValue.substring(formattedValue.indexOf('x') + 1) ) );
+            memoryContents.add(Device.parseHex(data.getNumericValue()));
         }
 
         switch (memoryType()){
@@ -142,18 +144,17 @@ public abstract class MemFragment extends WizardFragment {
             String [] availableFiles = coreRootDir.list();
             if(availableFiles.length == 0){ // no files available
                 currentFile = null;
-                adapterData = new ArrayList<AssemblyMemoryData>();
+                adapterData = new ArrayList<>();
             }
             else{
                 SharedPreferences preferences =
                         context.getSharedPreferences(PREFERENCES_FILE, Context.MODE_PRIVATE);
                 // load most recently used file OR 1st (and only file)
-                loadListViewData(preferences.getString(coreRootDir.getPath(), availableFiles[0]),
-                        context, dataBundle);
+                loadListViewData(preferences.getString(coreRootDir.getPath(), availableFiles[0]), dataBundle);
             }
         } // else 'adapterData' has already been initialised
 
-        populateListView(context);
+        populateListView();
 
         /** Configure Save button **/
         final FilenameDialogFragment.FileSaver saver = new FilenameDialogFragment.FileSaver(){
@@ -177,6 +178,17 @@ public abstract class MemFragment extends WizardFragment {
             }
         };
 
+        mappingButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                DialogFragment fragment = MappingDialogFragment.newInstance(
+                        new MappingDialogFragment.MneumonicTypeMapping(mainCore.getDataOperandInfo()),
+                        new MappingDialogFragment.MneumonicTypeMapping(mainCore.getDataRegOperandInfo()));
+                fragment.show(MemFragment.this.getActivity().getSupportFragmentManager(),
+                        MAPPING_DIALOG_TAG);
+            }
+        });
+
         saveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -197,33 +209,12 @@ public abstract class MemFragment extends WizardFragment {
             @Override
             public void onClick(View view) {
                 /** load a file into the current list (limited by memoryContents address width) **/
-                final String [] fileList = getComputeCorePath(dataBundle, context).list();
+                String [] fileList = getComputeCorePath(dataBundle, context).list();
 
                 // prompt user to select a file from list of available file names and
                 // initialise ListView
-                DialogFragment fragment = new DialogFragment(){
-                    private DialogFragment fragmentReference = this;
-
-                    @NonNull
-                    @Override
-                    public Dialog onCreateDialog(Bundle savedInstanceState){
-                        final AlertDialog.Builder builder = new AlertDialog.Builder(context);
-                        builder.setTitle(R.string.file_list_dialog_title)
-                                .setItems(fileList, new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialogInterface, int which) {
-                                        loadListViewData(fileList[which], context, dataBundle);
-                                        populateListView(context);
-                                    }
-                                })
-                                .setNegativeButton(R.string.negative_button_text, new DialogInterface.OnClickListener() {
-                                    public void onClick(DialogInterface dialog, int id) {
-                                        fragmentReference.getDialog().cancel();
-                                    }
-                                });
-                        return builder.create();
-                    }
-                };
+                DialogFragment fragment =
+                        LoadFileDialogFragment.newInstance(MemFragment.this, fileList, dataBundle);
                 fragment.show(MemFragment.this.getActivity().getSupportFragmentManager(),
                         LOADFILE_DIALOG_TAG);
             }
@@ -234,13 +225,14 @@ public abstract class MemFragment extends WizardFragment {
             @Override
             public void onClick(View view) {
                 currentFile = null;
-                adapterData = new ArrayList<AssemblyMemoryData>();
-                populateListView(context);
+                adapterData = new ArrayList<>();
+                populateListView();
             }
         });
     }
 
-    private void loadListViewData(String filename, Context context, Bundle dataBundle){
+    public void loadListViewData(String filename, Bundle dataBundle){
+        Context context = getContext();
         currentFile = filename;
 
         File coreRootDir = getComputeCorePath(dataBundle, context);
@@ -257,8 +249,8 @@ public abstract class MemFragment extends WizardFragment {
         editor.apply();
     }
 
-    private void populateListView(Context context){
-        final AssemblyCodeAdapter adapter = new AssemblyCodeAdapter(context, R.layout.listitem_instruction,
+    public void populateListView(){
+        final AssemblyCodeAdapter adapter = new AssemblyCodeAdapter(getContext(), R.layout.listitem_instruction,
                 mainCore, adapterData, memoryType());
 
         final MemoryContentsDialogFragment.ListUpdater updater = new MemoryContentsDialogFragment.ListUpdater(){
@@ -272,7 +264,7 @@ public abstract class MemFragment extends WizardFragment {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
                 // Get current item data and pass it to new custom DialogFragment
-                DialogFragment fragment = getMemoryContentsDialogFragment(
+                DialogFragment fragment = getMemoryContentsDialogFragment(position,
                         (AssemblyMemoryData) adapterView.getItemAtPosition(position),
                         mainCore, updater);
 
@@ -284,7 +276,7 @@ public abstract class MemFragment extends WizardFragment {
     }
 
     private ArrayList<AssemblyMemoryData> loadListFromFile(File file, int maxLines, Context context){
-        ArrayList<AssemblyMemoryData> result = new ArrayList<AssemblyMemoryData>();
+        ArrayList<AssemblyMemoryData> result = new ArrayList<>();
 
         try {
             BufferedReader buf = new BufferedReader(new FileReader(file));
@@ -391,8 +383,44 @@ public abstract class MemFragment extends WizardFragment {
         return context.getDir(directoryName, Context.MODE_PRIVATE);
     }
 
-    private static int parseHex(String text){
-        return Integer.parseInt(text, HEX_RADIX);
+    public static class LoadFileDialogFragment extends DialogFragment {
+        private String [] fileList;
+        private MemFragment parentFragment;
+        private Bundle dataBundle;
+
+        @NonNull
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState){
+            final Context context = getContext();
+            final AlertDialog.Builder builder = new AlertDialog.Builder(context);
+            builder.setTitle(R.string.file_list_dialog_title)
+                    .setItems(fileList, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int which) {
+                            parentFragment.loadListViewData(fileList[which], dataBundle);
+                            parentFragment.populateListView();
+                        }
+                    })
+                    .setNegativeButton(R.string.negative_button_text, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            LoadFileDialogFragment.this.getDialog().cancel();
+                        }
+                    });
+            return builder.create();
+        }
+
+        public static LoadFileDialogFragment newInstance(MemFragment memFragment,
+                                                         String [] files, Bundle configData){
+            LoadFileDialogFragment fragment = new LoadFileDialogFragment();
+            fragment.init(memFragment, files, configData);
+            return fragment;
+        }
+
+        public void init(MemFragment memFragment, String [] files, Bundle configData){
+            parentFragment = memFragment;
+            fileList = files;
+            dataBundle = configData;
+        }
     }
 
     public static class MemoryContentsDialogFragment extends DialogFragment {
@@ -400,19 +428,33 @@ public abstract class MemFragment extends WizardFragment {
             void notifyUpdate();
         }
 
+        protected int memoryAddress;
         protected ComputeCore mainCore;
         protected AssemblyMemoryData memoryData;
         protected ListUpdater mUpdater;
 
-        public void init(AssemblyMemoryData data, ComputeCore core, ListUpdater updater){
+        public void init(int position, AssemblyMemoryData data, ComputeCore core, ListUpdater updater){
+            memoryAddress = position;
             memoryData = data;
             mainCore = core;
             mUpdater = updater;
         }
 
         protected int getSafeInt(EditText editText){
+            return convertTextToHex(editText.getText().toString());
+        }
+
+        protected int getSafeInt(EditText editText, OperandInfo operandInfo){
             String currentText = editText.getText().toString();
-            return currentText.equals("") ? 0 : parseHex(currentText);
+            if(operandInfo.hasMneumonic(currentText)) {
+                return operandInfo.decodeMneumonic(currentText);
+            }
+
+            return convertTextToHex(currentText);
+        }
+
+        private int convertTextToHex(String text){
+            return text.equals("") ? 0 : Device.parseHex(text);
         }
     }
 
@@ -452,6 +494,7 @@ public abstract class MemFragment extends WizardFragment {
             }
         }
 
+        @NonNull
         @Override
         public View getView(int position, View convertView, ViewGroup parent){
             if(convertView == null){

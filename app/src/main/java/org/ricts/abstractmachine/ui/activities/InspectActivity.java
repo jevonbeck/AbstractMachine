@@ -36,7 +36,7 @@ public abstract class InspectActivity extends AppCompatActivity implements Inspe
         }
     }
 
-    Button advanceButton, runButton, stopButton, resetButton;
+    private Button advanceButton, runButton, stopButton, resetButton;
 
     private ViewPager pager;
     private PagerAdapter pagerAdapter;
@@ -68,12 +68,14 @@ public abstract class InspectActivity extends AppCompatActivity implements Inspe
         runButton = (Button) findViewById(R.id.runButton);
         stopButton = (Button) findViewById(R.id.stopButton);
         stopButton.setEnabled(false);
+        resetButton = (Button) findViewById(R.id.resetButton);
 
         advanceButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 view.setEnabled(false);
                 runButton.setEnabled(false);
+                resetButton.setEnabled(false);
 
                 advanceTime();
             }
@@ -84,6 +86,7 @@ public abstract class InspectActivity extends AppCompatActivity implements Inspe
             public void onClick(View view) {
                 view.setEnabled(false);
                 advanceButton.setEnabled(false);
+                resetButton.setEnabled(false);
                 stopButton.setEnabled(true);
 
                 isRunning = true;
@@ -100,7 +103,6 @@ public abstract class InspectActivity extends AppCompatActivity implements Inspe
             }
         });
 
-        resetButton = (Button) findViewById(R.id.resetButton);
         resetButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -144,6 +146,7 @@ public abstract class InspectActivity extends AppCompatActivity implements Inspe
         else {
             advanceButton.setEnabled(true);
             runButton.setEnabled(true);
+            resetButton.setEnabled(true);
             Log.d(TAG, "onStepActionCompleted()");
         }
 

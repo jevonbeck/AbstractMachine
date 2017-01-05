@@ -58,6 +58,7 @@
     <string name="new_button_text">New</string>
     <string name="load_button_text">Load</string>
     <string name="save_button_text">Save</string>
+    <string name="mapping_button_text">Mapping</string>
     <string name="save_message_positive">File saved</string>
     <string name="save_message_negative">Save failed!</string>
     <string name="nothing_to_save_message">Nothing to save!</string>
@@ -65,6 +66,11 @@
     <string name="invalid_filename_message">Invalid filename</string>
     <string name="file_list_dialog_title">Select file</string>
     <string name="filename_dialog_title">Create file</string>
+
+    <string name="key_label_text">Key</string>
+    <string name="value_label_text">Value</string>
+    <string name="add_button_text">Add</string>
+    <string name="remove_button_text">Remove</string>
 
     <string name="wizardactivity_prev_button_text">Previous</string>
     <string name="wizardactivity_next_button_text">Next</string>
@@ -90,6 +96,10 @@
     <string name="pin_data_done">done</string>
     <string name="pin_data_read">read</string>
     <string name="pin_data_write">write</string>
+
+    <string name="mapping_dialog_title">Add a mapping</string>
+    <string name="data_mapping_button_text">Data Literal</string>
+    <string name="data_reg_mapping_button_text">Data Register</string>
 
     <string name="title_activity_memory_port_multiplexer_tutorial">
         MemoryPortMultiplexerTutorialActivity
@@ -119,6 +129,8 @@
     <item name="MultiplexerView_last_triangle" type="id"/>
     <item name="WizardActivity_ViewPager" type="id"/>
     <item name="WizardActivity_PreviousButton" type="id"/>
+    <item name="MappingDialogFragment_dataMappingButton" type="id"/>
+    <item name="MappingDialogFragment_dataRegMappingButton" type="id"/>
 
     <!-- Custom View Attributes -->
     <integer name="DeviceView_pin_position_left">0</integer>

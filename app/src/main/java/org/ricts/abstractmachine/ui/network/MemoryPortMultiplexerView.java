@@ -4,6 +4,7 @@ import android.content.Context;
 import android.util.AttributeSet;
 import android.view.View;
 
+import org.ricts.abstractmachine.components.observables.ObservableROM;
 import org.ricts.abstractmachine.ui.device.DeviceView;
 import org.ricts.abstractmachine.ui.storage.MemoryPortView;
 
@@ -66,7 +67,10 @@ public class MemoryPortMultiplexerView extends MultiplexerView implements Observ
     }
 
     public void animatePins(){
-        animateSelectPin(); // initiate select pin animation
+        if (currentObject != null && currentObject instanceof ObservableROM.ReadParams) {
+            animateSelectPin(); // initiate select pin animation
+        }
+
         ((MemoryPortView) outputPins).update(
                 currentObservable, currentObject); // initiate output pin animation
         ((MemoryPortView) inputPins[getSelection()]).update(

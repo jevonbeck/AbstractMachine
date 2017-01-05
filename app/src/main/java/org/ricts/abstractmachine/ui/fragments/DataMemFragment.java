@@ -12,6 +12,7 @@ import android.widget.EditText;
 
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.compute.cores.ComputeCore;
+import org.ricts.abstractmachine.components.compute.isa.OperandInfo;
 
 /**
  * Created by Jevon on 02/07/2016.
@@ -33,9 +34,9 @@ public class DataMemFragment extends MemFragment {
     }
 
     @Override
-    protected MemoryContentsDialogFragment getMemoryContentsDialogFragment(
+    protected MemoryContentsDialogFragment getMemoryContentsDialogFragment(int position,
             AssemblyMemoryData data, ComputeCore core, MemoryContentsDialogFragment.ListUpdater updater) {
-        return DataMemoryDialogFragment.newInstance(data, core, updater);
+        return DataMemoryDialogFragment.newInstance(position, data, core, updater);
     }
 
     public static class DataMemoryDialogFragment extends MemoryContentsDialogFragment {
@@ -44,10 +45,10 @@ public class DataMemFragment extends MemFragment {
             // Required empty public constructor
         }
 
-        public static DataMemoryDialogFragment newInstance(AssemblyMemoryData data, ComputeCore core,
+        public static DataMemoryDialogFragment newInstance(int position, AssemblyMemoryData data, ComputeCore core,
                                                                ListUpdater updater){
             DataMemoryDialogFragment fragment = new DataMemoryDialogFragment();
-            fragment.init(data, core, updater);
+            fragment.init(position, data, core, updater);
             return fragment;
         }
         
@@ -80,18 +81,28 @@ public class DataMemFragment extends MemFragment {
                         @Override
                         public void onClick(DialogInterface dialog, int id) {
                             /** save memoryContents data for location in adapter **/
-                            int dataValue = getSafeInt(operandOneEditText);
+                            int dataValue = getSafeInt(operandOneEditText, mainCore.getDataOperandInfo());
                             String dataValueText = mainCore.dataValueString(dataValue);
                             String dataText = DATA_MNEUMONIC + " " + dataValueText;
                             int [] operands = new int[1];
                             operands[0] = dataValue;
+
+                            // update data address mapping, if any
+                            OperandInfo dataAddrOpInfo = mainCore.getDataAddrOperandInfo();
+                            String labelText = labelEditText.getText().toString();
+                            if(!labelText.equals("")){
+                                dataAddrOpInfo.addMapping(labelText, memoryAddress);
+                            }
+                            else {
+                                dataAddrOpInfo.removeMapping(memoryAddress);
+                            }
 
                             // update memoryContents data in list
                             memoryData.setMneumonic(DATA_MNEUMONIC);
                             memoryData.setOperands(operands);
                             memoryData.setMemoryContents(dataText);
                             memoryData.setNumericValue(dataValueText);
-                            memoryData.setLabel(labelEditText.getText().toString());
+                            memoryData.setLabel(labelText);
                             memoryData.setComment(commentEditText.getText().toString());
                             mUpdater.notifyUpdate();
                         }
