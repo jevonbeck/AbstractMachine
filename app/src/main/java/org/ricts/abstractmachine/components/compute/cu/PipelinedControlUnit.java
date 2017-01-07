@@ -14,8 +14,8 @@ public class PipelinedControlUnit implements CuDataInterface {
     private String currentState, activeString, haltString, sleepString;
 
     private ComputeCoreInterface mainCore;
-    private ControlUnitEngine cu1; // Control Unit for TU 1
-    private ControlUnitEngine cu2; // Control Unit for TU 2
+    private ControlUnitFSM fsm1; // FSM for TU 1
+    private ControlUnitFSM fsm2; // FSM for TU 2
 
     private Register expectedPC, branchPC, realPC;
     private Register expectedIR, branchIR, realIR;
@@ -42,10 +42,10 @@ public class PipelinedControlUnit implements CuDataInterface {
            During normal operation, one performs a fetch while the other executes... ALWAYS! */
 
         // thread unit 1 (TU 1) - initial state = 'fetch'
-        cu1 = new ControlUnitEngine(this, core, instructionCache, dataMemory);
+        fsm1 = new ControlUnitFSM(this, core, instructionCache, dataMemory);
 
         // thread unit 2 (TU 2) - initial state = 'execute'
-        cu2 = new ControlUnitEngine(this, core, instructionCache, dataMemory);
+        fsm2 = new ControlUnitFSM(this, core, instructionCache, dataMemory);
 
         // initialise thread units
         reset();
@@ -64,13 +64,13 @@ public class PipelinedControlUnit implements CuDataInterface {
             setBranchPC(instructionAddress);
             setBranchIR(nopInstruction);
         }
-        else { // ... we need to explicitly set each CU state
+        else { // ... we need to explicitly set each FSM state
             currentState = activeString;
 
             setRealPC(instructionAddress);
             setRealIR(nopInstruction);
-            cu1.setToFetchState();
-            cu2.setToExecuteState();
+            fsm1.setToFetchState();
+            fsm2.setToExecuteState();
         }
     }
 
@@ -86,8 +86,8 @@ public class PipelinedControlUnit implements CuDataInterface {
 
         setRealPC(currentPC);
         setRealIR(mainCore.getNopInstruction());
-        cu1.setToFetchState();
-        cu2.setToExecuteState();
+        fsm1.setToFetchState();
+        fsm2.setToExecuteState();
     }
 
     @Override
@@ -97,17 +97,17 @@ public class PipelinedControlUnit implements CuDataInterface {
 
     @Override
     public void setNextStateToHalt() {
-        // cu1 and cu2 do nothing
-        cu1.setNextStateToHalt();
-        cu2.setNextStateToHalt();
+        // fsm1 and fsm2 do nothing
+        fsm1.setNextStateToHalt();
+        fsm2.setNextStateToHalt();
         currentState = haltString;
     }
 
     @Override
     public void setNextStateToSleep() {
-        // cu1 does nothing while cu2 executes sleep
-        cu1.setNextStateToHalt();
-        cu2.setNextStateToSleep();
+        // fsm1 does nothing while fsm2 executes sleep
+        fsm1.setNextStateToHalt();
+        fsm2.setNextStateToSleep();
         currentState = sleepString;
     }
 
@@ -124,8 +124,8 @@ public class PipelinedControlUnit implements CuDataInterface {
     @Override
     public void performNextAction() {
         // advance both thread units
-        cu1.triggerStateChange();
-        cu2.triggerStateChange();
+        fsm1.triggerStateChange();
+        fsm2.triggerStateChange();
 
         if(isNormalExecution()){
             /*
@@ -150,7 +150,7 @@ public class PipelinedControlUnit implements CuDataInterface {
 
     @Override
     public int nextActionDuration() {
-        return Math.max(cu1.nextActionDuration(), cu2.nextActionDuration());
+        return Math.max(fsm1.nextActionDuration(), fsm2.nextActionDuration());
     }
 
     @Override
@@ -185,12 +185,12 @@ public class PipelinedControlUnit implements CuDataInterface {
         return currentState;
     }
 
-    public ControlUnitEngine getCu1(){
-        return cu1;
+    public ControlUnitFSM getFsm1(){
+        return fsm1;
     }
 
-    public ControlUnitEngine getCu2(){
-        return cu2;
+    public ControlUnitFSM getFsm2(){
+        return fsm2;
     }
 
     private boolean isNormalExecution(){

@@ -8,13 +8,13 @@ import org.ricts.abstractmachine.components.interfaces.ReadPort;
 /**
  * Created by Jevon on 26/08/2016.
  */
-public class ControlUnitEngine extends FiniteStateMachine {
+public class ControlUnitFSM extends FiniteStateMachine {
 
     private ControlUnitState fetch, execute, halt, sleep;
     private State nextState = null;
 
-    public ControlUnitEngine(CuInternalInterface cu, ComputeCoreInterface core,
-                             ReadPort instructionCache, MemoryPort dataMemory){
+    public ControlUnitFSM(CuInternalInterface cu, ComputeCoreInterface core,
+                          ReadPort instructionCache, MemoryPort dataMemory){
 
         // setup instruction cycle
         fetch = new ControlUnitFetchState(cu, instructionCache);

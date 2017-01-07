@@ -10,13 +10,13 @@ public class ControlUnit implements CuDataInterface {
     private Register pc; // Program Counter
     private Register ir; // Instruction Register
 
-    private ControlUnitEngine engine;
+    private ControlUnitFSM fsm;
 
     public ControlUnit(ComputeCoreInterface core, ReadPort instructionCache,
                        MemoryPort dataMemory){
         pc = new Register(core.iAddrWidth());
         ir = new Register(core.instrWidth());
-        engine = new ControlUnitEngine(this, core, instructionCache, dataMemory);
+        fsm = new ControlUnitFSM(this, core, instructionCache, dataMemory);
 
         // initialise
         reset();
@@ -24,38 +24,38 @@ public class ControlUnit implements CuDataInterface {
 
     @Override
     public void setNextStateToHalt() {
-        engine.setNextStateToHalt();
+        fsm.setNextStateToHalt();
     }
 
     @Override
     public void setNextStateToSleep() {
-        engine.setNextStateToSleep();
+        fsm.setNextStateToSleep();
     }
 
     @Override
     public boolean isInHaltState(){
-        return engine.isInHaltState();
+        return fsm.isInHaltState();
     }
 
     @Override
     public boolean isInSleepState(){
-        return engine.isInSleepState();
+        return fsm.isInSleepState();
     }
 
     @Override
     public void performNextAction(){
-        engine.triggerStateChange();
+        fsm.triggerStateChange();
     }
 
     @Override
     public int nextActionDuration(){ // in clock cycles
-        return engine.nextActionDuration();
+        return fsm.nextActionDuration();
     }
 
     @Override
     public void setNextFetch(int instructionAddress){
         setPC(instructionAddress);
-        engine.setNextStateToFetch();
+        fsm.setNextStateToFetch();
     }
 
     @Override
@@ -99,7 +99,7 @@ public class ControlUnit implements CuDataInterface {
 
     @Override
     public String getCurrentStateString(){
-        return engine.getCurrentStateString();
+        return fsm.getCurrentStateString();
     }
 
     @Override
@@ -113,15 +113,15 @@ public class ControlUnit implements CuDataInterface {
     }
 
     public boolean isInFetchState() {
-        return engine.isInFetchState();
+        return fsm.isInFetchState();
     }
 
     public boolean isInExecuteState(){
-        return engine.isInExecuteState();
+        return fsm.isInExecuteState();
     }
 
     private void setToFetchState(){
-        engine.setToFetchState();
+        fsm.setToFetchState();
     }
 
     private void setPC(int currentPC){

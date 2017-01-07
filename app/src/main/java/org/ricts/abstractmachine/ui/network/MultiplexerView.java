@@ -358,7 +358,7 @@ public abstract class MultiplexerView extends RelativeLayout {
         initOutputPinView(outputPins);
 
         Context c = getContext();
-        inputPins = new View[(int) Math.pow(2,selW)];
+        inputPins = new View[1 << selW];
         for(int x=0; x < inputPins.length; ++x){
             inputPins[x] = createPinView(c, inputsPosition);
             initInputPinView(inputPins[x]);

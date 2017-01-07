@@ -47,6 +47,7 @@
     <string name="arg2_hint">Operand 2</string>
     <string name="arg3_hint">Operand 3</string>
     <string name="arg4_hint">Operand 4</string>
+    <string name="search_hint">Operand</string>
     <string name="data_hint">Data Value</string>
     <string name="label_hint">Label</string>
     <string name="comment_hint">Comment</string>

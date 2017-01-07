@@ -2,30 +2,33 @@ package org.ricts.abstractmachine.ui.fragments;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
+import android.support.v4.content.LocalBroadcastManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.compute.cores.ComputeCore;
-import org.ricts.abstractmachine.components.compute.isa.OperandInfo;
 import org.ricts.abstractmachine.components.devicetype.Device;
 import org.ricts.abstractmachine.ui.activities.InspectActivity;
+import org.ricts.abstractmachine.ui.activities.MemoryContentsDialogActivity;
 import org.ricts.abstractmachine.ui.utils.wizard.WizardFragment;
 
 import java.io.BufferedReader;
@@ -42,15 +45,13 @@ import java.util.List;
 public abstract class MemFragment extends WizardFragment {
     private static final String TAG = "MemFragment";
 
-    protected abstract String memoryTypeString();
     protected abstract int titleStringResource();
-    protected abstract AssemblyMemoryData.MemoryType memoryType();
-    protected abstract MemoryContentsDialogFragment getMemoryContentsDialogFragment(int position,
-            AssemblyMemoryData data, ComputeCore core, MemoryContentsDialogFragment.ListUpdater updater);
+    protected abstract MemoryType memoryType();
+    protected abstract Intent getDialogActivityIntent();
 
+    public static final String UPDATE_MEM_LOCATION_ACTION = "updateAdapter";
     protected static final String DATA_MNEUMONIC = "DATA";
     private static final String PREFERENCES_FILE = "lastUsedFiles";
-    private static final String INSTR_DIALOG_TAG = "instructionFragment";
     private static final String FILE_DIALOG_TAG = "filenameFragment";
     private static final String LOADFILE_DIALOG_TAG = "loadFileFragment";
     private static final String MAPPING_DIALOG_TAG = "mappingFragment";
@@ -65,8 +66,39 @@ public abstract class MemFragment extends WizardFragment {
     private Button mappingButton, saveButton, loadButton, newButton;
     private String currentFile;
 
+    private BroadcastReceiver receiver;
+    private LocalBroadcastManager broadcastManager;
+    private IntentFilter filter;
+
+    public enum MemoryType {
+        INSTRUCTION("instr"), DATA("data");
+
+        private String shortName;
+
+        MemoryType(String name) {
+            shortName = name;
+        }
+
+        public String getShortName() {
+            return shortName;
+        }
+    }
+
     public MemFragment() {
         // Required empty public constructor
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        broadcastManager = LocalBroadcastManager.getInstance(context);
+        filter = new IntentFilter(UPDATE_MEM_LOCATION_ACTION);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver();
     }
 
     @Override
@@ -236,7 +268,7 @@ public abstract class MemFragment extends WizardFragment {
         currentFile = filename;
 
         File coreRootDir = getComputeCorePath(dataBundle, context);
-        int maxWidth = memoryType() == AssemblyMemoryData.MemoryType.DATA ?
+        int maxWidth = memoryType() == MemoryType.DATA ?
                 mainCore.dAddrWidth() : mainCore.iAddrWidth();
         adapterData = loadListFromFile(new File(coreRootDir, currentFile),
                 (int) Math.pow(2, maxWidth), context);
@@ -253,26 +285,59 @@ public abstract class MemFragment extends WizardFragment {
         final AssemblyCodeAdapter adapter = new AssemblyCodeAdapter(getContext(), R.layout.listitem_instruction,
                 mainCore, adapterData, memoryType());
 
-        final MemoryContentsDialogFragment.ListUpdater updater = new MemoryContentsDialogFragment.ListUpdater(){
+        unregisterReceiver();
+        receiver = new BroadcastReceiver() {
             @Override
-            public void notifyUpdate() {
-                adapter.notifyDataSetChanged();
+            public void onReceive(Context context, Intent intent) {
+                if(intent.getAction().equals(UPDATE_MEM_LOCATION_ACTION)) {
+                    String memType = intent.getStringExtra(MemoryContentsDialogActivity.MEM_TYPE_KEY);
+
+                    // update the appropriate MemFragment (identified by type)
+                    if(memType.equals(memoryType().name())) {
+                        int position = intent.getIntExtra(MemoryContentsDialogActivity.MEM_ADDR_KEY, -1);
+                        AssemblyMemoryData memoryData =
+                                intent.getParcelableExtra(MemoryContentsDialogActivity.MEM_DATA_KEY);
+
+                        // update the appropriate memory location
+                        AssemblyMemoryData currentData = adapter.getItem(position);
+                        currentData.setMneumonic(memoryData.getMneumonic());
+                        currentData.setOperands(memoryData.getOperands());
+                        currentData.setMemoryContents(memoryData.getMemoryContents());
+                        currentData.setNumericValue(memoryData.getNumericValue());
+                        currentData.setLabel(memoryData.getLabel());
+                        currentData.setComment(memoryData.getComment());
+
+                        adapter.notifyDataSetChanged();
+                    }
+                }
             }
         };
+        broadcastManager.registerReceiver(receiver, filter);
 
         memoryContentsListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
-                // Get current item data and pass it to new custom DialogFragment
-                DialogFragment fragment = getMemoryContentsDialogFragment(position,
+                // Get current item data and pass it to new custom DialogActivity
+                Intent intent = getDialogActivityIntent();
+                populateActivityIntent(intent, position,
                         (AssemblyMemoryData) adapterView.getItemAtPosition(position),
-                        mainCore, updater);
-
-                // show the DialogFragment!
-                fragment.show(MemFragment.this.getActivity().getSupportFragmentManager(), INSTR_DIALOG_TAG);
+                        mainCore);
+                startActivity(intent);
             }
         });
         memoryContentsListView.setAdapter(adapter);
+    }
+
+    protected void populateActivityIntent(Intent intent, int position,
+                                          AssemblyMemoryData data, ComputeCore core){
+        intent.putExtra(MemoryContentsDialogActivity.MEM_TYPE_KEY, memoryType().name());
+        intent.putExtra(MemoryContentsDialogActivity.MEM_ADDR_KEY, position);
+        intent.putExtra(MemoryContentsDialogActivity.MEM_DATA_KEY, data);
+
+        intent.putExtra(InspectActivity.CORE_NAME, core.getClass().getSimpleName());
+        intent.putExtra(InspectActivity.CORE_DATA_WIDTH, core.dataWidth());
+        intent.putExtra(InspectActivity.INSTR_ADDR_WIDTH, core.iAddrWidth());
+        intent.putExtra(InspectActivity.DATA_ADDR_WIDTH, core.dAddrWidth());
     }
 
     private ArrayList<AssemblyMemoryData> loadListFromFile(File file, int maxLines, Context context){
@@ -321,7 +386,7 @@ public abstract class MemFragment extends WizardFragment {
     private boolean saveListToFile(List<AssemblyMemoryData> dataList, File file,
                                    String zeroString, Context context) {
         int lastIndex = dataList.size() - 1;
-        if(memoryType() == AssemblyMemoryData.MemoryType.INSTRUCTION) {
+        if(memoryType() == MemoryType.INSTRUCTION) {
             // Reduce file size by only saving data from start until
             // last address with memoryContents/data (non-zero)
             for ( ; lastIndex >= 0; --lastIndex) {
@@ -379,8 +444,14 @@ public abstract class MemFragment extends WizardFragment {
         String coreName = dataBundle.getString(InspectActivity.CORE_NAME);
         int coreDataWidth = dataBundle.getInt(InspectActivity.CORE_DATA_WIDTH);
 
-        String directoryName = coreName + "_" + coreDataWidth + "_" + memoryTypeString();
+        String directoryName = coreName + "_" + coreDataWidth + "_" + memoryType().getShortName();
         return context.getDir(directoryName, Context.MODE_PRIVATE);
+    }
+
+    private void unregisterReceiver(){
+        if(receiver != null){
+            broadcastManager.unregisterReceiver(receiver);
+        }
     }
 
     public static class LoadFileDialogFragment extends DialogFragment {
@@ -423,47 +494,12 @@ public abstract class MemFragment extends WizardFragment {
         }
     }
 
-    public static class MemoryContentsDialogFragment extends DialogFragment {
-        public interface ListUpdater {
-            void notifyUpdate();
-        }
-
-        protected int memoryAddress;
-        protected ComputeCore mainCore;
-        protected AssemblyMemoryData memoryData;
-        protected ListUpdater mUpdater;
-
-        public void init(int position, AssemblyMemoryData data, ComputeCore core, ListUpdater updater){
-            memoryAddress = position;
-            memoryData = data;
-            mainCore = core;
-            mUpdater = updater;
-        }
-
-        protected int getSafeInt(EditText editText){
-            return convertTextToHex(editText.getText().toString());
-        }
-
-        protected int getSafeInt(EditText editText, OperandInfo operandInfo){
-            String currentText = editText.getText().toString();
-            if(operandInfo.hasMneumonic(currentText)) {
-                return operandInfo.decodeMneumonic(currentText);
-            }
-
-            return convertTextToHex(currentText);
-        }
-
-        private int convertTextToHex(String text){
-            return text.equals("") ? 0 : Device.parseHex(text);
-        }
-    }
-
     private static class AssemblyCodeAdapter extends ArrayAdapter<AssemblyMemoryData> {
         private ComputeCore mainCore;
-        private AssemblyMemoryData.MemoryType memoryType;
+        private MemoryType memoryType;
 
         public AssemblyCodeAdapter(Context context, int resource, ComputeCore core,
-                                   List<AssemblyMemoryData> objects, AssemblyMemoryData.MemoryType type) {
+                                   List<AssemblyMemoryData> objects, MemoryType type) {
             super(context, resource);
             mainCore = core;
             memoryType = type;
@@ -496,7 +532,7 @@ public abstract class MemFragment extends WizardFragment {
 
         @NonNull
         @Override
-        public View getView(int position, View convertView, ViewGroup parent){
+        public View getView(int position, View convertView, @NonNull ViewGroup parent){
             if(convertView == null){
                 convertView = LayoutInflater.from(parent.getContext())
                         .inflate(R.layout.listitem_memory_contents, parent, false);
@@ -536,11 +572,7 @@ public abstract class MemFragment extends WizardFragment {
         }
     }
 
-    protected static class AssemblyMemoryData implements Parcelable {
-        public enum MemoryType {
-            INSTRUCTION, DATA
-        }
-
+    public static class AssemblyMemoryData implements Parcelable {
         private String label, memoryContents, numericValue, comment, mneumonic;
         private int [] operands;
         private MemoryType memType;
