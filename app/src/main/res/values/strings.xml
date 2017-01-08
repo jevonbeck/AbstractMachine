@@ -23,6 +23,11 @@
     <string name="program_counter_label">PC:</string>
     <string name="instruction_register_label">IR:</string>
     <string name="decoded_instruction_label">Ins:</string>
+    <string name="control_unit_fetch_state">fetch</string>
+    <string name="control_unit_execute_state">execute</string>
+    <string name="control_unit_sleep_state">sleep</string>
+    <string name="control_unit_halt_state">halt</string>
+    <string name="control_unit_active_state">active</string>
 
     <string name="architecture_type_label">Architecture Type:</string>
     <string name="architecture_type_harvard">Harvard</string>

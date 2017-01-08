@@ -1,5 +1,6 @@
 package org.ricts.abstractmachine.components.compute.cu;
 
+import org.ricts.abstractmachine.components.compute.cu.ControlUnitState.GenericCUState;
 import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
 import org.ricts.abstractmachine.components.interfaces.CuDataInterface;
 import org.ricts.abstractmachine.components.interfaces.MemoryPort;
@@ -11,11 +12,11 @@ import org.ricts.abstractmachine.components.storage.Register;
  */
 public class PipelinedControlUnit implements CuDataInterface {
     private boolean branched;
-    private String currentState, activeString, haltString, sleepString;
+    private GenericCUState currentState;
 
     private ComputeCoreInterface mainCore;
-    private ControlUnitFSM fsm1; // FSM for TU 1
-    private ControlUnitFSM fsm2; // FSM for TU 2
+    private ControlUnitFSM fsm1;
+    private ControlUnitFSM fsm2;
 
     private Register expectedPC, branchPC, realPC;
     private Register expectedIR, branchIR, realIR;
@@ -34,20 +35,16 @@ public class PipelinedControlUnit implements CuDataInterface {
         realPC = new Register(iAddrWidth);
         realIR = new Register(instrWidth);
 
-        activeString = "active";
-        haltString = "halt";
-        sleepString = "sleep";
-
-        /* N.B. : Both thread units are connected to the same instructionCache and dataMemory!
+        /* N.B. : Both FSMs are connected to the same instructionCache and dataMemory!
            During normal operation, one performs a fetch while the other executes... ALWAYS! */
 
-        // thread unit 1 (TU 1) - initial state = 'fetch'
+        // FSM 1 - initial state = 'fetch'
         fsm1 = new ControlUnitFSM(this, core, instructionCache, dataMemory);
 
-        // thread unit 2 (TU 2) - initial state = 'execute'
+        // FSM 2 - initial state = 'execute'
         fsm2 = new ControlUnitFSM(this, core, instructionCache, dataMemory);
 
-        // initialise thread units
+        // initialise FSMs
         reset();
     }
 
@@ -65,7 +62,7 @@ public class PipelinedControlUnit implements CuDataInterface {
             setBranchIR(nopInstruction);
         }
         else { // ... we need to explicitly set each FSM state
-            currentState = activeString;
+            currentState = GenericCUState.ACTIVE;
 
             setRealPC(instructionAddress);
             setRealIR(nopInstruction);
@@ -81,7 +78,7 @@ public class PipelinedControlUnit implements CuDataInterface {
 
     @Override
     public void setStartExecFrom(int currentPC) {
-        currentState = activeString;
+        currentState = GenericCUState.ACTIVE;
         branched = false;
 
         setRealPC(currentPC);
@@ -100,7 +97,7 @@ public class PipelinedControlUnit implements CuDataInterface {
         // fsm1 and fsm2 do nothing
         fsm1.setNextStateToHalt();
         fsm2.setNextStateToHalt();
-        currentState = haltString;
+        currentState = GenericCUState.HALT;
     }
 
     @Override
@@ -108,29 +105,29 @@ public class PipelinedControlUnit implements CuDataInterface {
         // fsm1 does nothing while fsm2 executes sleep
         fsm1.setNextStateToHalt();
         fsm2.setNextStateToSleep();
-        currentState = sleepString;
+        currentState = GenericCUState.SLEEP;
     }
 
     @Override
     public boolean isInHaltState() {
-        return currentState.equals(haltString);
+        return currentState.equals(GenericCUState.HALT);
     }
 
     @Override
     public boolean isInSleepState() {
-        return currentState.equals(sleepString);
+        return currentState.equals(GenericCUState.SLEEP);
     }
 
     @Override
     public void performNextAction() {
-        // advance both thread units
+        // advance both FSMs
         fsm1.triggerStateChange();
         fsm2.triggerStateChange();
 
         if(isNormalExecution()){
             /*
-             * N.B: Only after both thread units have 'executed' can a proper assessment of thread unit synchronisation be made.
-             * If one unit executes while the other fetches, then for non-branching instruction, the PC should be one more than the previous value.
+             * N.B: Only after both FSMs have 'executed' can a proper assessment of final PC and IR state be made.
+             * If one FSM executes while the other fetches, then for non-branching instruction, the PC should be one more than the previous value.
              * This is true since the fetch stage increments the PC, while the execute stage only modifies PC if the instruction is branching.
              * If a branch is detected, the next instruction to execute should be a NOP.
              * */
@@ -182,7 +179,7 @@ public class PipelinedControlUnit implements CuDataInterface {
 
     @Override
     public String getCurrentStateString(){
-        return currentState;
+        return currentState.name();
     }
 
     public ControlUnitFSM getFsm1(){
@@ -194,7 +191,7 @@ public class PipelinedControlUnit implements CuDataInterface {
     }
 
     private boolean isNormalExecution(){
-        return currentState.equals(activeString);
+        return currentState.equals(GenericCUState.ACTIVE);
     }
 
     private int getExpectedPC(){

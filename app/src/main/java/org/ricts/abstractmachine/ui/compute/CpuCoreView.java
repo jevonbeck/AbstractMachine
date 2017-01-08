@@ -9,6 +9,7 @@ import android.widget.TextView;
 
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.compute.cores.ComputeCore;
+import org.ricts.abstractmachine.components.compute.cu.ControlUnitState;
 import org.ricts.abstractmachine.components.interfaces.CuDataInterface;
 import org.ricts.abstractmachine.components.observables.ObservableComputeCore;
 import org.ricts.abstractmachine.components.observables.ObservableControlUnit;
@@ -150,7 +151,7 @@ public class CpuCoreView extends RelativeLayout implements Observer {
 
     public void initCpu(CuDataInterface controlUnit, RomView instructionCache, RamView dataMemory){
         /** initialise variables **/
-        stateView.setText(controlUnit.getCurrentStateString());
+        updateState(controlUnit.getCurrentStateString());
         pc.setText(controlUnit.getPCDataString());
         ir.setText(controlUnit.getIRDataString());
 
@@ -199,7 +200,7 @@ public class CpuCoreView extends RelativeLayout implements Observer {
     public void update(Observable observable, Object o) {
         if(observable instanceof ObservableControlUnit){
             CuDataInterface controlUnit = ((ObservableControlUnit) observable).getType();
-            stateView.setText(controlUnit.getCurrentStateString());
+            updateState(controlUnit.getCurrentStateString());
             pc.setText(controlUnit.getPCDataString());
             irText = controlUnit.getIRDataString();
 
@@ -246,6 +247,31 @@ public class CpuCoreView extends RelativeLayout implements Observer {
 
     public void setActionResponder(InspectActionResponder resp){
         responder = resp;
+    }
+
+    private void updateState(String text) {
+        int resId;
+        switch(Enum.valueOf(ControlUnitState.GenericCUState.class, text)) {
+            case FETCH:
+                resId = R.string.control_unit_fetch_state;
+                break;
+            case EXECUTE:
+                resId = R.string.control_unit_execute_state;
+                break;
+            case ACTIVE:
+                resId = R.string.control_unit_active_state;
+                break;
+            case SLEEP:
+                resId = R.string.control_unit_sleep_state;
+                break;
+            case HALT:
+                resId = R.string.control_unit_halt_state;
+                break;
+            default:
+                resId = 0;
+        }
+
+        stateView.setText(getResources().getString(resId));
     }
 
     private void updateIrText(){

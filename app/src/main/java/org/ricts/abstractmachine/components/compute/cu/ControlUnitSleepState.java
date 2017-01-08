@@ -11,7 +11,7 @@ public class ControlUnitSleepState extends ControlUnitState{
     private ControlUnitInterface cu;
 
     public ControlUnitSleepState(ComputeCoreInterface proc, ControlUnitInterface controlUnit) {
-        super("sleep");
+        super(GenericCUState.SLEEP);
         core = proc;
         cu = controlUnit;
     }

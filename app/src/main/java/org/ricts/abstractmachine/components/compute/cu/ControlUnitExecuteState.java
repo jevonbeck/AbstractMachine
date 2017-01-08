@@ -11,7 +11,7 @@ public class ControlUnitExecuteState extends ControlUnitState {
 
     public ControlUnitExecuteState(ComputeCoreInterface proc,
                                    MemoryPort dMemory, CuInternalInterface controlUnit){
-        super("execute");
+        super(GenericCUState.EXECUTE);
         core = proc;
         dataMemory = dMemory;
         cu = controlUnit;

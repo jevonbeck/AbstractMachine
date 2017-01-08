@@ -6,7 +6,7 @@ import org.ricts.abstractmachine.components.interfaces.CuDataInterface;
 import org.ricts.abstractmachine.components.interfaces.MemoryPort;
 import org.ricts.abstractmachine.components.interfaces.ReadPort;
 
-public class HarvardCore extends SystemCore {
+public class HarvardCore extends CpuCore {
 
     public HarvardCore(ComputeCoreInterface core, ReadPort instructionCache, MemoryPort dataMemory){
         super(core, instructionCache, dataMemory);

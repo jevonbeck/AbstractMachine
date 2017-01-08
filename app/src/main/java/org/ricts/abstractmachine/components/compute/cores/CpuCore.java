@@ -10,14 +10,14 @@ import org.ricts.abstractmachine.components.observables.ObservableControlUnit;
 /**
  * Created by Jevon on 14/08/2016.
  */
-public abstract class SystemCore implements ThreadProcessingUnit {
+public abstract class CpuCore implements ThreadProcessingUnit {
     private ObservableControlUnit cu; // Control Unit
 
     protected abstract CuDataInterface createControlUnit(ComputeCoreInterface core,
                                                          ReadPort instructionCache,
                                                          MemoryPort dataMemory);
 
-    public SystemCore(ComputeCoreInterface core, ReadPort instructionCache, MemoryPort dataMemory){
+    public CpuCore(ComputeCoreInterface core, ReadPort instructionCache, MemoryPort dataMemory){
         cu = new ObservableControlUnit(createControlUnit(core, instructionCache, dataMemory));
     }
 

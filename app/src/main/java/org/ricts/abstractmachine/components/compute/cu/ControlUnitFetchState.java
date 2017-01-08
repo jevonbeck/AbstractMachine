@@ -8,7 +8,7 @@ public class ControlUnitFetchState extends ControlUnitState{
     private CuInternalInterface controlUnit;
 
     public ControlUnitFetchState(CuInternalInterface cu, ReadPort iCache){
-        super("fetch");
+        super(GenericCUState.FETCH);
         controlUnit = cu;
         instructionCache = iCache;
     }
