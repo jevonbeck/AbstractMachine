@@ -271,7 +271,7 @@ public abstract class MemFragment extends WizardFragment {
         int maxWidth = memoryType() == MemoryType.DATA ?
                 mainCore.dAddrWidth() : mainCore.iAddrWidth();
         adapterData = loadListFromFile(new File(coreRootDir, currentFile),
-                (int) Math.pow(2, maxWidth), context);
+                1 << maxWidth, context); // max lines = 2^maxWidth
 
         // store last loaded file for the appropriate core
         SharedPreferences preferences =
@@ -515,7 +515,7 @@ public abstract class MemFragment extends WizardFragment {
             }
 
             int objectCount = objects.size();
-            int listSize = (int) Math.pow(2, memoryWidth);
+            int listSize = 1 << memoryWidth; // 2^memoryWidth
             for(int x=0; x < listSize; ++x){
                 if(x < objectCount){
                     add(objects.get(x));

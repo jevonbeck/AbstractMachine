@@ -38,7 +38,7 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
     protected abstract boolean isSleepInstr(String groupName, int groupIndex);
     protected abstract void fetchOpsExecuteInstr(String groupName, int groupIndex, int[] operands, MemoryPort dataMemory);
 	protected abstract void updateInternalControlUnitState(String groupName, int groupIndex, int[] operands);
-    protected abstract void checkInterrupts();
+    protected abstract void updateProgramCounterOnInterrupt();
     protected abstract int executionTime(String groupName, int groupIndex, MemoryPort dataMemory);
     protected abstract void updateProgramCounterRegs(int programCounter);
     protected abstract String insToString(String groupName, int groupIndex, int[] operands);
@@ -92,7 +92,7 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
 
             // check for interrupts and vector internal Program Counter appropriately
             int pcValueAfterExecute = getProgramCounterValue();
-            checkInterrupts();
+            updateProgramCounterOnInterrupt();
             int finalPC = getProgramCounterValue();
 
             // apply changes to Control Unit as appropriate
@@ -137,7 +137,7 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
     @Override
     public void checkInterrupts(ControlUnitInterface cu) {
         int before = getProgramCounterValue();
-        checkInterrupts();
+        updateProgramCounterOnInterrupt();
         int after = getProgramCounterValue();
 
         if(before != after){

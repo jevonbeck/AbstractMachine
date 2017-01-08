@@ -18,7 +18,7 @@ public class Device {
     protected static int bitWidth(int number){
         int index = 1;
 
-        while(number >= Math.pow(2,index)){
+        while(number >= 1 << index){ // number >= 2^index
             ++index;
         }
 

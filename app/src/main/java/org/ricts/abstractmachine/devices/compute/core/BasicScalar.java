@@ -322,10 +322,10 @@ public class BasicScalar extends ComputeCore {
 
         // TODO: use better stack logic (RAM is counter-intuitive for on-chip stack)
         RAM stackRam = new RAM(dataWidth, stackAddrWidth, 0);
-        callStack = new Stack(stackRam, 0, (int) Math.pow(2, stackAddrWidth));
+        callStack = new Stack(stackRam, 0, 1 << stackAddrWidth); // stack with size 2^stackAddrWidth
 
 	    /* Initialise registers */
-        dataRegs = new Register[(int) Math.pow(2, dataRegAddrWidth)]; // for data
+        dataRegs = new Register[1 << dataRegAddrWidth]; // for data (2^dataRegAddrWidth regs)
         pcReg = new Register(iAddrWidth);
         statusReg = new Register(StatusFlags.values().length);
         intEnableReg = new Register(InterruptFlags.values().length);
@@ -339,12 +339,12 @@ public class BasicScalar extends ComputeCore {
             dataRegs[x] = new Register(dataWidth);
         }
 
-        dataAddrRegs = new Register[(int) Math.pow(2, dAddrRegAddrWidth)]; // for data addresses
+        dataAddrRegs = new Register[1 << dAddrRegAddrWidth]; // for data addresses (2^dAddrRegAddrWidth regs)
         for (int x = 0; x < dataAddrRegs.length; ++x) {
             dataAddrRegs[x] = new Register(dAddrWidth);
         }
 
-        instrAddrRegs = new Register[(int) Math.pow(2, iAddrRegAddrWidth)]; // for instruction addresses
+        instrAddrRegs = new Register[1 << iAddrRegAddrWidth]; // for instruction addresses (2^iAddrRegAddrWidth regs)
         int instrAddrRegAddrCount = 0;
         instrAddrRegs[instrAddrRegAddrCount++] = pcReg;
         for (int x = instrAddrRegAddrCount; x < instrAddrRegs.length; ++x) {
@@ -685,7 +685,7 @@ public class BasicScalar extends ComputeCore {
     }
 
     @Override
-    protected void checkInterrupts() {
+    protected void updateProgramCounterOnInterrupt() {
         // TODO: Do nothing for now! Implement appropriate logic when interrupts are implemented
         // TODO: update internal PC to vector location if interrupt
     }
