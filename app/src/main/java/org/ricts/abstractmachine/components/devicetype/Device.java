@@ -16,12 +16,11 @@ public class Device {
     }
 
     protected static int bitWidth(int number){
-        int index = 1;
-
-        while(number >= 1 << index){ // number >= 2^index
+        int index = 0;
+        while(number > 0) {
+            number >>>= 1;
             ++index;
         }
-
         return index;
     }
 

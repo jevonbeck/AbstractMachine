@@ -9,7 +9,7 @@ import java.util.List;
  * Created by Jevon on 16/01/2016.
  */
 public class ObservableROM<T extends ROM> extends ObservableType<T> implements ReadPort {
-    public static class ReadParams extends ObservableROM.Params{
+    public static class ReadParams extends Params{
         protected enum Args{
             ADDRESS
         }
