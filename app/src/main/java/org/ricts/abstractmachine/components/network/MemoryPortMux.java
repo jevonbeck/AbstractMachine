@@ -1,15 +1,15 @@
 package org.ricts.abstractmachine.components.network;
 
-import org.ricts.abstractmachine.components.interfaces.MultiplexerCore;
+import org.ricts.abstractmachine.components.interfaces.MemoryPortMuxCore;
 import org.ricts.abstractmachine.components.interfaces.MemoryPort;
-import org.ricts.abstractmachine.components.observables.ObservableMultiplexerCore;
+import org.ricts.abstractmachine.components.observables.ObservableMemoryPortMuxCore;
 import org.ricts.abstractmachine.components.observables.ObservableType;
 
 /**
  * Created by Jevon on 14/01/2017.
  */
 
-public class MemoryPortMux extends MultiPortSerializer<MemoryPort, MultiplexerCore> {
+public class MemoryPortMux extends MultiPortSerializer<MemoryPort, MemoryPortMuxCore> {
     private int currentSel;
 
     public MemoryPortMux(MemoryPort port, int portCount) {
@@ -30,8 +30,8 @@ public class MemoryPortMux extends MultiPortSerializer<MemoryPort, MultiplexerCo
     }
 
     @Override
-    protected MultiplexerCore createSerializerCore(final MemoryPort targetPort) {
-        return new MultiplexerCore(){
+    protected MemoryPortMuxCore createSerializerCore(final MemoryPort targetPort) {
+        return new MemoryPortMuxCore(){
             @Override
             public int read(int portId, int address) {
                 setSelection(portId);
@@ -47,7 +47,7 @@ public class MemoryPortMux extends MultiPortSerializer<MemoryPort, MultiplexerCo
     }
 
     @Override
-    protected MemoryPort[] createInputs(final MultiplexerCore serializerCore, int inputCount) {
+    protected MemoryPort[] createInputs(final MemoryPortMuxCore serializerCore, int inputCount) {
         MemoryPort[] array = new MemoryPort[inputCount];
         for(int x=0; x < array.length; ++x){
             final int index = x;
@@ -72,7 +72,7 @@ public class MemoryPortMux extends MultiPortSerializer<MemoryPort, MultiplexerCo
     }
 
     @Override
-    protected ObservableType<MultiplexerCore> createObservable(MultiplexerCore serializerCore) {
-        return new ObservableMultiplexerCore(serializerCore);
+    protected ObservableType<MemoryPortMuxCore> createObservable(MemoryPortMuxCore serializerCore) {
+        return new ObservableMemoryPortMuxCore(serializerCore);
     }
 }

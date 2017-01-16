@@ -1,12 +1,12 @@
 package org.ricts.abstractmachine.components.observables;
 
-import org.ricts.abstractmachine.components.interfaces.MultiplexerCore;
+import org.ricts.abstractmachine.components.interfaces.MemoryPortMuxCore;
 
 /**
  * Created by Jevon on 14/01/2017.
  */
 
-public class ObservableMultiplexerCore extends ObservableType<MultiplexerCore> implements MultiplexerCore {
+public class ObservableMemoryPortMuxCore extends ObservableType<MemoryPortMuxCore> implements MemoryPortMuxCore {
     public static class WriteParams extends Params{
         protected enum Args{
             INDEX, ADDRESS, DATA
@@ -29,7 +29,7 @@ public class ObservableMultiplexerCore extends ObservableType<MultiplexerCore> i
         }
     }
 
-    public ObservableMultiplexerCore(MultiplexerCore type) {
+    public ObservableMemoryPortMuxCore(MemoryPortMuxCore type) {
         super(type);
     }
 
