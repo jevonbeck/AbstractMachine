@@ -128,6 +128,12 @@
     <item name="PinView_background_layout" type="id"/>
     <item name="PinView_pin_name" type="id"/>
     <item name="PinView_signal_text" type="id"/>
+    <item name="ManyToOnePortView_input_pins" type="id"/>
+    <item name="ManyToOnePortView_output_pins" type="id"/>
+    <item name="ManyToOnePortView_mainView" type="id"/>
+    <item name="TrapeziumView_middle" type="id"/>
+    <item name="TrapeziumView_first_triangle" type="id"/>
+    <item name="TrapeziumView_last_triangle" type="id"/>
     <item name="MultiplexerView_input_pins" type="id"/>
     <item name="MultiplexerView_output_pins" type="id"/>
     <item name="MultiplexerView_middle" type="id"/>

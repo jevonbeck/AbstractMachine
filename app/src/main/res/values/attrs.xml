@@ -22,6 +22,7 @@
         <attr name="selectPosition" format="enum">
             <enum name="firstEdge" value="0" />
             <enum name="lastEdge" value="1" />
+            <enum name="none" value="2" />
         </attr>
     </declare-styleable>
 
