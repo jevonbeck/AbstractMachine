@@ -6,7 +6,8 @@ import android.view.View;
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.observables.ObservableComputeCore;
 import org.ricts.abstractmachine.components.observables.ObservableControlUnit;
-import org.ricts.abstractmachine.components.observables.ObservableRAM;
+import org.ricts.abstractmachine.components.observables.ObservableMemoryPort;
+import org.ricts.abstractmachine.components.storage.RAM;
 import org.ricts.abstractmachine.ui.compute.CpuCoreView;
 import org.ricts.abstractmachine.ui.compute.InspectActionResponder;
 import org.ricts.abstractmachine.ui.storage.RamView;
@@ -44,7 +45,7 @@ public class VonNeumannSystemFragment extends VonNeumannActivityFragment {
     @Override
     protected void bindObservablesToViews(){
         /** Initialise Views **/
-        memory.setDataSource(mainMemory.getType());
+        memory.setDataSource((RAM) mainMemory.getType());
         cpu.initCpu(controlUnit.getType(), memory, memory);
 
         /** Add observers to observables **/
@@ -77,7 +78,7 @@ public class VonNeumannSystemFragment extends VonNeumannActivityFragment {
      * @param cu Control Unit
      * @return A new instance of fragment VonNeumannSystemFragment.
      */
-    public static VonNeumannSystemFragment newInstance(ObservableComputeCore core, ObservableRAM memData,
+    public static VonNeumannSystemFragment newInstance(ObservableComputeCore core, ObservableMemoryPort memData,
                                                        ObservableControlUnit cu) {
         VonNeumannSystemFragment fragment = new VonNeumannSystemFragment();
         fragment.setObservables(core, memData, cu);

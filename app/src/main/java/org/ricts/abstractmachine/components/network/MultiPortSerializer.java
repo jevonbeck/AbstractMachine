@@ -8,26 +8,26 @@ import org.ricts.abstractmachine.components.observables.ObservableType;
  * Created by Jevon on 14/01/2017.
  */
 
-public abstract class MultiPortSerializer<PortInterface, SerializerCore> extends Device {
-    protected abstract SerializerCore createSerializerCore(final PortInterface targetPort);
-    protected abstract PortInterface[] createInputs(SerializerCore serializerCore, int inputCount);
-    protected abstract ObservableType<SerializerCore> createObservable(SerializerCore serializerCore);
+public abstract class MultiPortSerializer<PortInterface, MultiPortInterface> extends Device {
+    protected abstract MultiPortInterface createMultiPortInterface(final PortInterface targetPort);
+    protected abstract PortInterface[] createInputs(MultiPortInterface multiPortInterface, int inputCount);
+    protected abstract ObservableType<MultiPortInterface> createObservable(MultiPortInterface multiPortInterface);
 
     protected int portIndexWidth, portIndexMask;
 
     private PortInterface[] inputs;
-    private ObservableType<SerializerCore> observable;
+    private ObservableType<MultiPortInterface> observable;
 
     @SuppressWarnings("unchecked")
     public MultiPortSerializer(PortInterface targetPort, int inputCount) {
         portIndexWidth = bitWidth(inputCount);
         portIndexMask = bitMaskOfWidth(portIndexWidth);
 
-        observable = createObservable(createSerializerCore(targetPort));
-        inputs = createInputs((SerializerCore) observable, inputCount);
+        observable = createObservable(createMultiPortInterface(targetPort));
+        inputs = createInputs((MultiPortInterface) observable, inputCount);
     }
 
-    public ObservableType<SerializerCore> getObservable() {
+    public ObservableType<MultiPortInterface> getObservable() {
         return observable;
     }
 

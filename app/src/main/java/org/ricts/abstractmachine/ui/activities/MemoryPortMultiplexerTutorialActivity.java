@@ -7,10 +7,9 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import org.ricts.abstractmachine.R;
-import org.ricts.abstractmachine.components.observables.ObservableRAM;
+import org.ricts.abstractmachine.components.observables.ObservableMemoryPort;
 import org.ricts.abstractmachine.components.storage.RAM;
 import org.ricts.abstractmachine.ui.network.MemoryPortMultiplexerView;
-import org.ricts.abstractmachine.ui.storage.MemoryPortView;
 import org.ricts.abstractmachine.ui.storage.RamView;
 
 public class MemoryPortMultiplexerTutorialActivity extends AppCompatActivity {
@@ -23,10 +22,10 @@ public class MemoryPortMultiplexerTutorialActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_memory_port_multiplexer_tutorial);
 
-        final ObservableRAM dataSource = new ObservableRAM(new RAM(8, 3, 10));
+        final ObservableMemoryPort dataSource = new ObservableMemoryPort(new RAM(8, 3, 10));
 
         RamView memory = (RamView) findViewById(R.id.memory);
-        memory.setDataSource(dataSource.getType());
+        memory.setDataSource((RAM) dataSource.getType());
 
         final MemoryPortMultiplexerView mux = (MemoryPortMultiplexerView) findViewById(R.id.mux);
         mux.setSelectWidth(1);
@@ -47,7 +46,7 @@ public class MemoryPortMultiplexerTutorialActivity extends AppCompatActivity {
         readButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mux.setSelection(getSelect());
+                //mux.setSelection(getSelect());
                 dataSource.read(getAddress());
                 //inputs[mux.getSelection()].read(getAddress());
             }
@@ -57,7 +56,7 @@ public class MemoryPortMultiplexerTutorialActivity extends AppCompatActivity {
         writeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mux.setSelection(getSelect());
+                //mux.setSelection(getSelect());
                 dataSource.write(getAddress(), getData());
                 //inputs[mux.getSelection()].write(getAddress(), getData());
             }

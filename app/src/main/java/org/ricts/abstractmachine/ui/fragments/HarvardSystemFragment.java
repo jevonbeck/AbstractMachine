@@ -5,8 +5,9 @@ import android.view.View;
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.observables.ObservableComputeCore;
 import org.ricts.abstractmachine.components.observables.ObservableControlUnit;
-import org.ricts.abstractmachine.components.observables.ObservableRAM;
-import org.ricts.abstractmachine.components.observables.ObservableROM;
+import org.ricts.abstractmachine.components.observables.ObservableMemoryPort;
+import org.ricts.abstractmachine.components.observables.ObservableReadPort;
+import org.ricts.abstractmachine.components.storage.RAM;
 import org.ricts.abstractmachine.components.storage.ROM;
 import org.ricts.abstractmachine.ui.compute.CpuCoreView;
 import org.ricts.abstractmachine.ui.compute.InspectActionResponder;
@@ -44,7 +45,7 @@ public class HarvardSystemFragment extends HarvardActivityFragment {
     protected void bindObservablesToViews() {
         /** Initialise Views **/
         instructionCacheView.setDataSource(instructionCache.getType());
-        dataMemoryView.setDataSource(dataMemory.getType());
+        dataMemoryView.setDataSource((RAM) dataMemory.getType());
         cpuView.initCpu(controlUnit.getType(), instructionCacheView, dataMemoryView);
 
         /** Add observers to observables **/
@@ -81,8 +82,8 @@ public class HarvardSystemFragment extends HarvardActivityFragment {
      * @return A new instance of fragment HarvardSystemFragment.
      */
     public static HarvardSystemFragment newInstance(ObservableComputeCore mainCore,
-                                                    ObservableROM<ROM> instructionCache,
-                                                    ObservableRAM dataMemory, ObservableControlUnit cu) {
+                                                    ObservableReadPort<ROM> instructionCache,
+                                                    ObservableMemoryPort dataMemory, ObservableControlUnit cu) {
         HarvardSystemFragment fragment = new HarvardSystemFragment();
         fragment.setObservables(mainCore, instructionCache, dataMemory, cu);
         return fragment;

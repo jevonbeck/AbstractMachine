@@ -1,8 +1,10 @@
 package org.ricts.abstractmachine.components.compute.cu;
 
+import org.ricts.abstractmachine.components.compute.cores.UniMemoryCpuCore;
 import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
 import org.ricts.abstractmachine.components.interfaces.CuDataInterface;
 import org.ricts.abstractmachine.components.interfaces.MemoryPort;
+import org.ricts.abstractmachine.components.interfaces.Multiplexer;
 import org.ricts.abstractmachine.components.interfaces.ReadPort;
 import org.ricts.abstractmachine.components.storage.Register;
 
@@ -10,13 +12,15 @@ public class ControlUnit implements CuDataInterface {
     private Register pc; // Program Counter
     private Register ir; // Instruction Register
 
+    private Multiplexer mux;
     private ControlUnitFSM fsm;
 
     public ControlUnit(ComputeCoreInterface core, ReadPort instructionCache,
-                       MemoryPort dataMemory){
+                       MemoryPort dataMemory, Multiplexer muxInterface){
         pc = new Register(core.iAddrWidth());
         ir = new Register(core.instrWidth());
         fsm = new ControlUnitFSM(this, core, instructionCache, dataMemory);
+        mux = muxInterface;
 
         // initialise
         reset();
@@ -44,6 +48,13 @@ public class ControlUnit implements CuDataInterface {
 
     @Override
     public void performNextAction(){
+        if(isInExecuteState()){
+            mux.setSelection(UniMemoryCpuCore.PortIdentifier.DATA_MEM.ordinal());
+        }
+        else {
+            mux.setSelection(UniMemoryCpuCore.PortIdentifier.INSTRUCTION_MEM.ordinal());
+        }
+
         fsm.triggerStateChange();
     }
 

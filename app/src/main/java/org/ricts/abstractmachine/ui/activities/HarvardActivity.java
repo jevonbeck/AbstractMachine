@@ -11,8 +11,8 @@ import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.compute.cores.ComputeCore;
 import org.ricts.abstractmachine.components.observables.ObservableComputeCore;
 import org.ricts.abstractmachine.components.observables.ObservableControlUnit;
-import org.ricts.abstractmachine.components.observables.ObservableRAM;
-import org.ricts.abstractmachine.components.observables.ObservableROM;
+import org.ricts.abstractmachine.components.observables.ObservableMemoryPort;
+import org.ricts.abstractmachine.components.observables.ObservableReadPort;
 import org.ricts.abstractmachine.components.storage.ROM;
 import org.ricts.abstractmachine.components.system.HarvardArchitecture;
 import org.ricts.abstractmachine.components.system.SystemArchitecture;
@@ -45,8 +45,8 @@ public class HarvardActivity extends InspectActivity {
         private static final String TAG = "SystemViewAdapter";
 
         private ObservableComputeCore mainCore;
-        private ObservableROM<ROM> instructionCache;
-        private ObservableRAM dataMemory;
+        private ObservableReadPort<ROM> instructionCache;
+        private ObservableMemoryPort dataMemory;
         private ObservableControlUnit cu;
 
         private String systemString, coreString;

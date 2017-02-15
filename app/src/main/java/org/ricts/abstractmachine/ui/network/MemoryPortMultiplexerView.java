@@ -4,7 +4,10 @@ import android.content.Context;
 import android.util.AttributeSet;
 import android.view.View;
 
-import org.ricts.abstractmachine.components.observables.ObservableROM;
+import org.ricts.abstractmachine.components.interfaces.MemoryPort;
+import org.ricts.abstractmachine.components.observables.ObservableMemoryPort;
+import org.ricts.abstractmachine.components.observables.ObservableMultiMemoryPort;
+import org.ricts.abstractmachine.components.observables.ObservableReadPort;
 import org.ricts.abstractmachine.ui.device.DeviceView;
 import org.ricts.abstractmachine.ui.storage.MemoryPortView;
 
@@ -15,9 +18,13 @@ import java.util.Observer;
  * Created by Jevon on 07/06/2015.
  */
 public class MemoryPortMultiplexerView extends MultiplexerView implements Observer{
-    private boolean updateImmediately;
-    private Observable currentObservable;
-    private Object currentObject;
+    private static final int DEFAULT_READ_DELAY_MULTIPLE = 1;
+    private static final int INPUT_PIN_DELAY_MULTIPLE = 3;
+
+    private boolean updateImmediately, showAnimation;
+    private Observable memoryPortObservable;
+    private Object currentParams;
+    private int activePort;
 
     /** Standard Constructors **/
     public MemoryPortMultiplexerView(Context context) {
@@ -31,6 +38,7 @@ public class MemoryPortMultiplexerView extends MultiplexerView implements Observ
     public MemoryPortMultiplexerView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         updateImmediately = true;
+        showAnimation = true;
     }
 
     @Override
@@ -43,22 +51,37 @@ public class MemoryPortMultiplexerView extends MultiplexerView implements Observ
         MemoryPortView memoryPortPins =  (MemoryPortView) pinView;
 
         // implementations which use a MultiPinView subclass will probably want to do this
-        memoryPortPins.setStartDelayByMultiple(1);
+        memoryPortPins.setStartDelayByMultiple(DEFAULT_READ_DELAY_MULTIPLE);
     }
 
     @Override
     protected void initInputPinView(View pinView) {
         MemoryPortView memoryPortPins =  (MemoryPortView) pinView;
-        memoryPortPins.setReadDelayByMultiple(3);
+        memoryPortPins.setReadDelayByMultiple(INPUT_PIN_DELAY_MULTIPLE);
     }
 
     @Override
     public void update(Observable observable, Object o) {
-        currentObservable = observable;
-        currentObject = o;
+        if(observable instanceof ObservableMultiMemoryPort && o != null) {
+            ObservableMultiMemoryPort.MemoryPortParams params =
+                    (ObservableMultiMemoryPort.MemoryPortParams) o;
+            activePort = params.getPortId();
 
-        if (updateImmediately) {
-            animatePins();
+            int address = params.getAddress();
+            if(params.hasData()) {
+                int data = params.getData();
+                currentParams = new ObservableMemoryPort.WriteParams(address, data);
+            }
+            else {
+                currentParams = new ObservableReadPort.ReadParams(address);
+            }
+
+            if (updateImmediately) {
+                animatePins();
+            }
+        }
+        else {
+            super.update(observable, o);
         }
     }
 
@@ -66,14 +89,33 @@ public class MemoryPortMultiplexerView extends MultiplexerView implements Observ
         updateImmediately = immediately;
     }
 
-    public void animatePins(){
-        if (currentObject != null && currentObject instanceof ObservableROM.ReadParams) {
-            animateSelectPin(); // initiate select pin animation
-        }
+    public void showPinAnimations(boolean show){
+        showAnimation = show;
+    }
 
-        ((MemoryPortView) outputPins).update(
-                currentObservable, currentObject); // initiate output pin animation
-        ((MemoryPortView) inputPins[getSelection()]).update(
-                currentObservable, currentObject); // initiate selected input pin animation
+    public void animatePins(){
+        if(showAnimation) {
+            if (currentParams != null && currentParams instanceof ObservableReadPort.ReadParams) {
+                animateSelectPin(); // initiate select pin animation
+            }
+
+            if(activePort == getSelection()) {
+                ((MemoryPortView) outputPins).update(
+                        memoryPortObservable, currentParams); // initiate output pin animation
+                ((MemoryPortView) inputPins[activePort]).update(
+                        memoryPortObservable, currentParams); // initiate selected input pin animation
+            }
+            else {
+                // initiate active input pin animation (will return immediately with bad value)
+                MemoryPortView activePin = ((MemoryPortView) inputPins[activePort]);
+                activePin.setReadDelayByMultiple(DEFAULT_READ_DELAY_MULTIPLE);
+                activePin.update(memoryPortObservable, currentParams);
+                activePin.setReadDelayByMultiple(INPUT_PIN_DELAY_MULTIPLE);
+            }
+        }
+    }
+
+    public void setTargetMemoryPort(MemoryPort port) {
+        memoryPortObservable = new ObservableMemoryPort(port);
     }
 }

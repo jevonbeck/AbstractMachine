@@ -5,8 +5,7 @@ import android.util.AttributeSet;
 import android.view.animation.Animation;
 
 import org.ricts.abstractmachine.R;
-import org.ricts.abstractmachine.components.observables.ObservableRAM;
-import org.ricts.abstractmachine.components.storage.RAM;
+import org.ricts.abstractmachine.components.observables.ObservableMemoryPort;
 import org.ricts.abstractmachine.ui.device.DevicePin;
 
 import java.util.Observable;
@@ -39,24 +38,23 @@ public class MemoryPortView extends ReadPortView {
 
     @Override
     public void update(Observable observable, Object o) {
-        if(o instanceof ObservableRAM.WriteParams) {
-            ObservableRAM.WriteParams params = (ObservableRAM.WriteParams) o;
-            ObservableRAM observedRam = (ObservableRAM) observable;
-            RAM ram = observedRam.getType();
+        if(o instanceof ObservableMemoryPort.WriteParams) {
+            ObservableMemoryPort observedMemoryPort = (ObservableMemoryPort) observable;
 
+            ObservableMemoryPort.WriteParams params = (ObservableMemoryPort.WriteParams) o;
             int address = params.getAddress();
             int data = params.getData();
 
             // Setup correct data in pin UI
             DevicePin pin = pinArray[PinNames.ADDRESS.ordinal()];
-            pin.data = ram.addressString(address);
+            pin.data = observedMemoryPort.addressString(address);
             pin.direction = inDirection;
             pin.action = DevicePin.PinAction.MOVING;
             pin.startBehaviour = DevicePin.AnimStartBehaviour.DELAY;
             pin.animationDelay = startDelay;
 
             pin = pinArray[PinNames.DATA.ordinal()];
-            pin.data = ram.dataString(data);
+            pin.data = observedMemoryPort.dataString(data);
             pin.direction = inDirection;
             pin.action = DevicePin.PinAction.MOVING;
             pin.startBehaviour = DevicePin.AnimStartBehaviour.DELAY;

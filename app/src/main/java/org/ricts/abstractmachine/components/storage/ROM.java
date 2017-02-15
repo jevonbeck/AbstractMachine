@@ -48,6 +48,16 @@ public class ROM extends Device implements AddressDevice, DataDevice, ReadPort {
         return accessTime;
     }
 
+    @Override
+    public String addressString(int address){
+        return formatNumberInHex(address, addressWidth);
+    }
+
+    @Override
+    public String dataAtAddressString(int address){
+        return formatNumberInHex(read(address), dataWidth);
+    }
+
     public void setData(List<Integer> data, int addrOffset) {
         int dataSize = data.size();
         int offset = addrOffset & addressBitMask;
@@ -62,13 +72,5 @@ public class ROM extends Device implements AddressDevice, DataDevice, ReadPort {
 
     public int size(){
         return dataArray.length;
-    }
-
-    public String addressString(int address){
-        return formatNumberInHex(address, addressWidth);
-    }
-
-    public String dataAtAddressString(int address){
-        return formatNumberInHex(read(address), dataWidth);
     }
 }

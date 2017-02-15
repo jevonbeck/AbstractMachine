@@ -6,7 +6,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import org.ricts.abstractmachine.R;
-import org.ricts.abstractmachine.components.observables.ObservableRAM;
+import org.ricts.abstractmachine.components.observables.ObservableMemoryPort;
 import org.ricts.abstractmachine.components.storage.RAM;
 import org.ricts.abstractmachine.ui.storage.RamView;
 
@@ -19,10 +19,10 @@ public class MemoryTutorialActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.memory_tutorial);
 
-        final ObservableRAM ram = new ObservableRAM(new RAM(8, 3, 10));
+        final ObservableMemoryPort ram = new ObservableMemoryPort(new RAM(8, 3, 10));
 
         RamView memory = (RamView) findViewById(R.id.memory);
-		memory.setDataSource(ram.getType());
+		memory.setDataSource((RAM) ram.getType());
 		
 		addressEdit = (EditText) findViewById(R.id.addressEdit); 
 		dataEdit = (EditText) findViewById(R.id.dataEdit); 

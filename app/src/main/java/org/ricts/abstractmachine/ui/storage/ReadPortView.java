@@ -5,8 +5,7 @@ import android.util.AttributeSet;
 import android.view.animation.Animation;
 
 import org.ricts.abstractmachine.R;
-import org.ricts.abstractmachine.components.observables.ObservableROM;
-import org.ricts.abstractmachine.components.storage.ROM;
+import org.ricts.abstractmachine.components.observables.ObservableReadPort;
 import org.ricts.abstractmachine.ui.device.DevicePin;
 import org.ricts.abstractmachine.ui.device.MultiPinView;
 
@@ -69,11 +68,9 @@ public class ReadPortView extends MultiPinView implements Observer {
 
     @Override
     public void update(Observable observable, Object o) {
-        if(o instanceof ObservableROM.ReadParams) {
-            ObservableROM observedRom = (ObservableROM) observable;
-            ROM rom = (ROM) observedRom.getType();
-
-            int address = ((ObservableROM.ReadParams) o).getAddress();
+        if(o instanceof ObservableReadPort.ReadParams) {
+            ObservableReadPort observedReadPort = (ObservableReadPort) observable;
+            int address = ((ObservableReadPort.ReadParams) o).getAddress();
 
             // Setup correct data in pin UI
             DevicePin pin = pinArray[PinNames.COMMAND.ordinal()];
@@ -85,14 +82,14 @@ public class ReadPortView extends MultiPinView implements Observer {
             pin.animListener = null;
 
             pin = pinArray[PinNames.ADDRESS.ordinal()];
-            pin.data = rom.addressString(address);
+            pin.data = observedReadPort.addressString(address);
             pin.direction = inDirection;
             pin.action = DevicePin.PinAction.MOVING;
             pin.startBehaviour = DevicePin.AnimStartBehaviour.DELAY;
             pin.animationDelay = startDelay;
 
             pin = pinArray[PinNames.DATA.ordinal()];
-            pin.data = rom.dataAtAddressString(address);
+            pin.data = observedReadPort.dataAtAddressString(address);
             pin.direction = outDirection;
             pin.action = DevicePin.PinAction.MOVING;
             pin.startBehaviour = DevicePin.AnimStartBehaviour.DELAY;
