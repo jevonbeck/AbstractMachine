@@ -1,10 +1,12 @@
 package org.ricts.abstractmachine.ui.activities;
 
+import android.app.SearchManager;
+import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.SearchView;
 
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.compute.cores.ComputeCore;
@@ -16,7 +18,7 @@ import org.ricts.abstractmachine.ui.fragments.MemFragment;
  */
 
 public class DataMemoryDialogActivity extends MemoryContentsDialogActivity {
-    private static final String TAG = "DataMemoryDialog";
+    private SearchView operandOneSearchView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,7 +34,7 @@ public class DataMemoryDialogActivity extends MemoryContentsDialogActivity {
 
         /** Setup UI interactions and initialise UI **/
         // TODO: find a way to do hex-only input (soft keyboard?!)
-        final EditText operandOneEditText = (EditText) findViewById(R.id.operandOneEditText);
+        operandOneSearchView = (SearchView) findViewById(R.id.operandOneSearchView);
 
         final EditText labelEditText = (EditText) findViewById(R.id.labelEditText);
         labelEditText.setText(memoryData.getLabel());
@@ -45,8 +47,7 @@ public class DataMemoryDialogActivity extends MemoryContentsDialogActivity {
             @Override
             public void onClick(View view) {
                 /** save memoryContents data for location in adapter **/
-                int dataValue = getSafeInt(operandOneEditText, mainCore.getDataOperandInfo());
-                Log.d(TAG, "dataValue = " + dataValue);
+                int dataValue = getSafeInt(operandOneSearchView, mainCore.getDataOperandInfo());
 
                 String dataValueText = mainCore.dataValueString(dataValue);
                 String dataText = DATA_MNEUMONIC + " " + dataValueText;
@@ -83,5 +84,13 @@ public class DataMemoryDialogActivity extends MemoryContentsDialogActivity {
                 finish();
             }
         });
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        if(SUGGESTION_ACTION.equals(intent.getAction())) {
+            String suggestion = intent.getStringExtra(SearchManager.EXTRA_DATA_KEY);
+            operandOneSearchView.setQuery(suggestion, true);
+        }
     }
 }

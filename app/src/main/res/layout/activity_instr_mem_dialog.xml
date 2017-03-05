@@ -7,7 +7,9 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1">
+        android:layout_weight="1"
+        android:focusable="true"
+        android:focusableInTouchMode="true">
         <view
             class="org.ricts.abstractmachine.ui.utils.MultiLineRadioGroup"
             android:id="@+id/instrRadioGroup"
@@ -16,30 +18,34 @@
             android:orientation="horizontal"
             />
     </ScrollView>
-    <EditText
-        android:id="@+id/operandOneEditText"
+    <SearchView
+        android:id="@+id/operandOneSearchView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:iconifiedByDefault = "false"
         android:inputType="textCapCharacters"
-        android:hint="@string/arg1_hint"/>
-    <EditText
-        android:id="@+id/operandTwoEditText"
+        android:queryHint="@string/arg1_hint"/>
+    <SearchView
+        android:id="@+id/operandTwoSearchView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:iconifiedByDefault = "false"
         android:inputType="textCapCharacters"
-        android:hint="@string/arg2_hint"/>
-    <EditText
-        android:id="@+id/operandThreeEditText"
+        android:queryHint="@string/arg2_hint"/>
+    <SearchView
+        android:id="@+id/operandThreeSearchView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:iconifiedByDefault = "false"
         android:inputType="textCapCharacters"
-        android:hint="@string/arg3_hint"/>
-    <EditText
-        android:id="@+id/operandFourEditText"
+        android:queryHint="@string/arg3_hint"/>
+    <SearchView
+        android:id="@+id/operandFourSearchView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:iconifiedByDefault = "false"
         android:inputType="textCapCharacters"
-        android:hint="@string/arg4_hint"/>
+        android:queryHint="@string/arg4_hint"/>
     <EditText
         android:id="@+id/labelEditText"
         android:layout_width="match_parent"

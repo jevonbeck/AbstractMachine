@@ -1,11 +1,16 @@
 package org.ricts.abstractmachine.ui.activities;
 
+import android.app.SearchManager;
+import android.app.SearchableInfo;
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.SearchView;
 
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.compute.cores.ComputeCore;
@@ -17,6 +22,8 @@ import org.ricts.abstractmachine.ui.fragments.MemFragment;
  */
 
 public class InstrMemoryDialogActivity extends MemoryContentsDialogActivity {
+    private int lastSelectedSearchView = -1;
+    private SearchView [] operandSearchViewArr;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,10 +39,21 @@ public class InstrMemoryDialogActivity extends MemoryContentsDialogActivity {
 
         /** Setup UI interactions and initialise UI **/
         // TODO: find a way to do hex-only input (soft keyboard?!)
-        final EditText operandOneEditText = (EditText) findViewById(R.id.operandOneEditText);
-        final EditText operandTwoEditText = (EditText) findViewById(R.id.operandTwoEditText);
-        final EditText operandThreeEditText = (EditText) findViewById(R.id.operandThreeEditText);
-        final EditText operandFourEditText = (EditText) findViewById(R.id.operandFourEditText);
+        int [] searchViewIdArr = new int [] {
+                R.id.operandOneSearchView, R.id.operandTwoSearchView,
+                R.id.operandThreeSearchView, R.id.operandFourSearchView
+        };
+        operandSearchViewArr = new SearchView[searchViewIdArr.length];
+        for(int x=0; x < operandSearchViewArr.length; ++x) {
+            operandSearchViewArr[x] = (SearchView) findViewById(searchViewIdArr[x]);
+        }
+        final SearchView operandOneSearchView = operandSearchViewArr[0];
+
+        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+        SearchableInfo searchableInfo = searchManager.getSearchableInfo(getComponentName());
+        for(SearchView anOperandSearchViewArr : operandSearchViewArr) {
+            anOperandSearchViewArr.setSearchableInfo(searchableInfo);
+        }
 
         final EditText labelEditText = (EditText) findViewById(R.id.labelEditText);
         labelEditText.setText(memoryData.getLabel());
@@ -50,66 +68,22 @@ public class InstrMemoryDialogActivity extends MemoryContentsDialogActivity {
                 RadioButton button = (RadioButton) radioGroup.findViewById(checkedId);
 
                 String mneumonic = button.getText().toString();
-                int operandCount = mneumonic.equals(DATA_MNEUMONIC) ?
-                        1 : mainCore.getOperandInfoArray(mneumonic).length;
+                OperandInfo [] operandInfoArr = mneumonic.equals(DATA_MNEUMONIC) ?
+                        new OperandInfo [] {mainCore.getDataOperandInfo()} :
+                        mainCore.getOperandInfoArray(mneumonic);
 
-                // update visibility of EditTexts to only enter appropriate number of operands
-                switch (operandCount){
-                    case 4:
-                        operandOneEditText.setEnabled(true);
-                        operandOneEditText.setVisibility(View.VISIBLE);
-                        operandTwoEditText.setVisibility(View.VISIBLE);
-                        operandThreeEditText.setVisibility(View.VISIBLE);
-                        operandFourEditText.setVisibility(View.VISIBLE);
-                        break;
-                    case 3:
-                        operandOneEditText.setEnabled(true);
-                        operandOneEditText.setVisibility(View.VISIBLE);
-                        operandTwoEditText.setVisibility(View.VISIBLE);
-                        operandThreeEditText.setVisibility(View.VISIBLE);
-                        operandFourEditText.setVisibility(View.GONE);
-                        break;
-                    case 2:
-                        operandOneEditText.setEnabled(true);
-                        operandOneEditText.setVisibility(View.VISIBLE);
-                        operandTwoEditText.setVisibility(View.VISIBLE);
-                        operandThreeEditText.setVisibility(View.GONE);
-                        operandFourEditText.setVisibility(View.GONE);
-                        break;
-                    case 1:
-                        operandOneEditText.setEnabled(true);
-                        operandOneEditText.setVisibility(View.VISIBLE);
-                        operandTwoEditText.setVisibility(View.GONE);
-                        operandThreeEditText.setVisibility(View.GONE);
-                        operandFourEditText.setVisibility(View.GONE);
-                        break;
-                    case 0:
-                        operandOneEditText.setEnabled(false);
-                        operandOneEditText.setVisibility(View.VISIBLE);
-                        operandTwoEditText.setVisibility(View.GONE);
-                        operandThreeEditText.setVisibility(View.GONE);
-                        operandFourEditText.setVisibility(View.GONE);
-                        break;
+                // update visibility of SearchViews to only enter appropriate number of operands
+                int operandCount = operandInfoArr.length;
+                operandOneSearchView.setEnabled(operandCount > 0);
+                for(int x=1; x < operandSearchViewArr.length; ++x) {
+                    operandSearchViewArr[x].setVisibility((x < operandCount) ? View.VISIBLE : View.GONE);
                 }
 
-                // update EditText text
+                // update SearchView query text
                 int [] operands = memoryData.getOperands();
                 for(int x=0; x < operands.length; ++x){
-                    String text = Integer.toHexString(operands[x]);
-                    switch (x){
-                        case 0:
-                            operandOneEditText.setText(text);
-                            break;
-                        case 1:
-                            operandTwoEditText.setText(text);
-                            break;
-                        case 2:
-                            operandThreeEditText.setText(text);
-                            break;
-                        case 3:
-                            operandFourEditText.setText(text);
-                            break;
-                    }
+                    String text = operandInfoArr[x].getPrettyValue(operands[x]);
+                    operandSearchViewArr[x].setQuery(text, true);
                 }
             }
         });
@@ -136,7 +110,7 @@ public class InstrMemoryDialogActivity extends MemoryContentsDialogActivity {
                 int encodedInstruction;
                 String instructionText;
                 if(mneumonic.equals(DATA_MNEUMONIC)){
-                    encodedInstruction = getSafeInt(operandOneEditText, mainCore.getDataOperandInfo());
+                    encodedInstruction = getSafeInt(operandOneSearchView, mainCore.getDataOperandInfo());
                     instructionText = DATA_MNEUMONIC + " " +
                             mainCore.instrValueString(encodedInstruction);
                     operands = new int[1];
@@ -147,23 +121,8 @@ public class InstrMemoryDialogActivity extends MemoryContentsDialogActivity {
                     int operandCount = operandInfoArray.length;
                     operands = new int[operandCount];
                     for(int x=0; x < operandCount; ++x){
-                        int editTextValue = -1;
                         OperandInfo operandInfo = operandInfoArray[x];
-                        switch (x){
-                            case 0:
-                                editTextValue = getSafeInt(operandOneEditText, operandInfo);
-                                break;
-                            case 1:
-                                editTextValue = getSafeInt(operandTwoEditText, operandInfo);
-                                break;
-                            case 2:
-                                editTextValue = getSafeInt(operandThreeEditText, operandInfo);
-                                break;
-                            case 3:
-                                editTextValue = getSafeInt(operandFourEditText, operandInfo);
-                                break;
-                        }
-                        operands[x] = editTextValue;
+                        operands[x] = getSafeInt(operandSearchViewArr[x], operandInfo);
                     }
 
                     encodedInstruction = mainCore.encodeInstruction(mneumonic, operands);
@@ -200,6 +159,28 @@ public class InstrMemoryDialogActivity extends MemoryContentsDialogActivity {
                 finish();
             }
         });
+
+        // update Content Provider data source based on selected SearchView
+        for(int x=0; x < operandSearchViewArr.length; ++x) {
+            final int index = x;
+            operandSearchViewArr[x].setOnQueryTextFocusChangeListener(new View.OnFocusChangeListener() {
+                @Override
+                public void onFocusChange(View view, boolean hasFocus) {
+                    if(hasFocus){
+                        provider.setOpInfo(getOperandInfo(instrGroup, mainCore, index));
+                        lastSelectedSearchView = index;
+                    }
+                }
+            });
+        }
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        if(SUGGESTION_ACTION.equals(intent.getAction())) {
+            String suggestion = intent.getStringExtra(SearchManager.EXTRA_DATA_KEY);
+            operandSearchViewArr[lastSelectedSearchView].setQuery(suggestion, true);
+        }
     }
 
     private void addRadioButtonWithText(String mneumonic, RadioGroup instrGroup,
@@ -215,6 +196,20 @@ public class InstrMemoryDialogActivity extends MemoryContentsDialogActivity {
         // ... then, check/select button with current mneumonic
         if(mneumonic.equals(comparisonMneumonic)){
             button.setChecked(true); // this triggers visibility of EditTexts
+        }
+    }
+
+    private OperandInfo getOperandInfo(RadioGroup instrGroup, ComputeCore mainCore, int index) {
+        RadioButton button = (RadioButton) instrGroup.findViewById(
+                instrGroup.getCheckedRadioButtonId());
+        String mneumonic = button.getText().toString();
+
+        if(mneumonic.equals(DATA_MNEUMONIC)){
+            return mainCore.getDataOperandInfo();
+        }
+        else {
+            OperandInfo[] operandInfoArray = mainCore.getOperandInfoArray(mneumonic);
+            return operandInfoArray[index];
         }
     }
 }

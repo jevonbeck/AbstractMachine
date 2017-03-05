@@ -2,13 +2,16 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:orientation="vertical"
               android:layout_width="match_parent"
-              android:layout_height="match_parent">
-    <EditText
-        android:id="@+id/operandOneEditText"
+              android:layout_height="match_parent"
+              android:focusable="true"
+              android:focusableInTouchMode="true">
+    <SearchView
+        android:id="@+id/operandOneSearchView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:iconifiedByDefault = "false"
         android:inputType="textCapCharacters"
-        android:hint="@string/data_hint"/>
+        android:queryHint="@string/data_hint"/>
     <EditText
         android:id="@+id/labelEditText"
         android:layout_width="match_parent"
