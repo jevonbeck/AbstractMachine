@@ -98,6 +98,7 @@ public abstract class InspectActivity extends AppCompatActivity implements Inspe
             @Override
             public void onClick(View view) {
                 view.setEnabled(false);
+                enableButtons();
 
                 isRunning = false;
             }
@@ -144,9 +145,7 @@ public abstract class InspectActivity extends AppCompatActivity implements Inspe
             Log.d(TAG, "onStepActionCompleted() advanceTime() end");
         }
         else {
-            advanceButton.setEnabled(true);
-            runButton.setEnabled(true);
-            resetButton.setEnabled(true);
+            enableButtons();
             Log.d(TAG, "onStepActionCompleted()");
         }
 
@@ -155,9 +154,7 @@ public abstract class InspectActivity extends AppCompatActivity implements Inspe
 
     @Override
     public void onResetCompleted() {
-        advanceButton.setEnabled(true);
-        runButton.setEnabled(true);
-        resetButton.setEnabled(true);
+        enableButtons();
         Log.d(TAG, "onResetCompleted()");
     }
 
@@ -191,6 +188,12 @@ public abstract class InspectActivity extends AppCompatActivity implements Inspe
             ((InspectFragment) pagerAdapter.instantiateItem(pager, x))
                     .setUserVisibility(x == currentItemIndex);
         }
+    }
+
+    private void enableButtons() {
+        advanceButton.setEnabled(true);
+        runButton.setEnabled(true);
+        resetButton.setEnabled(true);
     }
 
     public static ComputeCore getComputeCore(Bundle options){
