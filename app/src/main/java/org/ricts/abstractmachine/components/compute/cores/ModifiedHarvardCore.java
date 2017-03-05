@@ -20,9 +20,7 @@ public class ModifiedHarvardCore extends UniMemoryCpuCore {
     }
 
     @Override
-    protected CuDataInterface createControlUnit(ComputeCoreInterface core,
-                                                ReadPort instructionCache,
-                                                MemoryPort dataMemory) {
-        return new PipelinedControlUnit(core, instructionCache, dataMemory);
+    protected CuDataInterface createControlUnit(ComputeCoreInterface core, ReadPort instructionCache) {
+        return new PipelinedControlUnit(core, instructionCache);
     }
 }

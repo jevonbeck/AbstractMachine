@@ -51,16 +51,16 @@ public class ObservableComputeCore<T extends ComputeCore> extends ObservableType
     }
 
     @Override
-    public void executeInstruction(int programCounter, int instruction, MemoryPort dataMemory, ControlUnitInterface cu) {
-        observable_data.executeInstruction(programCounter, instruction, dataMemory, cu);
+    public void executeInstruction(int programCounter, int instruction, ControlUnitInterface cu) {
+        observable_data.executeInstruction(programCounter, instruction, cu);
         setChanged();
         notifyObservers(new ExecuteParams(instruction, programCounter,
                 observable_data.getProgramCounterValue(), cu.isPipelined()));
     }
 
     @Override
-    public int instrExecTime(int instruction, MemoryPort dataMemory) {
-        return observable_data.instrExecTime(instruction, dataMemory);
+    public int instrExecTime(int instruction) {
+        return observable_data.instrExecTime(instruction);
     }
 
     @Override
@@ -83,6 +83,11 @@ public class ObservableComputeCore<T extends ComputeCore> extends ObservableType
         observable_data.checkInterrupts(cu);
         setChanged();
         notifyObservers(); // TODO: determine if arguments needed
+    }
+
+    @Override
+    public void setDataMemory(MemoryPort memory) {
+        observable_data.setDataMemory(memory);
     }
 
     @Override

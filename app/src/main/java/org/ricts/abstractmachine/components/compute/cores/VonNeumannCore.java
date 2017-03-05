@@ -19,10 +19,8 @@ public class VonNeumannCore extends UniMemoryCpuCore {
     }
 
     @Override
-    protected CuDataInterface createControlUnit(ComputeCoreInterface core,
-                                                ReadPort instructionCache,
-                                                MemoryPort dataMemory) {
-        return new ControlUnit(core, instructionCache, dataMemory, getObservableMultiplexer());
+    protected CuDataInterface createControlUnit(ComputeCoreInterface core, ReadPort instructionCache) {
+        return new ControlUnit(core, instructionCache, getObservableMultiplexer());
     }
 
     @Override

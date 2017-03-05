@@ -4,7 +4,6 @@ import org.ricts.abstractmachine.components.compute.cores.ComputeCore;
 import org.ricts.abstractmachine.components.compute.isa.InstructionGroup;
 import org.ricts.abstractmachine.components.compute.isa.IsaDecoder;
 import org.ricts.abstractmachine.components.compute.isa.OperandInfo;
-import org.ricts.abstractmachine.components.interfaces.MemoryPort;
 import org.ricts.abstractmachine.components.storage.RAM;
 import org.ricts.abstractmachine.components.storage.Register;
 import org.ricts.abstractmachine.datastructures.Stack;
@@ -384,7 +383,7 @@ public class BasicScalar extends ComputeCore {
     }
 
     @Override
-    protected void fetchOpsExecuteInstr(String groupName, int groupIndex, int[] operands, MemoryPort dataMemory) {
+    protected void fetchOpsExecuteInstr(String groupName, int groupIndex, int[] operands) {
         InstructionGrouping grouping = Enum.valueOf(InstructionGrouping.class, groupName);
         Instruction instruction = grouping.decode(groupIndex);
 
@@ -691,7 +690,7 @@ public class BasicScalar extends ComputeCore {
     }
 
     @Override
-    public int executionTime(String groupName, int groupIndex, MemoryPort dataMemory) {
+    public int executionTime(String groupName, int groupIndex) {
         InstructionGrouping grouping = Enum.valueOf(InstructionGrouping.class, groupName);
         Instruction instruction = grouping.decode(groupIndex);
 

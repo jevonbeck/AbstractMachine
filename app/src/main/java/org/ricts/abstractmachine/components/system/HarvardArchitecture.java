@@ -20,8 +20,9 @@ public class HarvardArchitecture extends SystemArchitecture {
 
         instructionCache = new ObservableReadPort<ROM>(new ROM(core.instrWidth(), core.iAddrWidth(), iMemAccessTime));
         dataRAM = new ObservableMemoryPort(new RAM(core.dataWidth(), core.dAddrWidth(), dMemAccessTime));
+        core.setDataMemory(dataRAM);
 
-        HarvardCore hCore = new HarvardCore(mainCore, instructionCache, dataRAM);
+        HarvardCore hCore = new HarvardCore(mainCore, instructionCache);
         controlUnit = hCore.getControlUnit();
 
         tpu = hCore;

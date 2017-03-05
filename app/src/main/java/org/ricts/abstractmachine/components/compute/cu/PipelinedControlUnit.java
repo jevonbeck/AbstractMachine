@@ -3,7 +3,6 @@ package org.ricts.abstractmachine.components.compute.cu;
 import org.ricts.abstractmachine.components.compute.cu.ControlUnitState.GenericCUState;
 import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
 import org.ricts.abstractmachine.components.interfaces.CuDataInterface;
-import org.ricts.abstractmachine.components.interfaces.MemoryPort;
 import org.ricts.abstractmachine.components.interfaces.ReadPort;
 import org.ricts.abstractmachine.components.storage.Register;
 
@@ -21,7 +20,7 @@ public class PipelinedControlUnit implements CuDataInterface {
     private Register expectedPC, branchPC, realPC;
     private Register expectedIR, branchIR, realIR;
 
-    public PipelinedControlUnit(ComputeCoreInterface core, ReadPort instructionCache, MemoryPort dataMemory){
+    public PipelinedControlUnit(ComputeCoreInterface core, ReadPort instructionCache){
         mainCore = core;
 
         int iAddrWidth = core.iAddrWidth();
@@ -39,10 +38,10 @@ public class PipelinedControlUnit implements CuDataInterface {
            During normal operation, one performs a fetch while the other executes... ALWAYS! */
 
         // FSM 1 - initial state = 'fetch'
-        fsm1 = new ControlUnitFSM(this, core, instructionCache, dataMemory);
+        fsm1 = new ControlUnitFSM(this, core, instructionCache);
 
         // FSM 2 - initial state = 'execute'
-        fsm2 = new ControlUnitFSM(this, core, instructionCache, dataMemory);
+        fsm2 = new ControlUnitFSM(this, core, instructionCache);
 
         // initialise FSMs
         reset();

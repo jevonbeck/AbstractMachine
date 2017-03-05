@@ -3,7 +3,6 @@ package org.ricts.abstractmachine.components.compute.cu;
 import org.ricts.abstractmachine.components.compute.cores.UniMemoryCpuCore;
 import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
 import org.ricts.abstractmachine.components.interfaces.CuDataInterface;
-import org.ricts.abstractmachine.components.interfaces.MemoryPort;
 import org.ricts.abstractmachine.components.interfaces.Multiplexer;
 import org.ricts.abstractmachine.components.interfaces.ReadPort;
 import org.ricts.abstractmachine.components.storage.Register;
@@ -15,11 +14,10 @@ public class ControlUnit implements CuDataInterface {
     private Multiplexer mux;
     private ControlUnitFSM fsm;
 
-    public ControlUnit(ComputeCoreInterface core, ReadPort instructionCache,
-                       MemoryPort dataMemory, Multiplexer muxInterface){
+    public ControlUnit(ComputeCoreInterface core, ReadPort instructionCache, Multiplexer muxInterface){
         pc = new Register(core.iAddrWidth());
         ir = new Register(core.instrWidth());
-        fsm = new ControlUnitFSM(this, core, instructionCache, dataMemory);
+        fsm = new ControlUnitFSM(this, core, instructionCache);
         mux = muxInterface;
 
         // initialise

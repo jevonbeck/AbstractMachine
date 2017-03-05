@@ -17,6 +17,8 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
 	protected int dAddrWidth;
 	protected int dataWidth;
 
+    protected MemoryPort dataMemory;
+
     private boolean pcUpdated = false;
     private ControlUnitState expectedControlUnitState = ControlUnitState.ACTIVE;
 
@@ -36,10 +38,10 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
     protected abstract boolean isDataMemInstr(String groupName, int groupIndex);
     protected abstract boolean isHaltInstr(String groupName, int groupIndex);
     protected abstract boolean isSleepInstr(String groupName, int groupIndex);
-    protected abstract void fetchOpsExecuteInstr(String groupName, int groupIndex, int[] operands, MemoryPort dataMemory);
+    protected abstract void fetchOpsExecuteInstr(String groupName, int groupIndex, int[] operands);
 	protected abstract void updateInternalControlUnitState(String groupName, int groupIndex, int[] operands);
     protected abstract void updateProgramCounterOnInterrupt();
-    protected abstract int executionTime(String groupName, int groupIndex, MemoryPort dataMemory);
+    protected abstract int executionTime(String groupName, int groupIndex);
     protected abstract void updateProgramCounterRegs(int programCounter);
     protected abstract String insToString(String groupName, int groupIndex, int[] operands);
     protected abstract String getGroupName(String mneumonic);
@@ -66,7 +68,7 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
 	}
 
     @Override
-    public void executeInstruction(int programCounter, int instruction, MemoryPort dataMemory, ControlUnitInterface cu) {
+    public void executeInstruction(int programCounter, int instruction, ControlUnitInterface cu) {
         updateProgramCounterRegs(programCounter);
         setExpectedControlUnitState(ControlUnitState.ACTIVE);
         pcUpdated = false;
@@ -85,7 +87,7 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
 			}
 						
 			// fetch/indirect operands and execute instruction
-			fetchOpsExecuteInstr(groupName, groupIndex, operands, dataMemory);
+			fetchOpsExecuteInstr(groupName, groupIndex, operands);
 
 			// update internal Control Unit state based on execution result
 			updateInternalControlUnitState(groupName, groupIndex, operands);
@@ -118,7 +120,7 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
 	}
 
     @Override
-    public int instrExecTime(int instruction, MemoryPort dataMemory) {
+    public int instrExecTime(int instruction) {
 		int instruct = instruction & instrBitMask;
 		if(instrDecoder.isValidInstruction(instruct)){
 			// decode instruction
@@ -128,7 +130,7 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
             int groupIndex = decoder.decode(instruct);
 						
 			// determine execute time for instruction
-			return executionTime(groupName, groupIndex, dataMemory);
+			return executionTime(groupName, groupIndex);
 		}
 		
 		return -1;
@@ -148,6 +150,11 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
     @Override
     public int getNopInstruction() {
         return encodeInstruction(nopMneumonic(), new int [0]);
+    }
+
+    @Override
+    public void setDataMemory(MemoryPort memory) {
+        dataMemory = memory;
     }
 
     public boolean isHaltInstruction(int instruction) {
