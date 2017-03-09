@@ -46,12 +46,9 @@ public class ControlUnit implements CuDataInterface {
 
     @Override
     public void performNextAction(){
-        if(isInExecuteState()){
-            mux.setSelection(UniMemoryCpuCore.PortIdentifier.DATA_MEM.ordinal());
-        }
-        else {
-            mux.setSelection(UniMemoryCpuCore.PortIdentifier.INSTRUCTION_MEM.ordinal());
-        }
+        int selection = isInExecuteState() ? UniMemoryCpuCore.PortIdentifier.DATA_MEM.ordinal() :
+                UniMemoryCpuCore.PortIdentifier.INSTRUCTION_MEM.ordinal();
+        mux.setSelection(selection);
 
         fsm.triggerStateChange();
     }

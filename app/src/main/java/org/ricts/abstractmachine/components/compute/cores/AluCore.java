@@ -5,13 +5,10 @@ import org.ricts.abstractmachine.components.devicetype.Device;
 
 public class AluCore extends Device {
     public enum Flag{
-        CARRY, OVERFLOW, ZERO, SIGN
-    /*
-      CARRY - CarryIn/BorrowIn
-      OVERFLOW - CarryOut/ActiveLowBorrowOut
-      SIGN - sign of result
-      ZERO - indicates that result is zero
-    */
+        CARRY, // CarryIn/BorrowIn
+        OVERFLOW, // CarryOut/ActiveLowBorrowOut
+        ZERO, // indicates when result is zero
+        SIGN // sign of result
     }
 
     private int dataBitMask;

@@ -4,9 +4,8 @@ import org.ricts.abstractmachine.components.compute.cores.ComputeCore;
 import org.ricts.abstractmachine.components.compute.isa.InstructionGroup;
 import org.ricts.abstractmachine.components.compute.isa.IsaDecoder;
 import org.ricts.abstractmachine.components.compute.isa.OperandInfo;
-import org.ricts.abstractmachine.components.storage.RAM;
 import org.ricts.abstractmachine.components.storage.Register;
-import org.ricts.abstractmachine.datastructures.Stack;
+import org.ricts.abstractmachine.components.storage.RegisterStack;
 import org.ricts.abstractmachine.devices.compute.alu.BasicALU;
 import org.ricts.abstractmachine.devices.compute.alu.BasicALU.Mneumonics;
 
@@ -116,7 +115,7 @@ public class BasicScalar extends ComputeCore {
     private Register[] dataRegs; // (no. of) registers for manipulating data
     private Register[] dataAddrRegs; // (no. of) registers for storing data addresses
     private Register[] instrAddrRegs; // (no. of) registers for storing instruction addresses (temporarily)
-    private Stack callStack; // presence or absence of on-chip call stack
+    private RegisterStack callStack; // presence or absence of on-chip call stack
     private BasicALU alu; // operations allowed by ALU
 
     public BasicScalar(int byteMultiplierWidth, int dAdWidth, int iAdWidth, int stkAdWidth,
@@ -318,10 +317,7 @@ public class BasicScalar extends ComputeCore {
     public void reset() {
         /* Initialise core units */
         alu = new BasicALU(dataWidth);
-
-        // TODO: use better stack logic (RAM is counter-intuitive for on-chip stack)
-        RAM stackRam = new RAM(dataWidth, stackAddrWidth, 0);
-        callStack = new Stack(stackRam, 0, 1 << stackAddrWidth); // stack with size 2^stackAddrWidth
+        callStack = new RegisterStack(dataWidth, 1 << stackAddrWidth); // stack with size 2^stackAddrWidth
 
 	    /* Initialise registers */
         dataRegs = new Register[1 << dataRegAddrWidth]; // for data (2^dataRegAddrWidth regs)
