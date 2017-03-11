@@ -17,7 +17,7 @@ public class ControlUnitFSM extends FiniteStateMachine {
         fetch = new ControlUnitFetchState(cu, instructionCache);
         execute = new ControlUnitExecuteState(core, cu);
         halt = new ControlUnitHaltState();
-        sleep = new ControlUnitSleepState(core, cu);
+        sleep = new ControlUnitSleepState(core);
     }
 
     @Override

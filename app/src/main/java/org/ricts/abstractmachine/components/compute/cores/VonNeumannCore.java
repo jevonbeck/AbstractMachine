@@ -7,6 +7,7 @@ import org.ricts.abstractmachine.components.interfaces.MultiMemoryPort;
 import org.ricts.abstractmachine.components.interfaces.MemoryPort;
 import org.ricts.abstractmachine.components.interfaces.Multiplexer;
 import org.ricts.abstractmachine.components.interfaces.ReadPort;
+import org.ricts.abstractmachine.components.interfaces.UniMemoryComputeCoreInterface;
 import org.ricts.abstractmachine.components.network.MultiPortSerializer;
 import org.ricts.abstractmachine.components.network.MemoryPortMux;
 import org.ricts.abstractmachine.components.observables.ObservableMultiplexer;
@@ -14,7 +15,7 @@ import org.ricts.abstractmachine.components.observables.ObservableMultiplexer;
 public class VonNeumannCore extends UniMemoryCpuCore {
     private ObservableMultiplexer multiplexer;
 
-    public VonNeumannCore(ComputeCoreInterface core, MemoryPort dataMemory){
+    public VonNeumannCore(UniMemoryComputeCoreInterface core, MemoryPort dataMemory){
         super(core, dataMemory);
     }
 

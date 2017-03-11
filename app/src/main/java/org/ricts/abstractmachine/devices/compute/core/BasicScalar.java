@@ -1,6 +1,6 @@
 package org.ricts.abstractmachine.devices.compute.core;
 
-import org.ricts.abstractmachine.components.compute.cores.ComputeCore;
+import org.ricts.abstractmachine.components.compute.cores.UniMemoryComputeCore;
 import org.ricts.abstractmachine.components.compute.isa.InstructionGroup;
 import org.ricts.abstractmachine.components.compute.isa.IsaDecoder;
 import org.ricts.abstractmachine.components.compute.isa.OperandInfo;
@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-public class BasicScalar extends ComputeCore {
+public class BasicScalar extends UniMemoryComputeCore {
     /*** Start of Instruction Definitions ***/
     public enum Instruction {
         POP, NOP, HALT,

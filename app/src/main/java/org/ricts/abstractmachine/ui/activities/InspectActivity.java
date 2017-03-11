@@ -16,7 +16,7 @@ import org.ricts.abstractmachine.components.system.SystemArchitecture;
 import org.ricts.abstractmachine.devices.compute.core.BasicScalar;
 import org.ricts.abstractmachine.ui.fragments.InspectFragment;
 
-public abstract class InspectActivity extends AppCompatActivity implements InspectFragment.InspectActionListener {
+public abstract class InspectActivity<T extends ComputeCore> extends AppCompatActivity implements InspectFragment.InspectActionListener {
     private static final String TAG = "InspectActivity";
 
     public static final String ARCH_TYPE = "architectureType";
@@ -46,7 +46,7 @@ public abstract class InspectActivity extends AppCompatActivity implements Inspe
     private int pagerAdapterCount, pagerOffScreenLimit;
     private SystemArchitecture architecture;
 
-    protected abstract SystemArchitecture createSystemArchitecture(ComputeCore core, Bundle options);
+    protected abstract SystemArchitecture createSystemArchitecture(T core, Bundle options);
     protected abstract void initSystemArchitecture(SystemArchitecture architecture, Bundle options);
     protected abstract PagerAdapter createAdapter(SystemArchitecture architecture);
 
@@ -57,7 +57,7 @@ public abstract class InspectActivity extends AppCompatActivity implements Inspe
 
         /** Initialise main data **/
         final Bundle options = getIntent().getExtras();
-        architecture = createSystemArchitecture(getComputeCore(options), options);
+        architecture = createSystemArchitecture((T) getComputeCore(options), options);
         initSystemArchitecture(architecture, options);
         pagerAdapter = createAdapter(architecture);
 

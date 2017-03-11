@@ -6,11 +6,12 @@ import org.ricts.abstractmachine.components.interfaces.CuDataInterface;
 import org.ricts.abstractmachine.components.interfaces.MemoryPort;
 import org.ricts.abstractmachine.components.interfaces.MultiMemoryPort;
 import org.ricts.abstractmachine.components.interfaces.ReadPort;
+import org.ricts.abstractmachine.components.interfaces.UniMemoryComputeCoreInterface;
 import org.ricts.abstractmachine.components.network.MultiPortSerializer;
 
 public class ModifiedHarvardCore extends UniMemoryCpuCore {
 
-    public ModifiedHarvardCore(ComputeCoreInterface core, MemoryPort dataMemory){
+    public ModifiedHarvardCore(UniMemoryComputeCoreInterface core, MemoryPort dataMemory){
         super(core, dataMemory);
     }
 

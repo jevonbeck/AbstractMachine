@@ -8,12 +8,10 @@ import org.ricts.abstractmachine.components.interfaces.ControlUnitInterface;
  */
 public class ControlUnitSleepState extends ControlUnitState{
     private ComputeCoreInterface core;
-    private ControlUnitInterface cu;
 
-    public ControlUnitSleepState(ComputeCoreInterface proc, ControlUnitInterface controlUnit) {
+    public ControlUnitSleepState(ComputeCoreInterface proc) {
         super(GenericCUState.SLEEP);
         core = proc;
-        cu = controlUnit;
     }
 
     @Override
@@ -23,6 +21,6 @@ public class ControlUnitSleepState extends ControlUnitState{
 
     @Override
     public void performAction() {
-        core.checkInterrupts(cu);
+        core.checkInterrupts();
     }
 }

@@ -8,7 +8,7 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.PagerAdapter;
 
 import org.ricts.abstractmachine.R;
-import org.ricts.abstractmachine.components.compute.cores.ComputeCore;
+import org.ricts.abstractmachine.components.compute.cores.UniMemoryComputeCore;
 import org.ricts.abstractmachine.components.observables.ObservableComputeCore;
 import org.ricts.abstractmachine.components.observables.ObservableControlUnit;
 import org.ricts.abstractmachine.components.observables.ObservableMemoryPort;
@@ -19,10 +19,10 @@ import org.ricts.abstractmachine.components.system.VonNeumannArchitecture;
 import org.ricts.abstractmachine.ui.fragments.VonNeumannCoreFragment;
 import org.ricts.abstractmachine.ui.fragments.VonNeumannSystemFragment;
 
-public class VonNeumannActivity extends InspectActivity {
+public class VonNeumannActivity extends InspectActivity<UniMemoryComputeCore> {
 
     @Override
-    protected SystemArchitecture createSystemArchitecture(ComputeCore core, Bundle options) {
+    protected SystemArchitecture createSystemArchitecture(UniMemoryComputeCore core, Bundle options) {
         return new VonNeumannArchitecture(core, 10); // TODO: change me
     }
 

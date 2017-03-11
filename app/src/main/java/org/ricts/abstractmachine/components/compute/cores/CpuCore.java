@@ -10,26 +10,36 @@ import org.ricts.abstractmachine.components.observables.ObservableControlUnit;
  * Created by Jevon on 14/08/2016.
  */
 public abstract class CpuCore implements ThreadProcessingUnit {
-    public abstract ObservableControlUnit getControlUnit();
+    private ObservableControlUnit cu; // Control Unit
+
     protected abstract CuDataInterface createControlUnit(ComputeCoreInterface core, ReadPort instructionCache);
 
     @Override
     public void setStartExecFrom(int currentPC) {
-        getControlUnit().setStartExecFrom(currentPC);
+        cu.setStartExecFrom(currentPC);
     }
 
     @Override
     public int nextActionTransitionTime(){
-        return getControlUnit().nextActionDuration();
+        return cu.nextActionDuration();
     }
 
     @Override
     public void triggerNextAction(){
-        getControlUnit().performNextAction(); // perform action for 'currentState' and go to next state
+        cu.performNextAction(); // perform action for 'currentState' and go to next state
     }
 
     @Override
     public void reset() {
-        getControlUnit().reset();
+        cu.reset();
+    }
+
+    public ObservableControlUnit getControlUnit(){
+        return cu;
+    }
+
+    protected void createObservableControlUnit(ComputeCoreInterface core, ReadPort instructionCache) {
+        cu = new ObservableControlUnit(createControlUnit(core, instructionCache));
+        core.setControlUnit(cu);
     }
 }

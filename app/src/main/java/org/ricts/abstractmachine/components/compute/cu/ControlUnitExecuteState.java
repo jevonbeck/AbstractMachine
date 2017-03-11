@@ -15,7 +15,7 @@ public class ControlUnitExecuteState extends ControlUnitState {
 
     @Override
     public void performAction(){
-        core.executeInstruction(cu.getPC(), cu.getIR(), cu);
+        core.executeInstruction(cu.getPC(), cu.getIR());
     }
 
     @Override

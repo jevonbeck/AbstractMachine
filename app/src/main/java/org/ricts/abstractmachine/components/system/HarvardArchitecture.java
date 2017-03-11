@@ -1,21 +1,23 @@
 package org.ricts.abstractmachine.components.system;
 
-import org.ricts.abstractmachine.components.compute.cores.ComputeCore;
 import org.ricts.abstractmachine.components.compute.cores.HarvardCore;
+import org.ricts.abstractmachine.components.compute.cores.UniMemoryComputeCore;
+import org.ricts.abstractmachine.components.observables.ObservableComputeCore;
 import org.ricts.abstractmachine.components.observables.ObservableControlUnit;
 import org.ricts.abstractmachine.components.observables.ObservableMemoryPort;
 import org.ricts.abstractmachine.components.observables.ObservableReadPort;
+import org.ricts.abstractmachine.components.observables.ObservableUniMemoryComputeCore;
 import org.ricts.abstractmachine.components.storage.RAM;
 import org.ricts.abstractmachine.components.storage.ROM;
 
 import java.util.List;
 
-public class HarvardArchitecture extends SystemArchitecture {
+public class HarvardArchitecture extends SystemArchitecture<UniMemoryComputeCore> {
     private ObservableReadPort<ROM> instructionCache;
     private ObservableMemoryPort dataRAM;
     private ObservableControlUnit controlUnit;
 
-    public HarvardArchitecture(ComputeCore core, int iMemAccessTime, int dMemAccessTime) {
+    public HarvardArchitecture(UniMemoryComputeCore core, int iMemAccessTime, int dMemAccessTime) {
         super(core);
 
         instructionCache = new ObservableReadPort<ROM>(new ROM(core.instrWidth(), core.iAddrWidth(), iMemAccessTime));
@@ -54,5 +56,10 @@ public class HarvardArchitecture extends SystemArchitecture {
 
     public ObservableControlUnit getControlUnit(){
         return controlUnit;
+    }
+
+    @Override
+    protected ObservableComputeCore<UniMemoryComputeCore> createObservableComputeCore(UniMemoryComputeCore core) {
+        return new ObservableUniMemoryComputeCore<>(core);
     }
 }

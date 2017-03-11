@@ -6,7 +6,6 @@ import org.ricts.abstractmachine.components.compute.isa.OperandInfo;
 import org.ricts.abstractmachine.components.devicetype.Device;
 import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
 import org.ricts.abstractmachine.components.interfaces.ControlUnitInterface;
-import org.ricts.abstractmachine.components.interfaces.MemoryPort;
 
 public abstract class ComputeCore extends Device implements ComputeCoreInterface {
 	protected IsaDecoder instrDecoder;
@@ -17,7 +16,7 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
 	protected int dAddrWidth;
 	protected int dataWidth;
 
-    protected MemoryPort dataMemory;
+    protected ControlUnitInterface cu;
 
     private boolean pcUpdated = false;
     private ControlUnitState expectedControlUnitState = ControlUnitState.ACTIVE;
@@ -68,7 +67,7 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
 	}
 
     @Override
-    public void executeInstruction(int programCounter, int instruction, ControlUnitInterface cu) {
+    public void executeInstruction(int programCounter, int instruction) {
         updateProgramCounterRegs(programCounter);
         setExpectedControlUnitState(ControlUnitState.ACTIVE);
         pcUpdated = false;
@@ -137,7 +136,7 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
 	}
 
     @Override
-    public void checkInterrupts(ControlUnitInterface cu) {
+    public void checkInterrupts() {
         int before = getProgramCounterValue();
         updateProgramCounterOnInterrupt();
         int after = getProgramCounterValue();
@@ -153,8 +152,8 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
     }
 
     @Override
-    public void setDataMemory(MemoryPort memory) {
-        dataMemory = memory;
+    public void setControlUnit(ControlUnitInterface controlUnit) {
+        cu = controlUnit;
     }
 
     public boolean isHaltInstruction(int instruction) {
