@@ -30,20 +30,12 @@ public class HarvardArchitecture extends SystemArchitecture<UniMemoryComputeCore
         tpu = hCore;
     }
 
-    public void initInstructionCache(List<Integer> data, int addrOffset){
-        instructionCache.getType().setData(data, addrOffset);
-    }
-
-    public void initDataMemory(List<Integer> data, int addrOffset){
-        ((RAM) dataRAM.getType()).setData(data, addrOffset);
-    }
-
     public void initInstructionCache(List<Integer> data){
-        initInstructionCache(data, 0);
+        instructionCache.setData(data);
     }
 
     public void initDataMemory(List<Integer> data){
-        initDataMemory(data, 0);
+        dataRAM.setData(data);
     }
 
     public ObservableMemoryPort getDataMemory(){

@@ -1,8 +1,8 @@
 package org.ricts.abstractmachine.components.compute.cores;
 
+import org.ricts.abstractmachine.components.compute.cu.ControlUnitCore;
 import org.ricts.abstractmachine.components.compute.cu.PipelinedControlUnit;
 import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
-import org.ricts.abstractmachine.components.interfaces.CuDataInterface;
 import org.ricts.abstractmachine.components.interfaces.MemoryPort;
 import org.ricts.abstractmachine.components.interfaces.MultiMemoryPort;
 import org.ricts.abstractmachine.components.interfaces.ReadPort;
@@ -21,7 +21,7 @@ public class ModifiedHarvardCore extends UniMemoryCpuCore {
     }
 
     @Override
-    protected CuDataInterface createControlUnit(ComputeCoreInterface core, ReadPort instructionCache) {
+    protected ControlUnitCore createControlUnit(ComputeCoreInterface core, ReadPort instructionCache) {
         return new PipelinedControlUnit(core, instructionCache);
     }
 }

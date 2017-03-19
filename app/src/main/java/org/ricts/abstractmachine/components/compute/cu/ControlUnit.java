@@ -2,22 +2,20 @@ package org.ricts.abstractmachine.components.compute.cu;
 
 import org.ricts.abstractmachine.components.compute.cores.UniMemoryCpuCore;
 import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
-import org.ricts.abstractmachine.components.interfaces.CuDataInterface;
 import org.ricts.abstractmachine.components.interfaces.Multiplexer;
 import org.ricts.abstractmachine.components.interfaces.ReadPort;
-import org.ricts.abstractmachine.components.storage.Register;
 
-public class ControlUnit implements CuDataInterface {
-    private Register pc; // Program Counter
-    private Register ir; // Instruction Register
+public class ControlUnit extends ControlUnitCore {
+    private static final int DATA_MEM_ID = UniMemoryCpuCore.SerializerInputId.DATA_MEM.ordinal();
+    private static final int INS_MEM_ID = UniMemoryCpuCore.SerializerInputId.INSTRUCTION_MEM.ordinal();
 
     private Multiplexer mux;
     private ControlUnitFSM fsm;
 
     public ControlUnit(ComputeCoreInterface core, ReadPort instructionCache, Multiplexer muxInterface){
-        pc = new Register(core.iAddrWidth());
-        ir = new Register(core.instrWidth());
-        fsm = new ControlUnitFSM(this, core, instructionCache);
+        super(instructionCache, core.iAddrWidth(), core.instrWidth());
+
+        fsm = new ControlUnitFSM(regCore, core);
         mux = muxInterface;
 
         // initialise
@@ -46,8 +44,7 @@ public class ControlUnit implements CuDataInterface {
 
     @Override
     public void performNextAction(){
-        int selection = isInExecuteState() ? UniMemoryCpuCore.PortIdentifier.DATA_MEM.ordinal() :
-                UniMemoryCpuCore.PortIdentifier.INSTRUCTION_MEM.ordinal();
+        int selection = isInExecuteState() ? DATA_MEM_ID : INS_MEM_ID;
         mux.setSelection(selection);
 
         fsm.triggerStateChange();
@@ -60,7 +57,7 @@ public class ControlUnit implements CuDataInterface {
 
     @Override
     public void setNextFetch(int instructionAddress){
-        setPC(instructionAddress);
+        regCore.setPC(instructionAddress);
         fsm.setNextStateToFetch();
     }
 
@@ -70,22 +67,9 @@ public class ControlUnit implements CuDataInterface {
     }
 
     @Override
-    public void reset() {
-        setStartExecFrom(0);
-    }
-
-    @Override
     public void setStartExecFrom(int currentPC) {
-        setPC(currentPC);
-        setIR(0);
+        regCore.setPcAndIr(currentPC, 0);
         setToFetchState();
-    }
-
-    @Override
-    public void fetchInstruction(ReadPort instructionCache){
-        int pcValue = getPC();
-        setIR(instructionCache.read(pcValue)); // IR = iCache[PC]
-        setPC(pcValue + 1); // PC += 1
     }
 
     @Override
@@ -95,12 +79,12 @@ public class ControlUnit implements CuDataInterface {
 
     @Override
     public String getPCDataString() {
-        return pc.dataString();
+        return regCore.getPCDataString();
     }
 
     @Override
     public String getIRDataString() {
-        return ir.dataString();
+        return regCore.getIRDataString();
     }
 
     @Override
@@ -109,13 +93,8 @@ public class ControlUnit implements CuDataInterface {
     }
 
     @Override
-    public int getPC(){
-        return pc.read();
-    }
-
-    @Override
-    public int getIR() {
-        return ir.read();
+    protected CuRegCore createRegCore(ReadPort instructionCache, int pcWidth, int irWidth) {
+        return new CuRegCore(instructionCache, pcWidth, irWidth);
     }
 
     public boolean isInFetchState() {
@@ -128,13 +107,5 @@ public class ControlUnit implements CuDataInterface {
 
     private void setToFetchState(){
         fsm.setToFetchState();
-    }
-
-    private void setPC(int currentPC){
-        pc.write(currentPC);
-    }
-
-    private void setIR(int currentIR){
-        ir.write(currentIR);
     }
 }

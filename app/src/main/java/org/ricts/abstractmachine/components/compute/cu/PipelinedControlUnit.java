@@ -2,14 +2,13 @@ package org.ricts.abstractmachine.components.compute.cu;
 
 import org.ricts.abstractmachine.components.compute.cu.ControlUnitState.GenericCUState;
 import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
-import org.ricts.abstractmachine.components.interfaces.CuDataInterface;
 import org.ricts.abstractmachine.components.interfaces.ReadPort;
 import org.ricts.abstractmachine.components.storage.Register;
 
 /**
  * Created by Jevon on 09/07/2016.
  */
-public class PipelinedControlUnit implements CuDataInterface {
+public class PipelinedControlUnit extends ControlUnitCore {
     private boolean branched;
     private GenericCUState currentState;
 
@@ -17,31 +16,27 @@ public class PipelinedControlUnit implements CuDataInterface {
     private ControlUnitFSM fsm1;
     private ControlUnitFSM fsm2;
 
-    private Register expectedPC, branchPC, realPC;
-    private Register expectedIR, branchIR, realIR;
+    private Register branchPC;
+    private Register branchIR;
 
     public PipelinedControlUnit(ComputeCoreInterface core, ReadPort instructionCache){
+        super(instructionCache, core.iAddrWidth(), core.instrWidth());
         mainCore = core;
 
-        int iAddrWidth = core.iAddrWidth();
-        int instrWidth = core.instrWidth();
-        expectedPC = new Register(iAddrWidth);
-        expectedIR = new Register(instrWidth);
+        int iAddrWidth = mainCore.iAddrWidth();
+        int instrWidth = mainCore.instrWidth();
 
         branchPC = new Register(iAddrWidth);
         branchIR = new Register(instrWidth);
-
-        realPC = new Register(iAddrWidth);
-        realIR = new Register(instrWidth);
 
         /* N.B. : Both FSMs are connected to the same instructionCache and dataMemory!
            During normal operation, one performs a fetch while the other executes... ALWAYS! */
 
         // FSM 1 - initial state = 'fetch'
-        fsm1 = new ControlUnitFSM(this, core, instructionCache);
+        fsm1 = new ControlUnitFSM(regCore, core);
 
         // FSM 2 - initial state = 'execute'
-        fsm2 = new ControlUnitFSM(this, core, instructionCache);
+        fsm2 = new ControlUnitFSM(regCore, core);
 
         // initialise FSMs
         reset();
@@ -63,16 +58,10 @@ public class PipelinedControlUnit implements CuDataInterface {
         else { // ... we need to explicitly set each FSM state
             currentState = GenericCUState.ACTIVE;
 
-            setRealPC(instructionAddress);
-            setRealIR(nopInstruction);
+            regCore.setPcAndIr(instructionAddress, nopInstruction);
             fsm1.setToFetchState();
             fsm2.setToExecuteState();
         }
-    }
-
-    @Override
-    public void reset() {
-        setStartExecFrom(0);
     }
 
     @Override
@@ -80,8 +69,7 @@ public class PipelinedControlUnit implements CuDataInterface {
         currentState = GenericCUState.ACTIVE;
         branched = false;
 
-        setRealPC(currentPC);
-        setRealIR(mainCore.getNopInstruction());
+        regCore.setPcAndIr(currentPC, mainCore.getNopInstruction());
         fsm1.setToFetchState();
         fsm2.setToExecuteState();
     }
@@ -133,13 +121,11 @@ public class PipelinedControlUnit implements CuDataInterface {
 
             if(branched){ // if branch has occurred ...
                 // ... don't execute instruction that was just fetched!
-                setRealPC(getBranchPC());
-                setRealIR(getBranchIR());
+                regCore.setPcAndIr(getBranchPC(), getBranchIR());
                 branched = false;
             }
             else {
-                setRealPC(getExpectedPC());
-                setRealIR(getExpectedIR());
+                regCore.updatePcWithExpectedValues();
             }
         }
     }
@@ -150,35 +136,23 @@ public class PipelinedControlUnit implements CuDataInterface {
     }
 
     @Override
-    public void fetchInstruction(ReadPort instructionCache) {
-        int pcValue = getPC();
-        setExpectedIR(instructionCache.read(pcValue)); // IR = iCache[PC]
-        setExpectedPC(pcValue + 1); // PC += 1
-    }
-
-    @Override
-    public int getPC() {
-        return realPC.read();
-    }
-
-    @Override
-    public int getIR() {
-        return realIR.read();
-    }
-
-    @Override
     public String getPCDataString() {
-        return realPC.dataString();
+        return regCore.getPCDataString();
     }
 
     @Override
     public String getIRDataString() {
-        return realIR.dataString();
+        return regCore.getIRDataString();
     }
 
     @Override
     public String getCurrentStateString(){
         return currentState.name();
+    }
+
+    @Override
+    protected CuRegCore createRegCore(ReadPort instructionCache, int pcWidth, int irWidth) {
+        return new CuRegCore(instructionCache, pcWidth, irWidth, true);
     }
 
     public ControlUnitFSM getFsm1(){
@@ -191,22 +165,6 @@ public class PipelinedControlUnit implements CuDataInterface {
 
     private boolean isNormalExecution(){
         return currentState.equals(GenericCUState.ACTIVE);
-    }
-
-    private int getExpectedPC(){
-        return expectedPC.read();
-    }
-
-    private void setExpectedPC(int currentPC){
-        expectedPC.write(currentPC);
-    }
-
-    private int getExpectedIR(){
-        return expectedIR.read();
-    }
-
-    private void setExpectedIR(int currentIR){
-        expectedIR.write(currentIR);
     }
 
     private int getBranchPC(){
@@ -223,13 +181,5 @@ public class PipelinedControlUnit implements CuDataInterface {
 
     private void setBranchIR(int currentIR){
         branchIR.write(currentIR);
-    }
-
-    private void setRealPC(int currentPC){
-        realPC.write(currentPC);
-    }
-
-    private void setRealIR(int currentIR){
-        realIR.write(currentIR);
     }
 }

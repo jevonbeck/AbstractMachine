@@ -1,7 +1,7 @@
 package org.ricts.abstractmachine.components.compute.cores;
 
+import org.ricts.abstractmachine.components.compute.cu.ControlUnitCore;
 import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
-import org.ricts.abstractmachine.components.interfaces.CuDataInterface;
 import org.ricts.abstractmachine.components.interfaces.ReadPort;
 import org.ricts.abstractmachine.components.interfaces.ThreadProcessingUnit;
 import org.ricts.abstractmachine.components.observables.ObservableControlUnit;
@@ -12,7 +12,7 @@ import org.ricts.abstractmachine.components.observables.ObservableControlUnit;
 public abstract class CpuCore implements ThreadProcessingUnit {
     private ObservableControlUnit cu; // Control Unit
 
-    protected abstract CuDataInterface createControlUnit(ComputeCoreInterface core, ReadPort instructionCache);
+    protected abstract ControlUnitCore createControlUnit(ComputeCoreInterface core, ReadPort instructionCache);
 
     @Override
     public void setStartExecFrom(int currentPC) {

@@ -2,6 +2,8 @@ package org.ricts.abstractmachine.components.observables;
 
 import org.ricts.abstractmachine.components.interfaces.ReadPort;
 
+import java.util.List;
+
 /**
  * Created by Jevon on 14/02/2017.
  */
@@ -29,6 +31,13 @@ public class ObservableReadPort<T extends ReadPort> extends ObservableType<T> im
         setChanged();
         notifyObservers(new ReadParams(address));
         return observable_data.read(address);
+    }
+
+    @Override
+    public void setData(List<Integer> data) {
+        observable_data.setData(data);
+        setChanged();
+        notifyObservers(true);
     }
 
     @Override

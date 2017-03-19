@@ -1,9 +1,12 @@
 package org.ricts.abstractmachine.components.interfaces;
 
+import java.util.List;
+
 public interface ReadPort {
     int read(int address);
-    int accessTime(); // in microseconds
+    void setData(List<Integer> data);
 
+    int accessTime(); // in microseconds
     String addressString(int address);
     String dataAtAddressString(int address);
 }

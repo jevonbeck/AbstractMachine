@@ -145,7 +145,7 @@ public class ControlUnitView extends RelativeLayout implements Observer{
 
             if(controlUnit instanceof ControlUnit) {
                 ControlUnit cu = (ControlUnit) controlUnit;
-                if (cu.isInExecuteState()) { // just initiated a fetch
+                if (cu.isInFetchState()) {
                     updatePC();
                 }
             }

@@ -10,7 +10,7 @@ import org.ricts.abstractmachine.components.observables.ObservableMultiMemoryPor
  * Created by Jevon on 14/08/2016.
  */
 public abstract class UniMemoryCpuCore extends CpuCore {
-    public enum PortIdentifier {
+    public enum SerializerInputId {
         INSTRUCTION_MEM, DATA_MEM
     }
 
@@ -21,12 +21,12 @@ public abstract class UniMemoryCpuCore extends CpuCore {
     protected MultiPortSerializer<MemoryPort, MultiMemoryPort> serializer;
 
     public UniMemoryCpuCore(UniMemoryComputeCoreInterface core, MemoryPort dataMemory){
-        serializer = createSerializer(dataMemory, PortIdentifier.values().length);
+        serializer = createSerializer(dataMemory, SerializerInputId.values().length);
         multiMemoryPort = (ObservableMultiMemoryPort) serializer.getObservable();
 
         MemoryPort[] serializerInputs = serializer.getInputs();
-        createObservableControlUnit(core, serializerInputs[PortIdentifier.INSTRUCTION_MEM.ordinal()]);
-        core.setDataMemory(serializerInputs[PortIdentifier.DATA_MEM.ordinal()]);
+        createObservableControlUnit(core, serializerInputs[SerializerInputId.INSTRUCTION_MEM.ordinal()]);
+        core.setDataMemory(serializerInputs[SerializerInputId.DATA_MEM.ordinal()]);
     }
 
     public ObservableMultiMemoryPort getObservableMultiMemoryPort() {

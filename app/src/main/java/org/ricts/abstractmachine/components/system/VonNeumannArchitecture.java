@@ -32,11 +32,7 @@ public class VonNeumannArchitecture extends SystemArchitecture<UniMemoryComputeC
     }
 
     public void initMemory(List<Integer> data) {
-        initMemory(data, 0);
-    }
-
-    public void initMemory(List<Integer> data, int addrOffset){
-        ((RAM) mainMemory.getType()).setData(data, addrOffset);
+        mainMemory.setData(data);
     }
 
     public ObservableMemoryPort getMainMemory(){

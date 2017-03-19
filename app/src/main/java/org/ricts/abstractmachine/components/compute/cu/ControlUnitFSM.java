@@ -1,8 +1,7 @@
 package org.ricts.abstractmachine.components.compute.cu;
 
 import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
-import org.ricts.abstractmachine.components.interfaces.CuInternalInterface;
-import org.ricts.abstractmachine.components.interfaces.ReadPort;
+import org.ricts.abstractmachine.components.interfaces.ControlUnitRegCore;
 
 /**
  * Created by Jevon on 26/08/2016.
@@ -12,10 +11,10 @@ public class ControlUnitFSM extends FiniteStateMachine {
     private ControlUnitState fetch, execute, halt, sleep;
     private State nextState = null;
 
-    public ControlUnitFSM(CuInternalInterface cu, ComputeCoreInterface core, ReadPort instructionCache){
+    public ControlUnitFSM(ControlUnitRegCore regCore, ComputeCoreInterface core){
         // setup instruction cycle
-        fetch = new ControlUnitFetchState(cu, instructionCache);
-        execute = new ControlUnitExecuteState(core, cu);
+        fetch = new ControlUnitFetchState(regCore);
+        execute = new ControlUnitExecuteState(core, regCore);
         halt = new ControlUnitHaltState();
         sleep = new ControlUnitSleepState(core);
     }

@@ -58,6 +58,11 @@ public class ROM extends Device implements AddressDevice, DataDevice, ReadPort {
         return formatNumberInHex(read(address), dataWidth);
     }
 
+    @Override
+    public void setData(List<Integer> data) {
+        setData(data, 0);
+    }
+
     public void setData(List<Integer> data, int addrOffset) {
         int dataSize = data.size();
         int offset = addrOffset & addressBitMask;

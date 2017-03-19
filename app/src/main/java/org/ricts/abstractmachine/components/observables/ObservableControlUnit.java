@@ -1,15 +1,28 @@
 package org.ricts.abstractmachine.components.observables;
 
 
+import org.ricts.abstractmachine.components.compute.cu.ControlUnit;
+import org.ricts.abstractmachine.components.compute.cu.ControlUnitCore;
 import org.ricts.abstractmachine.components.interfaces.CuDataInterface;
-import org.ricts.abstractmachine.components.interfaces.ReadPort;
+
+import java.util.Observable;
+import java.util.Observer;
 
 /**
  * Created by Jevon on 23/01/2016.
  */
-public class ObservableControlUnit extends ObservableType<CuDataInterface> implements CuDataInterface {
-    public ObservableControlUnit(CuDataInterface type) {
+public class ObservableControlUnit extends ObservableType<ControlUnitCore> implements CuDataInterface, Observer {
+    public ObservableControlUnit(ControlUnitCore type) {
         super(type);
+        type.getRegCore().addObserver(this);
+    }
+
+    @Override
+    public void update(Observable observable, Object o) {
+        if(observable instanceof ObservableCuRegCore) {
+            setChanged();
+            notifyObservers();
+        }
     }
 
     @Override
@@ -57,15 +70,6 @@ public class ObservableControlUnit extends ObservableType<CuDataInterface> imple
     @Override
     public void performNextAction() {
         observable_data.performNextAction();
-        setChanged();
-        notifyObservers();
-    }
-
-    @Override
-    public void fetchInstruction(ReadPort instructionCache) {
-        observable_data.fetchInstruction(instructionCache);
-        setChanged();
-        notifyObservers();
     }
 
     @Override
@@ -101,15 +105,5 @@ public class ObservableControlUnit extends ObservableType<CuDataInterface> imple
     @Override
     public String getCurrentStateString() {
         return observable_data.getCurrentStateString();
-    }
-
-    @Override
-    public int getPC() {
-        return observable_data.getPC();
-    }
-
-    @Override
-    public int getIR() {
-        return observable_data.getIR();
     }
 }

@@ -5,6 +5,8 @@ import org.ricts.abstractmachine.components.interfaces.MultiMemoryPort;
 import org.ricts.abstractmachine.components.observables.ObservableMultiMemoryPort;
 import org.ricts.abstractmachine.components.observables.ObservableType;
 
+import java.util.List;
+
 /**
  * Created by Jevon on 14/01/2017.
  */
@@ -39,6 +41,11 @@ public class MemoryPortSerializer extends MultiPortSerializer<MemoryPort, MultiM
                 @Override
                 public int read(int address) {
                     return multiMemoryPort.read(index, address);
+                }
+
+                @Override
+                public void setData(List<Integer> data) {
+                    // do nothing
                 }
 
                 @Override
