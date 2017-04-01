@@ -8,19 +8,21 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.PagerAdapter;
 
 import org.ricts.abstractmachine.R;
-import org.ricts.abstractmachine.components.compute.cores.ComputeCore;
+import org.ricts.abstractmachine.components.compute.cores.UniMemoryComputeCore;
+import org.ricts.abstractmachine.components.compute.cu.ControlUnitCore;
 import org.ricts.abstractmachine.components.observables.ObservableComputeCore;
-import org.ricts.abstractmachine.components.observables.ObservableControlUnit;
-import org.ricts.abstractmachine.components.observables.ObservableRAM;
+import org.ricts.abstractmachine.components.observables.ObservableMemoryPort;
+import org.ricts.abstractmachine.components.observables.ObservableMultiMemoryPort;
+import org.ricts.abstractmachine.components.observables.ObservableMultiplexer;
 import org.ricts.abstractmachine.components.system.SystemArchitecture;
 import org.ricts.abstractmachine.components.system.VonNeumannArchitecture;
 import org.ricts.abstractmachine.ui.fragments.VonNeumannCoreFragment;
 import org.ricts.abstractmachine.ui.fragments.VonNeumannSystemFragment;
 
-public class VonNeumannActivity extends InspectActivity {
+public class VonNeumannActivity extends InspectActivity<UniMemoryComputeCore> {
 
     @Override
-    protected SystemArchitecture createSystemArchitecture(ComputeCore core, Bundle options) {
+    protected SystemArchitecture createSystemArchitecture(UniMemoryComputeCore core, Bundle options) {
         return new VonNeumannArchitecture(core, 10); // TODO: change me
     }
 
@@ -40,8 +42,10 @@ public class VonNeumannActivity extends InspectActivity {
         private static final String TAG = "SystemViewAdapter";
 
         private ObservableComputeCore mainCore;
-        private ObservableRAM mainMemory;
-        private ObservableControlUnit cu;
+        private ObservableMemoryPort mainMemory;
+        private ControlUnitCore cu;
+        private ObservableMultiplexer muxSelect;
+        private ObservableMultiMemoryPort muxPorts;
 
         private String systemString, coreString;
 
@@ -50,6 +54,8 @@ public class VonNeumannActivity extends InspectActivity {
             mainCore = architecture.getComputeCore();
             mainMemory = architecture.getMainMemory();
             cu = architecture.getControlUnit();
+            muxSelect = architecture.getMultiplexer();
+            muxPorts = architecture.getMultiplexerPorts();
 
             systemString = context.getString(R.string.architecture_activity_system_label);
             coreString = context.getString(R.string.architecture_activity_core_label);
@@ -61,7 +67,7 @@ public class VonNeumannActivity extends InspectActivity {
                 case 0:
                     return VonNeumannSystemFragment.newInstance(mainCore, mainMemory, cu);
                 case 1:
-                    return VonNeumannCoreFragment.newInstance(mainCore, mainMemory, cu);
+                    return VonNeumannCoreFragment.newInstance(mainCore, mainMemory, cu, muxSelect, muxPorts);
                 default:
                     return null;
             }

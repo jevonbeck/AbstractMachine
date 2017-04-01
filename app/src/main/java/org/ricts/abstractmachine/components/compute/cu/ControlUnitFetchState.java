@@ -1,25 +1,22 @@
 package org.ricts.abstractmachine.components.compute.cu;
 
-import org.ricts.abstractmachine.components.interfaces.CuInternalInterface;
-import org.ricts.abstractmachine.components.interfaces.ReadPort;
+import org.ricts.abstractmachine.components.interfaces.ControlUnitRegCore;
 
 public class ControlUnitFetchState extends ControlUnitState{
-    private ReadPort instructionCache;
-    private CuInternalInterface controlUnit;
+    private ControlUnitRegCore regCore;
 
-    public ControlUnitFetchState(CuInternalInterface cu, ReadPort iCache){
-        super("fetch");
-        controlUnit = cu;
-        instructionCache = iCache;
+    public ControlUnitFetchState(ControlUnitRegCore cu){
+        super(GenericCUState.FETCH);
+        regCore = cu;
     }
 
     @Override
     public void performAction(){
-        controlUnit.fetchInstruction(instructionCache);
+        regCore.fetchInstruction();
     }
 
     @Override
     public int actionDuration(){
-        return instructionCache.accessTime();
+        return regCore.fetchTime();
     }
 }

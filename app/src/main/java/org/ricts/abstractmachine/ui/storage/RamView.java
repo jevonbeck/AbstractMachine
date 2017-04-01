@@ -3,8 +3,7 @@ package org.ricts.abstractmachine.ui.storage;
 import android.content.Context;
 import android.util.AttributeSet;
 
-import org.ricts.abstractmachine.components.observables.ObservableRAM;
-import org.ricts.abstractmachine.components.storage.ROM;
+import org.ricts.abstractmachine.components.observables.ObservableMemoryPort;
 
 import java.util.Observable;
 
@@ -42,7 +41,7 @@ public class RamView extends RomView {
         else {
             if(updatePins)
                 memoryPins.update(observable, o); // initialise animation
-            else if(o instanceof ObservableRAM.WriteParams)
+            else if(o instanceof ObservableMemoryPort.WriteParams)
                 updateRomUI(); // immediately update ROM UI
         }
     }

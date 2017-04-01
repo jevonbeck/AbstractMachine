@@ -10,7 +10,7 @@ public class IsaDecoder extends Device {
 	private int instructionBitMask;
 		
 	public IsaDecoder(ArrayList<InstructionGroup> formats){
-		instructionDecoders = new ArrayList<InstructionGroupDecoder>();
+		instructionDecoders = new ArrayList<>();
 		for(int x=0; x!= formats.size(); ++x){
 			instructionDecoders.add(new InstructionGroupDecoder(formats.get(x)));
 		} 
@@ -28,7 +28,7 @@ public class IsaDecoder extends Device {
 		}
 		
 		for(int x=0; x!= maxWidths.length-1; ++x){
-			int y=x+1; // current width under consideration
+			int y=x+1; // index of current width under consideration
 			int relativeDiff = maxWidths[x] - maxWidths[y]; // nextHighestWidth - currentWidth
 			opcodeNextIndex <<= relativeDiff; // opcodeNextIndex *= Math.pow(2, relativeDiff)
 
@@ -58,27 +58,20 @@ public class IsaDecoder extends Device {
   }
 	
 	public boolean isValidInstruction(int instruction){
-		return getDecoderIndex(instruction & instructionBitMask) != -1;
+		return getDecoderForInstruction(instruction) != null;
 	}
-	
-	public int getDecoderIndex(int instruction){
-		int potentialInstruction = instruction & instructionBitMask;
-		
-		for(int x=0; x != instructionDecoders.size(); ++x){
-			if(instructionDecoders.get(x).isValidInstruction(potentialInstruction)){
-				return x;
-			}
-		}
-		return -1;
-	}		
-	
-	public String groupName(int decoderIndex){
-		if(0 <= decoderIndex && decoderIndex <instructionDecoders.size())
-			return instructionDecoders.get(decoderIndex).groupName();
-		else
-			return "";
-	}
-	
+
+    public InstructionGroupDecoder getDecoderForInstruction(int instruction){
+        int potentialInstruction = instruction & instructionBitMask;
+
+        for(int x=0; x != instructionDecoders.size(); ++x){
+            InstructionGroupDecoder decoder = instructionDecoders.get(x);
+            if(decoder.isValidInstruction(potentialInstruction)){
+                return decoder;
+            }
+        }
+        return null;
+    }
 	
 	private boolean isValidGroupName(String groupName){
 		return groupNameIndex(groupName) != -1;
@@ -92,8 +85,7 @@ public class IsaDecoder extends Device {
 		}
 		return -1;
 	}
-	
-	
+
 	public int encode(String groupName, String mneumonic, int[] operands){
 		if(isValidGroupName(groupName)){
 			int decoderIndex = groupNameIndex(groupName);
@@ -101,38 +93,9 @@ public class IsaDecoder extends Device {
 		}		
 		return -2;
 	}
-	
-	public int decode(int instruction, int decoderIndex){
-		int potentialInstruction = instruction & instructionBitMask;
-		
-		if(0 <= decoderIndex && decoderIndex < instructionDecoders.size()){
-			return instructionDecoders.get(decoderIndex).decode(potentialInstruction);
-		}
-		else
-			return -1;
-	}
-	
-	public int operandCount(int decoderIndex){
-		if(0 <= decoderIndex && decoderIndex <instructionDecoders.size())
-			return instructionDecoders.get(decoderIndex).operandCount();
-		else
-			return -1;
-	}
-	
-	public int getOperand(int opIndex, int instruction, int decoderIndex){
-		int potentialInstruction = instruction & instructionBitMask;
-		
-		if(0 <= decoderIndex && decoderIndex < instructionDecoders.size())
-			if(0 <= opIndex && opIndex < operandCount(decoderIndex))
-				return instructionDecoders.get(decoderIndex).getOperand(opIndex, potentialInstruction);
-			else
-				return -2;
-		else
-			return -1;
-	}	
 		
 	private ArrayList<Integer> findAllMatch(ArrayList<InstructionGroupDecoder> list, int valToMatch){
-		ArrayList<Integer> result = new ArrayList<Integer>();
+		ArrayList<Integer> result = new ArrayList<>();
 		for(int x=0; x != list.size(); ++x){
 			int temp = list.get(x).combinedOperandWidth();
 			if(valToMatch == temp){
@@ -161,9 +124,9 @@ public class IsaDecoder extends Device {
 	}
 	
 	private int[] combinedWidthArrDescending(ArrayList<InstructionGroupDecoder> list){
-		ArrayList<InstructionGroupDecoder> temp = new ArrayList<InstructionGroupDecoder>(list);
+		ArrayList<InstructionGroupDecoder> temp = new ArrayList<>(list);
 		
-		ArrayList<Integer> resultList = new ArrayList<Integer>();
+		ArrayList<Integer> resultList = new ArrayList<>();
 		
 		while(!temp.isEmpty()){
 			// find maximum value and add it to the list

@@ -1,12 +1,11 @@
 package org.ricts.abstractmachine.components.observables;
 
 import org.ricts.abstractmachine.components.interfaces.MemoryPort;
-import org.ricts.abstractmachine.components.storage.RAM;
 
 /**
- * Created by Jevon on 16/01/2016.
+ * Created by Jevon on 14/02/2017.
  */
-public class ObservableRAM extends ObservableROM<RAM> implements MemoryPort{
+public class ObservableMemoryPort extends ObservableReadPort<MemoryPort> implements MemoryPort{
 
     public static class WriteParams extends ReadParams{
         private final int enumOffset;
@@ -21,8 +20,8 @@ public class ObservableRAM extends ObservableROM<RAM> implements MemoryPort{
         }
     }
 
-    public ObservableRAM(RAM ram){
-        super(ram);
+    public ObservableMemoryPort(MemoryPort port){
+        super(port);
     }
 
     @Override
@@ -30,5 +29,10 @@ public class ObservableRAM extends ObservableROM<RAM> implements MemoryPort{
         observable_data.write(address, data);
         setChanged();
         notifyObservers(new WriteParams(address, data));
+    }
+
+    @Override
+    public String dataString(int data) {
+        return observable_data.dataString(data);
     }
 }

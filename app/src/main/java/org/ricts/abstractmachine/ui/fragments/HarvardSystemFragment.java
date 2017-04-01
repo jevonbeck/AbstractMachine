@@ -3,10 +3,13 @@ package org.ricts.abstractmachine.ui.fragments;
 import android.view.View;
 
 import org.ricts.abstractmachine.R;
+import org.ricts.abstractmachine.components.compute.cu.ControlUnitCore;
 import org.ricts.abstractmachine.components.observables.ObservableComputeCore;
-import org.ricts.abstractmachine.components.observables.ObservableControlUnit;
-import org.ricts.abstractmachine.components.observables.ObservableRAM;
-import org.ricts.abstractmachine.components.observables.ObservableROM;
+import org.ricts.abstractmachine.components.observables.ObservableCuFSM;
+import org.ricts.abstractmachine.components.observables.ObservableCuRegCore;
+import org.ricts.abstractmachine.components.observables.ObservableMemoryPort;
+import org.ricts.abstractmachine.components.observables.ObservableReadPort;
+import org.ricts.abstractmachine.components.storage.RAM;
 import org.ricts.abstractmachine.components.storage.ROM;
 import org.ricts.abstractmachine.ui.compute.CpuCoreView;
 import org.ricts.abstractmachine.ui.compute.InspectActionResponder;
@@ -42,15 +45,19 @@ public class HarvardSystemFragment extends HarvardActivityFragment {
 
     @Override
     protected void bindObservablesToViews() {
+        ObservableCuFSM fsm = controlUnit.getMainFSM();
+        ObservableCuRegCore regCore = controlUnit.getRegCore();
+
         /** Initialise Views **/
         instructionCacheView.setDataSource(instructionCache.getType());
-        dataMemoryView.setDataSource(dataMemory.getType());
-        cpuView.initCpu(controlUnit.getType(), instructionCacheView, dataMemoryView);
+        dataMemoryView.setDataSource((RAM) dataMemory.getType());
+        cpuView.initCpu(fsm, regCore, instructionCacheView, dataMemoryView);
 
         /** Add observers to observables **/
         instructionCache.addObserver(instructionCacheView);
         dataMemory.addObserver(dataMemoryView);
-        controlUnit.addObserver(cpuView);
+        fsm.addObserver(cpuView);
+        regCore.addObserver(cpuView);
         mainCore.addObserver(cpuView);
     }
 
@@ -81,8 +88,8 @@ public class HarvardSystemFragment extends HarvardActivityFragment {
      * @return A new instance of fragment HarvardSystemFragment.
      */
     public static HarvardSystemFragment newInstance(ObservableComputeCore mainCore,
-                                                    ObservableROM<ROM> instructionCache,
-                                                    ObservableRAM dataMemory, ObservableControlUnit cu) {
+                                                    ObservableReadPort<ROM> instructionCache,
+                                                    ObservableMemoryPort dataMemory, ControlUnitCore cu) {
         HarvardSystemFragment fragment = new HarvardSystemFragment();
         fragment.setObservables(mainCore, instructionCache, dataMemory, cu);
         return fragment;

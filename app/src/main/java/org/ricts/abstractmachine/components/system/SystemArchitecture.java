@@ -4,14 +4,16 @@ import org.ricts.abstractmachine.components.compute.cores.ComputeCore;
 import org.ricts.abstractmachine.components.interfaces.ThreadProcessingUnit;
 import org.ricts.abstractmachine.components.observables.ObservableComputeCore;
 
-public abstract class SystemArchitecture {
+public abstract class SystemArchitecture<T extends ComputeCore> {
+    protected abstract ObservableComputeCore<T> createObservableComputeCore(T core);
+
 	protected ThreadProcessingUnit tpu;
-    protected ObservableComputeCore mainCore;
+    protected ObservableComputeCore<T> mainCore;
 
     private int sysClock; // system clock
   	
-	public SystemArchitecture(ComputeCore core){
-        mainCore = new ObservableComputeCore<ComputeCore>(core);
+	public SystemArchitecture(T core){
+        mainCore = createObservableComputeCore(core);
         sysClock = 0;
 	}
 	
@@ -31,7 +33,7 @@ public abstract class SystemArchitecture {
         sysClock = 0;
     }
 
-    public ObservableComputeCore getComputeCore(){
+    public ObservableComputeCore<T> getComputeCore(){
         return mainCore;
     }
 }

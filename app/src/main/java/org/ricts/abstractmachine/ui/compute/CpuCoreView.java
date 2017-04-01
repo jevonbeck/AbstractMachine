@@ -3,15 +3,18 @@ package org.ricts.abstractmachine.ui.compute;
 import android.content.Context;
 import android.graphics.Typeface;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.compute.cores.ComputeCore;
-import org.ricts.abstractmachine.components.interfaces.CuDataInterface;
+import org.ricts.abstractmachine.components.compute.cu.ControlUnitState;
+import org.ricts.abstractmachine.components.compute.cu.CuRegCore;
+import org.ricts.abstractmachine.components.interfaces.ControlUnitRegCore;
+import org.ricts.abstractmachine.components.interfaces.CuFsmInterface;
 import org.ricts.abstractmachine.components.observables.ObservableComputeCore;
-import org.ricts.abstractmachine.components.observables.ObservableControlUnit;
+import org.ricts.abstractmachine.components.observables.ObservableCuFSM;
+import org.ricts.abstractmachine.components.observables.ObservableCuRegCore;
 import org.ricts.abstractmachine.ui.storage.MemoryPortView;
 import org.ricts.abstractmachine.ui.storage.RamView;
 import org.ricts.abstractmachine.ui.storage.ReadPortView;
@@ -148,11 +151,11 @@ public class CpuCoreView extends RelativeLayout implements Observer {
         updateIrImmediately = false;
     }
 
-    public void initCpu(CuDataInterface controlUnit, RomView instructionCache, RamView dataMemory){
+    public void initCpu(CuFsmInterface fsm, ControlUnitRegCore regCore, RomView instructionCache, RamView dataMemory){
         /** initialise variables **/
-        stateView.setText(controlUnit.getCurrentStateString());
-        pc.setText(controlUnit.getPCDataString());
-        ir.setText(controlUnit.getIRDataString());
+        updateState(fsm.currentState());
+        pc.setText(regCore.getPCString());
+        ir.setText(regCore.getIRString());
 
         /** setup callback behaviour **/
         dataMemory.setReadResponder(new ReadPortView.ReadResponder() {
@@ -197,13 +200,16 @@ public class CpuCoreView extends RelativeLayout implements Observer {
 
     @Override
     public void update(Observable observable, Object o) {
-        if(observable instanceof ObservableControlUnit){
-            CuDataInterface controlUnit = ((ObservableControlUnit) observable).getType();
-            stateView.setText(controlUnit.getCurrentStateString());
-            pc.setText(controlUnit.getPCDataString());
-            irText = controlUnit.getIRDataString();
+        if(observable instanceof ObservableCuFSM) {
+            CuFsmInterface fsm = ((ObservableCuFSM) observable).getType();
+            updateState(fsm.currentState());
+        }
+        else if(observable instanceof ObservableCuRegCore) {
+            CuRegCore regCore = ((ObservableCuRegCore) observable).getType();
+            pc.setText(regCore.getPCString());
+            irText = regCore.getIRString();
 
-            if(updateIrImmediately || (o != null &&  o instanceof Boolean)) {
+            if(updateIrImmediately || (o != null &&  o instanceof Boolean)){
                 updateIrText();
             }
         }
@@ -246,6 +252,31 @@ public class CpuCoreView extends RelativeLayout implements Observer {
 
     public void setActionResponder(InspectActionResponder resp){
         responder = resp;
+    }
+
+    private void updateState(String text) {
+        int resId;
+        switch(Enum.valueOf(ControlUnitState.GenericCUState.class, text)) {
+            case FETCH:
+                resId = R.string.control_unit_fetch_state;
+                break;
+            case EXECUTE:
+                resId = R.string.control_unit_execute_state;
+                break;
+            case ACTIVE:
+                resId = R.string.control_unit_active_state;
+                break;
+            case SLEEP:
+                resId = R.string.control_unit_sleep_state;
+                break;
+            case HALT:
+                resId = R.string.control_unit_halt_state;
+                break;
+            default:
+                resId = 0;
+        }
+
+        stateView.setText(getResources().getString(resId));
     }
 
     private void updateIrText(){

@@ -3,12 +3,12 @@ package org.ricts.abstractmachine.components.observables;
 import org.ricts.abstractmachine.components.compute.cores.ComputeCore;
 import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
 import org.ricts.abstractmachine.components.interfaces.ControlUnitInterface;
-import org.ricts.abstractmachine.components.interfaces.MemoryPort;
 
 /**
  * Created by Jevon on 16/01/2016.
  */
 public class ObservableComputeCore<T extends ComputeCore> extends ObservableType<T> implements ComputeCoreInterface {
+    private boolean isControlUnitPipelined;
 
     public ObservableComputeCore(T core){
         super(core);
@@ -51,16 +51,16 @@ public class ObservableComputeCore<T extends ComputeCore> extends ObservableType
     }
 
     @Override
-    public void executeInstruction(int programCounter, int instruction, MemoryPort dataMemory, ControlUnitInterface cu) {
-        observable_data.executeInstruction(programCounter, instruction, dataMemory, cu);
+    public void executeInstruction(int programCounter, int instruction) {
+        observable_data.executeInstruction(programCounter, instruction);
         setChanged();
         notifyObservers(new ExecuteParams(instruction, programCounter,
-                observable_data.getProgramCounterValue(), cu.isPipelined()));
+                observable_data.getProgramCounterValue(), isControlUnitPipelined));
     }
 
     @Override
-    public int instrExecTime(int instruction, MemoryPort dataMemory) {
-        return observable_data.instrExecTime(instruction, dataMemory);
+    public int instrExecTime(int instruction) {
+        return observable_data.instrExecTime(instruction);
     }
 
     @Override
@@ -79,10 +79,16 @@ public class ObservableComputeCore<T extends ComputeCore> extends ObservableType
     }
 
     @Override
-    public void checkInterrupts(ControlUnitInterface cu) {
-        observable_data.checkInterrupts(cu);
+    public void checkInterrupts() {
+        observable_data.checkInterrupts();
         setChanged();
         notifyObservers(); // TODO: determine if arguments needed
+    }
+
+    @Override
+    public void setControlUnit(ControlUnitInterface cu) {
+        observable_data.setControlUnit(cu);
+        isControlUnitPipelined = cu.isPipelined();
     }
 
     @Override

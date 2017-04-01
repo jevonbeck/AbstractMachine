@@ -1,21 +1,19 @@
 package org.ricts.abstractmachine.devices.compute.core;
 
+import org.ricts.abstractmachine.components.compute.cores.UniMemoryComputeCore;
+import org.ricts.abstractmachine.components.compute.isa.InstructionGroup;
+import org.ricts.abstractmachine.components.compute.isa.IsaDecoder;
+import org.ricts.abstractmachine.components.compute.isa.OperandInfo;
+import org.ricts.abstractmachine.components.storage.Register;
+import org.ricts.abstractmachine.components.storage.RegisterStack;
+import org.ricts.abstractmachine.devices.compute.alu.BasicALU;
+import org.ricts.abstractmachine.devices.compute.alu.BasicALU.Mneumonics;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.ricts.abstractmachine.components.compute.cores.ComputeCore;
-import org.ricts.abstractmachine.components.compute.isa.InstructionGroup;
-import org.ricts.abstractmachine.components.compute.isa.IsaDecoder;
-import org.ricts.abstractmachine.components.interfaces.ControlUnitInterface;
-import org.ricts.abstractmachine.components.interfaces.MemoryPort;
-import org.ricts.abstractmachine.components.storage.RAM;
-import org.ricts.abstractmachine.components.storage.Register;
-import org.ricts.abstractmachine.datastructures.Stack;
-import org.ricts.abstractmachine.devices.compute.alu.BasicALU;
-import org.ricts.abstractmachine.devices.compute.alu.BasicALU.Mneumonics;
-
-public class BasicScalar extends ComputeCore {
+public class BasicScalar extends UniMemoryComputeCore {
     /*** Start of Instruction Definitions ***/
     public enum Instruction {
         POP, NOP, HALT,
@@ -32,7 +30,7 @@ public class BasicScalar extends ComputeCore {
         SHIFTL, SHIFTR,
         ADD, ADDWC, SUB, SUBWB, AND, OR, XOR,
         MOVEBYTE,
-        ADDWIDTH, ADDCWIDTH, SUBWIDTH, SUBCWIDTH, ANDWIDTH, ORWIDTH, XORWIDTH;
+        ADDWIDTH, ADDCWIDTH, SUBWIDTH, SUBCWIDTH, ANDWIDTH, ORWIDTH, XORWIDTH
     }
 
     public enum InstructionGrouping {
@@ -84,18 +82,25 @@ public class BasicScalar extends ComputeCore {
     }
     /*** End of Instruction Definitions ***/
 
+    /* Mneumonic-Value and Instruction Group mappings */
+    private OperandInfo dataOpInfo;
+    private OperandInfo byteInfo;
+    private OperandInfo iAddrOpInfo;
+    private OperandInfo dAddrOpInfo;
+    private OperandInfo dataRegAddrInfo;
+    private OperandInfo dAddrRegAddrInfo;
+    private OperandInfo iAddrRegAddrInfo;
+
     private Map<String, String> mneumonicToGroupMap;
+    private Map<String, OperandInfo[]> mneumonicToOperandInfoMap;
     private String[] mneumonicList;
 
     /* core dependent features */
     public enum StatusFlags {
-        CARRY, OVERFLOW, ZERO, SIGN
-    /*
-      CARRY - CarryIn/BorrowIn
-      OVERFLOW - CarryOut/ActiveLowBorrowOut
-      SIGN - sign of result
-      ZERO - indicates that result is zero
-    */
+        CARRY, // CarryIn/BorrowIn
+        OVERFLOW, // CarryOut/ActiveLowBorrowOut
+        ZERO, // indicates when result is zero
+        SIGN // sign of result
     }
 
     public enum InterruptFlags {
@@ -110,7 +115,7 @@ public class BasicScalar extends ComputeCore {
     private Register[] dataRegs; // (no. of) registers for manipulating data
     private Register[] dataAddrRegs; // (no. of) registers for storing data addresses
     private Register[] instrAddrRegs; // (no. of) registers for storing instruction addresses (temporarily)
-    private Stack callStack; // presence or absence of on-chip call stack
+    private RegisterStack callStack; // presence or absence of on-chip call stack
     private BasicALU alu; // operations allowed by ALU
 
     public BasicScalar(int byteMultiplierWidth, int dAdWidth, int iAdWidth, int stkAdWidth,
@@ -124,19 +129,48 @@ public class BasicScalar extends ComputeCore {
         iAddrWidth = iAdWidth;
         dAddrWidth = dAdWidth;
 
-        int byteCount = (int) Math.pow(2, byteMultiplierWidth); // for making data-width (dWidth) a multiple of 8 bits (1 byte)
-        dataWidth = 8 * byteCount;
+        int byteCount = 1 << byteMultiplierWidth; // for making data-width (dWidth) a multiple of BYTE_WIDTH bits (1 byte)
+        dataWidth = BYTE_WIDTH * byteCount;
 
         dataRegAddrWidth = dRegAdWidth;
         dAddrRegAddrWidth = dAdrRegAdWidth;
         iAddrRegAddrWidth = iAdrRegAdWidth;
         stackAddrWidth = stkAdWidth;
 
+        /* Initialise OperandInfo */
+        OperandInfo dataRegBitIndxInfo = new OperandInfo(bitWidth(dataWidth - 1));
+        OperandInfo dataRegByteIndxInfo = new OperandInfo(bitWidth(byteCount - 1));
+        OperandInfo dataRegByteCountInfo = new OperandInfo(bitWidth(byteCount));
+        byteInfo = new OperandInfo(BYTE_WIDTH);
+
+        dataOpInfo = new OperandInfo(dataWidth, true);
+        iAddrOpInfo = new OperandInfo(iAddrWidth, true, true);
+        dAddrOpInfo = new OperandInfo(dAddrWidth, true, true);
+
+        dataRegAddrInfo = new OperandInfo(dataRegAddrWidth, true, true);
+        int maxAddress = 1 << dataRegAddrWidth;
+        for(int x=0; x < maxAddress; ++x) {
+            dataRegAddrInfo.addMappingWithoutReplacement("R" + x, x);
+        }
+        
+        dAddrRegAddrInfo = new OperandInfo(dAddrRegAddrWidth, true, true);
+        maxAddress = 1 << dAddrRegAddrWidth;
+        for(int x=0; x < maxAddress; ++x) {
+            dAddrRegAddrInfo.addMappingWithoutReplacement("A" + x, x);
+        }
+        
+        iAddrRegAddrInfo = new OperandInfo(iAddrRegAddrWidth, true, true);
+        maxAddress = 1 << iAddrRegAddrWidth;
+        for(int x=0; x < maxAddress; ++x) {
+            iAddrRegAddrInfo.addMappingWithoutReplacement("I" + x, x);
+        }
+
 		/* Initialise ISA. N.B: BasicCore has a register machine ISA */
-        mneumonicToGroupMap = new HashMap<String, String>();
-        ArrayList<InstructionGroup> instructionSet = new ArrayList<InstructionGroup>();
+        mneumonicToGroupMap = new HashMap<>();
+        mneumonicToOperandInfoMap = new HashMap<>();
+        ArrayList<InstructionGroup> instructionSet = new ArrayList<>();
         for(InstructionGrouping group : InstructionGrouping.values()){
-            int[] array = new int[group.getOperandCount()];
+            OperandInfo[] array = new OperandInfo[group.getOperandCount()];
             String[] mneumonicArray = group.getMneumonicArr();
             String groupName = group.name();
             instructionSet.add(new InstructionGroup(
@@ -144,85 +178,86 @@ public class BasicScalar extends ComputeCore {
 
             for(String mneumonic : mneumonicArray){
                 mneumonicToGroupMap.put(mneumonic, groupName);
+                mneumonicToOperandInfoMap.put(mneumonic, array);
             }
 
             switch (group){
                 case MultiWidthAluOps:
                     // Instructions with 3 data registers (result, A, B) and 1 byte multiplier literal
-                    array[0] = dataRegAddrWidth; // data register (result)
-                    array[1] = dataRegAddrWidth; // data register (A)
-                    array[2] = dataRegAddrWidth; // data register (B)
-                    array[3] = byteMultiplierWidth; // byte multiplier
+                    array[0] = dataRegAddrInfo; // data register (result)
+                    array[1] = dataRegAddrInfo; // data register (A)
+                    array[2] = dataRegAddrInfo; // data register (B)
+                    array[3] = dataRegByteCountInfo; // byte multiplier
                     break;
                 case RegByteManip:
                     // Instructions with 2 data registers (source, destination) and 2 byte-indices
-                    array[0] = dataRegAddrWidth; // data register (destination)
-                    array[1] = bitWidth(byteCount - 1); // byte index
-                    array[2] = dataRegAddrWidth; // data register (source)
-                    array[3] = bitWidth(byteCount - 1); // byte index
+                    array[0] = dataRegAddrInfo; // data register (destination)
+                    array[1] = dataRegByteIndxInfo; // byte index
+                    array[2] = dataRegAddrInfo; // data register (source)
+                    array[3] = dataRegByteIndxInfo; // byte index
                     break;
                 case AluOps:
                     // Instructions with 3 data registers (result, A, B)
-                    array[0] = dataRegAddrWidth; // data register (result)
-                    array[1] = dataRegAddrWidth; // data register (A)
-                    array[2] = dataRegAddrWidth; // data register (B)
+                    array[0] = dataRegAddrInfo; // data register (result)
+                    array[1] = dataRegAddrInfo; // data register (A)
+                    array[2] = dataRegAddrInfo; // data register (B)
                     break;
                 case ShiftReg:
                     // Instructions with 2 data registers (destination, source) and 1 bit-shift amount (source)
-                    array[0] = dataRegAddrWidth; // data register (destination)
-                    array[1] = dataRegAddrWidth; // data register (source)
-                    array[2] = bitWidth(dataWidth - 1); // bit-shift amount
+                    array[0] = dataRegAddrInfo; // data register (destination)
+                    array[1] = dataRegAddrInfo; // data register (source)
+                    array[2] = dataRegBitIndxInfo; // bit-shift amount
                     break;
                 case ConditionalBranch:
                     // Instructions with 1 data register, 1 bit-index and 1 instruction address register
-                    array[0] = dataRegAddrWidth; // data register
-                    array[1] = bitWidth(dataWidth - 1); // bit index
-                    array[2] = iAddrRegAddrWidth; // instruction address register
+                    array[0] = dataRegAddrInfo; // data register
+                    array[1] = dataRegBitIndxInfo; // bit index
+                    array[2] = iAddrRegAddrInfo; // instruction address register
                     break;
                 case ConditionalBranchLiteral:
                     // Instructions with 1 data register, 1 bit-index and 1 instruction address literal
-                    array[0] = dataRegAddrWidth; // data register
-                    array[1] = bitWidth(dataWidth - 1); // bit index
-                    array[2] = iAddrWidth; // instruction address literal
+                    array[0] = dataRegAddrInfo; // data register
+                    array[1] = dataRegBitIndxInfo; // bit index
+                    array[2] = iAddrOpInfo; // instruction address literal
                     break;
                 case ByteLoad:
                     // Instructions with 1 data register, 1 byte-index and 1 byte literal
-                    array[0] = dataRegAddrWidth; // data register
-                    array[1] = bitWidth(byteCount - 1); // byte index
-                    array[2] = 8; // byte literal
+                    array[0] = dataRegAddrInfo; // data register
+                    array[1] = dataRegByteIndxInfo; // byte index
+                    array[2] = byteInfo; // byte literal
                     break;
                 case TwoRegOps:
                     // Instructions with 2 data registers (destination, source)
-                    array[0] = dataRegAddrWidth; // data register (destination)
-                    array[1] = dataRegAddrWidth; // data register (source)
+                    array[0] = dataRegAddrInfo; // data register (destination)
+                    array[1] = dataRegAddrInfo; // data register (source)
                     break;
                 case InstrAddrConvert:
                     // Instructions with 1 data register and 1 instruction address register
-                    array[0] = dataRegAddrWidth; // data register
-                    array[1] = iAddrRegAddrWidth; // instruction address register
+                    array[0] = dataRegAddrInfo; // data register
+                    array[1] = iAddrRegAddrInfo; // instruction address register
                     break;
                 case DataMemOps:
                     // Instructions with 1 data register and 1 data address register
-                    array[0] = dataRegAddrWidth; // data register
-                    array[1] = dAddrRegAddrWidth; // data address register
+                    array[0] = dataRegAddrInfo; // data register
+                    array[1] = dAddrRegAddrInfo; // data address register
                     break;
                 case RegBitManip:
                     // Instructions with 1 data register and 1 bit-index
-                    array[0] = dataRegAddrWidth; // register
-                    array[1] = bitWidth(dataWidth - 1); // bit index
+                    array[0] = dataRegAddrInfo; // register
+                    array[1] = dataRegBitIndxInfo; // bit index
                     break;
                 case DataAssignLit:
                     // Instructions with 1 data register and 1 data literal
-                    array[0] = dataRegAddrWidth; // register
-                    array[1] = dataWidth; // data literal
+                    array[0] = dataRegAddrInfo; // register
+                    array[1] = dataOpInfo; // data literal
                     break;
                 case InstrAddressReg:
                     // Instructions with 1 instruction address register
-                    array[0] = iAddrRegAddrWidth; // register
+                    array[0] = iAddrRegAddrInfo; // register
                     break;
                 case InstrAddressLiteral:
                     // Instructions with 1 instruction address literal
-                    array[0] = iAddrWidth; // instruction address literal
+                    array[0] = iAddrOpInfo; // instruction address literal
                     break;
                 case NoOperands: // Instructions with 0 operands
                 default:
@@ -249,9 +284,28 @@ public class BasicScalar extends ComputeCore {
     }
 
     @Override
-    public int getOperandCount(String mneumonic) {
-        InstructionGrouping grouping = Enum.valueOf(InstructionGrouping.class, getGroupName(mneumonic));
-        return grouping.getOperandCount();
+    public OperandInfo[] getOperandInfoArray(String mneumonic) {
+        return mneumonicToOperandInfoMap.get(mneumonic);
+    }
+
+    @Override
+    public OperandInfo getDataOperandInfo() {
+        return dataOpInfo;
+    }
+
+    @Override
+    public OperandInfo getDataRegOperandInfo() {
+        return dataRegAddrInfo;
+    }
+
+    @Override
+    public OperandInfo getDataAddrOperandInfo() {
+        return dAddrOpInfo;
+    }
+
+    @Override
+    public OperandInfo getInstrAddrOperandInfo() {
+        return iAddrOpInfo;
     }
 
     @Override
@@ -263,13 +317,10 @@ public class BasicScalar extends ComputeCore {
     public void reset() {
         /* Initialise core units */
         alu = new BasicALU(dataWidth);
-
-        // TODO: use better stack logic (RAM is counter-intuitive for on-chip stack)
-        RAM stackRam = new RAM(dataWidth, stackAddrWidth, 0);
-        callStack = new Stack(stackRam, 0, (int) Math.pow(2, stackAddrWidth));
+        callStack = new RegisterStack(dataWidth, 1 << stackAddrWidth); // stack with size 2^stackAddrWidth
 
 	    /* Initialise registers */
-        dataRegs = new Register[(int) Math.pow(2, dataRegAddrWidth)]; // for data
+        dataRegs = new Register[1 << dataRegAddrWidth]; // for data (2^dataRegAddrWidth regs)
         pcReg = new Register(iAddrWidth);
         statusReg = new Register(StatusFlags.values().length);
         intEnableReg = new Register(InterruptFlags.values().length);
@@ -283,12 +334,12 @@ public class BasicScalar extends ComputeCore {
             dataRegs[x] = new Register(dataWidth);
         }
 
-        dataAddrRegs = new Register[(int) Math.pow(2, dAddrRegAddrWidth)]; // for data addresses
+        dataAddrRegs = new Register[1 << dAddrRegAddrWidth]; // for data addresses (2^dAddrRegAddrWidth regs)
         for (int x = 0; x < dataAddrRegs.length; ++x) {
             dataAddrRegs[x] = new Register(dAddrWidth);
         }
 
-        instrAddrRegs = new Register[(int) Math.pow(2, iAddrRegAddrWidth)]; // for instruction addresses
+        instrAddrRegs = new Register[1 << iAddrRegAddrWidth]; // for instruction addresses (2^iAddrRegAddrWidth regs)
         int instrAddrRegAddrCount = 0;
         instrAddrRegs[instrAddrRegAddrCount++] = pcReg;
         for (int x = instrAddrRegAddrCount; x < instrAddrRegs.length; ++x) {
@@ -328,7 +379,7 @@ public class BasicScalar extends ComputeCore {
     }
 
     @Override
-    protected void fetchOpsExecuteInstr(String groupName, int groupIndex, int[] operands, MemoryPort dataMemory) {
+    protected void fetchOpsExecuteInstr(String groupName, int groupIndex, int[] operands) {
         InstructionGrouping grouping = Enum.valueOf(InstructionGrouping.class, groupName);
         Instruction instruction = grouping.decode(groupIndex);
 
@@ -368,7 +419,7 @@ public class BasicScalar extends ComputeCore {
                     case STOREM: // MEMORY[DADREG] <-- DREG (assign variable to dereferenced pointer)
                         dataMemory.write(dataAddrRegs[dAddrRegAddr].read(), dataRegs[dRegAddr].read());
                         break;
-                    case LOADA: // DREG <-- (int) DADREG (dereference pointer and assign value to variable)
+                    case LOADA: // DREG <-- (int) DADREG (put pointer address value in variable - for pointer arithmetic)
                         dataRegs[dRegAddr].write(dataAddrRegs[dAddrRegAddr].read());
                         break;
                     case STOREA: // DADREG <-- (data address) DREG (pointer assignment) [OS level operation / result of call to 'new']
@@ -383,8 +434,8 @@ public class BasicScalar extends ComputeCore {
                 byteLiteral = operands[2];
 
                 switch (instruction) {
-                    case LOADBYTE: // DREG[BYTEINDEX] <-- BYTE (ASCII/UTF-8 character literal assignment)
-                        dataRegs[regAddr].write(setWordIn(dataRegs[regAddr].read(), 8 * byteIndex, byteLiteral, 8));
+                    case LOADBYTE: // DREG[BYTEINDEX] <-- BYTE (ASCII/UTF-BYTE_WIDTH character literal assignment)
+                        dataRegs[regAddr].write(setWordIn(dataRegs[regAddr].read(), byteLiteral, BYTE_WIDTH, BYTE_WIDTH * byteIndex));
                         break;
                 }
                 break;
@@ -438,11 +489,11 @@ public class BasicScalar extends ComputeCore {
                 sourceRegAddr = operands[2];
                 int sourceByteIndex = operands[3];
 
-                byteLiteral = getWordFrom(dataRegs[sourceRegAddr].read(), 8, 8 * sourceByteIndex);
+                byteLiteral = getWordFrom(dataRegs[sourceRegAddr].read(), BYTE_WIDTH, BYTE_WIDTH * sourceByteIndex);
 
                 switch (instruction) {
                     case MOVEBYTE: // DESTINATION[DBYTEINDEX] <-- SOURCE[SBYTEINDEX] (ASCII/UTF-8 character move)
-                        dataRegs[destRegAddr].write(setWordIn(dataRegs[destRegAddr].read(), byteLiteral, 8, 8 * destByteIndex));
+                        dataRegs[destRegAddr].write(setWordIn(dataRegs[destRegAddr].read(), byteLiteral, BYTE_WIDTH, BYTE_WIDTH * destByteIndex));
                         break;
                 }
                 break;
@@ -483,7 +534,7 @@ public class BasicScalar extends ComputeCore {
                 int bitWidth;
                 int byteMultiplier = operands[3];
                 if (byteMultiplier != 0) {
-                    bitWidth = 8 * byteMultiplier;
+                    bitWidth = BYTE_WIDTH * byteMultiplier;
                 } else {
                     bitWidth = 4; // nibble
                 }
@@ -629,13 +680,13 @@ public class BasicScalar extends ComputeCore {
     }
 
     @Override
-    protected void checkInterrupts() {
+    protected void updateProgramCounterOnInterrupt() {
         // TODO: Do nothing for now! Implement appropriate logic when interrupts are implemented
         // TODO: update internal PC to vector location if interrupt
     }
 
     @Override
-    public int executionTime(String groupName, int groupIndex, MemoryPort dataMemory) {
+    public int executionTime(String groupName, int groupIndex) {
         InstructionGrouping grouping = Enum.valueOf(InstructionGrouping.class, groupName);
         Instruction instruction = grouping.decode(groupIndex);
 
@@ -671,40 +722,42 @@ public class BasicScalar extends ComputeCore {
                 regAddr = operands[0];
                 bitIndex = operands[1];
 
-                return instruction.name() + " R" + regAddr + ", " + bitIndex;
+                return instruction.name() + " " + dataRegAddrInfo.getPrettyValue(regAddr) + ", " + bitIndex;
             case DataAssignLit:
                 // Instructions with 1 data register and 1 data literal
                 regAddr = operands[0];
                 int data = operands[1];
 
-                return instruction.name() + " R" + regAddr + ", " + formatNumberInHex(data, dataWidth);
+                return instruction.name() + " " + dataRegAddrInfo.getPrettyValue(regAddr) + ", " + dataOpInfo.getPrettyValue(data);
             case DataMemOps:
                 // Instructions with 1 data register and 1 data address register
                 dRegAddr = operands[0];
                 int dAddrRegAddr = operands[1];
 
-                return instruction.name() + " R" + dRegAddr + ", A" + dAddrRegAddr;
+                return instruction.name() + " " + dataRegAddrInfo.getPrettyValue(dRegAddr) + ", " + dAddrRegAddrInfo.getPrettyValue(dAddrRegAddr);
             case ByteLoad:
                 // Instructions with 1 data register, 1 byte-index and 1 byte literal
                 regAddr = operands[0];
                 int byteIndex = operands[1];
                 int byteLiteral = operands[2];
 
-                return instruction.name() + " R" + regAddr + ", " + byteIndex + ", " +
-                        formatNumberInHex(byteLiteral, 3);
+                return instruction.name() + " " + dataRegAddrInfo.getPrettyValue(regAddr) + ", " + byteIndex +
+                        ", " + byteInfo.getPrettyValue(byteLiteral);
             case TwoRegOps:
                 // Instructions with 2 data registers (destination, source)
                 destRegAddr = operands[0];
                 sourceRegAddr = operands[1];
 
-                return instruction.name() + " R" + destRegAddr + ", R" + sourceRegAddr;
+                return instruction.name() + " " + dataRegAddrInfo.getPrettyValue(destRegAddr) +
+                        ", " + dataRegAddrInfo.getPrettyValue(sourceRegAddr);
             case ShiftReg:
                 // Instructions with 2 data registers (destination, source) and 1 bit-shift amount (source)
                 destRegAddr = operands[0];
                 sourceRegAddr = operands[1];
                 int shiftAmount = operands[2];
 
-                return instruction.name() + " R" + destRegAddr + ", R" + sourceRegAddr + ", " + shiftAmount;
+                return instruction.name() + " " + dataRegAddrInfo.getPrettyValue(destRegAddr) +
+                        ", " + dataRegAddrInfo.getPrettyValue(sourceRegAddr) + ", " + shiftAmount;
             case RegByteManip:
                 // Instructions with 2 data registers (destination, source) and 2 byte-indices (destination, source)
                 destRegAddr = operands[0];
@@ -712,15 +765,16 @@ public class BasicScalar extends ComputeCore {
                 sourceRegAddr = operands[2];
                 int sourceByteIndex = operands[3];
 
-                return instruction.name() + " R" + destRegAddr + ", " + destByteIndex +
-                        ", R" + sourceRegAddr + ", " + sourceByteIndex;
+                return instruction.name() + " " + dataRegAddrInfo.getPrettyValue(destRegAddr) + ", " + destByteIndex +
+                        ", " + dataRegAddrInfo.getPrettyValue(sourceRegAddr) + ", " + sourceByteIndex;
             case AluOps:
                 // Instructions with 3 data registers (result, A, B)
                 destRegAddr = operands[0];
                 int aRegAddr = operands[1];
                 int bRegAddr = operands[2];
 
-                return instruction.name() + " R" + destRegAddr + ", R" + aRegAddr + ", R" + bRegAddr;
+                return instruction.name() + " " + dataRegAddrInfo.getPrettyValue(destRegAddr) + ", " +
+                        dataRegAddrInfo.getPrettyValue(aRegAddr) + ", " + dataRegAddrInfo.getPrettyValue(bRegAddr);
             case MultiWidthAluOps:
                 // Instructions with 3 data registers (result, A, B) and 1 byte multiplier literal
                 int resultRegAddr = operands[0];
@@ -728,38 +782,41 @@ public class BasicScalar extends ComputeCore {
                 int B = operands[2];
                 int byteMultiplier = operands[3];
 
-                return instruction.name() + " R" + resultRegAddr + ", R" + A +
-                        ", R" + B + ", " + byteMultiplier;
+                return instruction.name() + " " + dataRegAddrInfo.getPrettyValue(resultRegAddr) + ", " +
+                        dataRegAddrInfo.getPrettyValue(A) + ", " + dataRegAddrInfo.getPrettyValue(B) + ", " +
+                        byteMultiplier;
             case NoOperands:
                 // Instructions with 0 operands
                 return instruction.name();
             case InstrAddressLiteral:
                 // Instructions with 1 instruction address literal
-                return instruction.name() + " " + formatNumberInHex(operands[0], iAddrWidth);
+                return instruction.name() + " " + iAddrOpInfo.getPrettyValue(operands[0]);
             case InstrAddressReg:
                 // Instructions with 1 instruction address register
-                return instruction.name() + " I" + operands[0];
+                return instruction.name() + " " + iAddrRegAddrInfo.getPrettyValue(operands[0]);
             case InstrAddrConvert:
                 // Instructions with 1 data register and 1 instruction address register
                 dRegAddr = operands[0];
                 iAddrRegAddr = operands[1];
 
-                return instruction.name() + " R" + dRegAddr + ", I" + iAddrRegAddr;
+                return instruction.name() + " " + dataRegAddrInfo.getPrettyValue(dRegAddr) + ", " +
+                        iAddrRegAddrInfo.getPrettyValue(iAddrRegAddr);
             case ConditionalBranchLiteral:
                 // Instructions with 1 data register, 1 bit-index and 1 instruction address literal
                 dRegAddr = operands[0];
                 bitIndex = operands[1];
                 int iAddrLiteral = operands[2];
 
-                return instruction.name() + " R" + dRegAddr + ", " + bitIndex + ", " +
-                        formatNumberInHex(iAddrLiteral, iAddrWidth);
+                return instruction.name() + " " + dataRegAddrInfo.getPrettyValue(dRegAddr) + ", " +
+                        bitIndex + ", " + iAddrOpInfo.getPrettyValue(iAddrLiteral);
             case ConditionalBranch:
                 // Instructions with 1 data register, 1 bit-index and 1 instruction address register
                 dRegAddr = operands[0];
                 bitIndex = operands[1];
                 iAddrRegAddr = operands[2];
 
-                return instruction.name() + " R" + dRegAddr + ", " + bitIndex + ", I" + iAddrRegAddr;
+                return instruction.name() + " " + dataRegAddrInfo.getPrettyValue(dRegAddr) + ", " +
+                        bitIndex + ", " + iAddrRegAddrInfo.getPrettyValue(iAddrRegAddr);
             default:
                 return "";
         }

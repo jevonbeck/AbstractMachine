@@ -15,23 +15,18 @@ public class InstructionGroupDecoder extends Device {
 	public InstructionGroupDecoder(InstructionGroup format){
 		instructionFormat = format; 
 		opcodeRange = new int[instructionFormat.instructionCount()];
-		
-		int[] opWidths = instructionFormat.operandWidths();
-		operandDecoders = new OpDecoder[opWidths.length];
+
+        OperandInfo[] infoArray = instructionFormat.operandInfoArray();
+		operandDecoders = new OpDecoder[infoArray.length];
 		
 		int offset = 0;
-		for (int x=opWidths.length-1; x>= 0; --x){
-			operandDecoders[x] = new OpDecoder(opWidths[x], offset);
-			offset += opWidths[x];
+		for (int x=infoArray.length-1; x>= 0; --x){
+            int dataWidth = infoArray[x].getDataWidth();
+			operandDecoders[x] = new OpDecoder(dataWidth, offset);
+			offset += dataWidth;
 		}
 
         operandsCombinedWidth = offset;
-        /*
-		operandsCombinedWidth = 0;
-		for(int x=0; x != operandDecoders.length; ++x){
-			operandsCombinedWidth += operandDecoders[x].dataWidth();
-		}
-        */
 	}
 	
 	public void startOpcodeRangeFrom(int startIndex){

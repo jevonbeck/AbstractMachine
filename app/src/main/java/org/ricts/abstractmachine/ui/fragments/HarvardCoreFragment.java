@@ -3,10 +3,12 @@ package org.ricts.abstractmachine.ui.fragments;
 import android.view.View;
 
 import org.ricts.abstractmachine.R;
+import org.ricts.abstractmachine.components.compute.cu.ControlUnitCore;
 import org.ricts.abstractmachine.components.observables.ObservableComputeCore;
-import org.ricts.abstractmachine.components.observables.ObservableControlUnit;
-import org.ricts.abstractmachine.components.observables.ObservableRAM;
-import org.ricts.abstractmachine.components.observables.ObservableROM;
+import org.ricts.abstractmachine.components.observables.ObservableCuFSM;
+import org.ricts.abstractmachine.components.observables.ObservableCuRegCore;
+import org.ricts.abstractmachine.components.observables.ObservableMemoryPort;
+import org.ricts.abstractmachine.components.observables.ObservableReadPort;
 import org.ricts.abstractmachine.components.storage.ROM;
 import org.ricts.abstractmachine.ui.compute.ComputeCoreView;
 import org.ricts.abstractmachine.ui.compute.ControlUnitView;
@@ -26,7 +28,7 @@ public class HarvardCoreFragment extends HarvardActivityFragment implements Obse
 
     private ReadPortView instructionCacheView;
     private MemoryPortView dataMemoryView;
-    private ObservableRAM dataMemObservable;
+    private ObservableMemoryPort dataMemObservable;
     private Object dataMemObservableObject;
     private boolean animatePins;
 
@@ -92,12 +94,16 @@ public class HarvardCoreFragment extends HarvardActivityFragment implements Obse
 
     @Override
     protected void bindObservablesToViews() {
+        ObservableCuFSM fsm = controlUnit.getMainFSM();
+        ObservableCuRegCore regCore = controlUnit.getRegCore();
+
         /** Initialise Views **/
-        cuView.initCU(controlUnit.getType(), coreView, instructionCacheView);
+        cuView.initCU(fsm, regCore, coreView, instructionCacheView);
 
         /** Add observers to observables **/
         mainCore.addObserver(coreView);
-        controlUnit.addObserver(cuView);
+        fsm.addObserver(cuView);
+        regCore.addObserver(cuView);
         dataMemory.addObserver(this);
         instructionCache.addObserver(this);
     }
@@ -118,11 +124,11 @@ public class HarvardCoreFragment extends HarvardActivityFragment implements Obse
 
     @Override
     public void update(Observable observable, Object o) {
-        if(observable instanceof ObservableRAM){
-            dataMemObservable = (ObservableRAM) observable;
+        if(observable instanceof ObservableMemoryPort){
+            dataMemObservable = (ObservableMemoryPort) observable;
             dataMemObservableObject = o;
         }
-        else if(observable instanceof ObservableROM) {
+        else if(observable instanceof ObservableReadPort) {
             if(animatePins) {
                 instructionCacheView.update(observable, o);
             }
@@ -144,8 +150,8 @@ public class HarvardCoreFragment extends HarvardActivityFragment implements Obse
      * @return A new instance of fragment HarvardCoreFragment.
      */
     public static HarvardCoreFragment newInstance(ObservableComputeCore mainCore,
-                                                    ObservableROM<ROM> instructionCache,
-                                                    ObservableRAM dataMemory, ObservableControlUnit cu) {
+                                                  ObservableReadPort<ROM> instructionCache,
+                                                  ObservableMemoryPort dataMemory, ControlUnitCore cu) {
         HarvardCoreFragment fragment = new HarvardCoreFragment();
         fragment.setObservables(mainCore, instructionCache, dataMemory, cu);
         return fragment;

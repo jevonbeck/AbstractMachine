@@ -1,61 +1,44 @@
 package org.ricts.abstractmachine.components.compute.cu;
 
+import org.ricts.abstractmachine.components.compute.cores.UniMemoryCpuCore;
 import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
-import org.ricts.abstractmachine.components.interfaces.CuDataInterface;
-import org.ricts.abstractmachine.components.interfaces.MemoryPort;
+import org.ricts.abstractmachine.components.interfaces.ControlUnitRegCore;
+import org.ricts.abstractmachine.components.interfaces.CuFsmInterface;
+import org.ricts.abstractmachine.components.interfaces.Multiplexer;
 import org.ricts.abstractmachine.components.interfaces.ReadPort;
-import org.ricts.abstractmachine.components.storage.Register;
 
-public class ControlUnit implements CuDataInterface {
-    private Register pc; // Program Counter
-    private Register ir; // Instruction Register
+public class ControlUnit extends ControlUnitCore {
+    private static final int DATA_MEM_ID = UniMemoryCpuCore.SerializerInputId.DATA_MEM.ordinal();
+    private static final int INS_MEM_ID = UniMemoryCpuCore.SerializerInputId.INSTRUCTION_MEM.ordinal();
 
-    private ControlUnitEngine engine;
+    private Multiplexer mux;
+    private ControlUnitFSM fsm;
 
-    public ControlUnit(ComputeCoreInterface core, ReadPort instructionCache,
-                       MemoryPort dataMemory){
-        pc = new Register(core.iAddrWidth());
-        ir = new Register(core.instrWidth());
-        engine = new ControlUnitEngine(this, core, instructionCache, dataMemory);
+    public ControlUnit(ComputeCoreInterface core, ReadPort instructionCache, Multiplexer muxInterface){
+        super(core, instructionCache);
+        mux = muxInterface;
 
         // initialise
         reset();
     }
 
     @Override
-    public void setNextStateToHalt() {
-        engine.setNextStateToHalt();
-    }
-
-    @Override
-    public void setNextStateToSleep() {
-        engine.setNextStateToSleep();
-    }
-
-    @Override
-    public boolean isInHaltState(){
-        return engine.isInHaltState();
-    }
-
-    @Override
-    public boolean isInSleepState(){
-        return engine.isInSleepState();
-    }
-
-    @Override
     public void performNextAction(){
-        engine.triggerStateChange();
+        int selection = fsm.isInExecuteState() ? DATA_MEM_ID : INS_MEM_ID;
+        mux.setSelection(selection);
+
+        mainFSM.triggerStateChange();
     }
 
     @Override
     public int nextActionDuration(){ // in clock cycles
-        return engine.nextActionDuration();
+        return fsm.nextActionDuration();
     }
 
     @Override
     public void setNextFetch(int instructionAddress){
-        setPC(instructionAddress);
-        engine.setNextStateToFetch();
+        regCore.setPC(instructionAddress);
+        mainFSM.setNextState(FETCH_STATE);
     }
 
     @Override
@@ -64,22 +47,10 @@ public class ControlUnit implements CuDataInterface {
     }
 
     @Override
-    public void reset() {
-        setStartExecFrom(0);
-    }
-
-    @Override
     public void setStartExecFrom(int currentPC) {
-        setPC(currentPC);
-        setIR(0);
-        setToFetchState();
-    }
-
-    @Override
-    public void fetchInstruction(ReadPort instructionCache){
-        int pcValue = getPC();
-        setIR(instructionCache.read(pcValue)); // IR = iCache[PC]
-        setPC(pcValue + 1); // PC += 1
+        regCore.reset(currentPC, 0);
+        mainFSM.reset();
+        mux.setSelection(INS_MEM_ID);
     }
 
     @Override
@@ -88,47 +59,13 @@ public class ControlUnit implements CuDataInterface {
     }
 
     @Override
-    public String getPCDataString() {
-        return pc.dataString();
+    protected CuFsmInterface createMainFSM(ControlUnitRegCore regCore, ComputeCoreInterface core) {
+        fsm = new ControlUnitFSM(regCore, core);
+        return fsm;
     }
 
     @Override
-    public String getIRDataString() {
-        return ir.dataString();
-    }
-
-    @Override
-    public String getCurrentStateString(){
-        return engine.getCurrentStateString();
-    }
-
-    @Override
-    public int getPC(){
-        return pc.read();
-    }
-
-    @Override
-    public int getIR() {
-        return ir.read();
-    }
-
-    public boolean isInFetchState() {
-        return engine.isInFetchState();
-    }
-
-    public boolean isInExecuteState(){
-        return engine.isInExecuteState();
-    }
-
-    private void setToFetchState(){
-        engine.setToFetchState();
-    }
-
-    private void setPC(int currentPC){
-        pc.write(currentPC);
-    }
-
-    private void setIR(int currentIR){
-        ir.write(currentIR);
+    protected CuRegCore createRegCore(ReadPort instructionCache, int pcWidth, int irWidth) {
+        return new CuRegCore(instructionCache, pcWidth, irWidth);
     }
 }

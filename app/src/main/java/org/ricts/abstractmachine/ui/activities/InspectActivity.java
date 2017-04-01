@@ -16,7 +16,7 @@ import org.ricts.abstractmachine.components.system.SystemArchitecture;
 import org.ricts.abstractmachine.devices.compute.core.BasicScalar;
 import org.ricts.abstractmachine.ui.fragments.InspectFragment;
 
-public abstract class InspectActivity extends AppCompatActivity implements InspectFragment.InspectActionListener {
+public abstract class InspectActivity<T extends ComputeCore> extends AppCompatActivity implements InspectFragment.InspectActionListener {
     private static final String TAG = "InspectActivity";
 
     public static final String ARCH_TYPE = "architectureType";
@@ -36,7 +36,7 @@ public abstract class InspectActivity extends AppCompatActivity implements Inspe
         }
     }
 
-    Button advanceButton, runButton, stopButton, resetButton;
+    private Button advanceButton, runButton, stopButton, resetButton;
 
     private ViewPager pager;
     private PagerAdapter pagerAdapter;
@@ -46,7 +46,7 @@ public abstract class InspectActivity extends AppCompatActivity implements Inspe
     private int pagerAdapterCount, pagerOffScreenLimit;
     private SystemArchitecture architecture;
 
-    protected abstract SystemArchitecture createSystemArchitecture(ComputeCore core, Bundle options);
+    protected abstract SystemArchitecture createSystemArchitecture(T core, Bundle options);
     protected abstract void initSystemArchitecture(SystemArchitecture architecture, Bundle options);
     protected abstract PagerAdapter createAdapter(SystemArchitecture architecture);
 
@@ -57,7 +57,7 @@ public abstract class InspectActivity extends AppCompatActivity implements Inspe
 
         /** Initialise main data **/
         final Bundle options = getIntent().getExtras();
-        architecture = createSystemArchitecture(getComputeCore(options), options);
+        architecture = createSystemArchitecture((T) getComputeCore(options), options);
         initSystemArchitecture(architecture, options);
         pagerAdapter = createAdapter(architecture);
 
@@ -68,12 +68,14 @@ public abstract class InspectActivity extends AppCompatActivity implements Inspe
         runButton = (Button) findViewById(R.id.runButton);
         stopButton = (Button) findViewById(R.id.stopButton);
         stopButton.setEnabled(false);
+        resetButton = (Button) findViewById(R.id.resetButton);
 
         advanceButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 view.setEnabled(false);
                 runButton.setEnabled(false);
+                resetButton.setEnabled(false);
 
                 advanceTime();
             }
@@ -84,6 +86,7 @@ public abstract class InspectActivity extends AppCompatActivity implements Inspe
             public void onClick(View view) {
                 view.setEnabled(false);
                 advanceButton.setEnabled(false);
+                resetButton.setEnabled(false);
                 stopButton.setEnabled(true);
 
                 isRunning = true;
@@ -95,12 +98,12 @@ public abstract class InspectActivity extends AppCompatActivity implements Inspe
             @Override
             public void onClick(View view) {
                 view.setEnabled(false);
+                enableButtons();
 
                 isRunning = false;
             }
         });
 
-        resetButton = (Button) findViewById(R.id.resetButton);
         resetButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -142,8 +145,7 @@ public abstract class InspectActivity extends AppCompatActivity implements Inspe
             Log.d(TAG, "onStepActionCompleted() advanceTime() end");
         }
         else {
-            advanceButton.setEnabled(true);
-            runButton.setEnabled(true);
+            enableButtons();
             Log.d(TAG, "onStepActionCompleted()");
         }
 
@@ -152,9 +154,7 @@ public abstract class InspectActivity extends AppCompatActivity implements Inspe
 
     @Override
     public void onResetCompleted() {
-        advanceButton.setEnabled(true);
-        runButton.setEnabled(true);
-        resetButton.setEnabled(true);
+        enableButtons();
         Log.d(TAG, "onResetCompleted()");
     }
 
@@ -188,6 +188,12 @@ public abstract class InspectActivity extends AppCompatActivity implements Inspe
             ((InspectFragment) pagerAdapter.instantiateItem(pager, x))
                     .setUserVisibility(x == currentItemIndex);
         }
+    }
+
+    private void enableButtons() {
+        advanceButton.setEnabled(true);
+        runButton.setEnabled(true);
+        resetButton.setEnabled(true);
     }
 
     public static ComputeCore getComputeCore(Bundle options){

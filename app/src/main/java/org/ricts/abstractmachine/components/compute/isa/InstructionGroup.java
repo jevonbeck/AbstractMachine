@@ -1,14 +1,14 @@
 package org.ricts.abstractmachine.components.compute.isa;
 
 public class InstructionGroup {
-	private int[] operandWidths;
+	private OperandInfo[] operandInfos;
 	private String groupName;
 	private String[] mneumonics;
 		
-	public InstructionGroup(int[] opWidths, String[] mneumonicList, String name){
+	public InstructionGroup(OperandInfo[] opInfos, String[] mneumonicList, String name){
 		mneumonics = mneumonicList;
 		groupName = name;
-		operandWidths = opWidths; // opWidths - array of operand widths (specified in ascending order)
+		operandInfos = opInfos; // array of operand metadata (specified in ascending order)
 	}
 	
 	public String mneumonicAt(int index){
@@ -26,7 +26,7 @@ public class InstructionGroup {
 		return mneumonics.length;
 	}	
 	
-	public int[] operandWidths() {
-		return operandWidths;
+	public OperandInfo[] operandInfoArray() {
+		return operandInfos;
 	}			
 }

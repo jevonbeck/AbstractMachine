@@ -1,15 +1,14 @@
 package org.ricts.abstractmachine.components.observables;
 
 import org.ricts.abstractmachine.components.interfaces.ReadPort;
-import org.ricts.abstractmachine.components.storage.ROM;
 
 import java.util.List;
 
 /**
- * Created by Jevon on 16/01/2016.
+ * Created by Jevon on 14/02/2017.
  */
-public class ObservableROM<T extends ROM> extends ObservableType<T> implements ReadPort {
-    public static class ReadParams extends ObservableROM.Params{
+public class ObservableReadPort<T extends ReadPort> extends ObservableType<T> implements ReadPort {
+    public static class ReadParams extends Params{
         protected enum Args{
             ADDRESS
         }
@@ -23,8 +22,8 @@ public class ObservableROM<T extends ROM> extends ObservableType<T> implements R
         }
     }
 
-    public ObservableROM(T rom){
-        super(rom);
+    public ObservableReadPort(T readPort){
+        super(readPort);
     }
 
     @Override
@@ -35,13 +34,24 @@ public class ObservableROM<T extends ROM> extends ObservableType<T> implements R
     }
 
     @Override
+    public void setData(List<Integer> data) {
+        observable_data.setData(data);
+        setChanged();
+        notifyObservers(true);
+    }
+
+    @Override
     public int accessTime() {
         return observable_data.accessTime();
     }
 
-    public void setData(List<Integer> data, int addrOffset) {
-        observable_data.setData(data, addrOffset);
-        setChanged();
-        notifyObservers(true);
+    @Override
+    public String addressString(int address) {
+        return observable_data.addressString(address);
+    }
+
+    @Override
+    public String dataAtAddressString(int address) {
+        return observable_data.dataAtAddressString(address);
     }
 }

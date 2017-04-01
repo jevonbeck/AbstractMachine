@@ -6,10 +6,11 @@ import org.ricts.abstractmachine.components.devicetype.ComputeDevice;
  * Created by Jevon on 18/12/2015.
  */
 public interface ComputeCoreInterface extends ComputeDevice{
-    void executeInstruction(int programCounter, int instruction, MemoryPort dataMemory, ControlUnitInterface cu);
-    int instrExecTime(int instruction, MemoryPort dataMemory);
+    void executeInstruction(int programCounter, int instruction);
+    int instrExecTime(int instruction);
     void reset();
     int getNopInstruction();
+    void checkInterrupts();
 
-    void checkInterrupts(ControlUnitInterface cu);
+    void setControlUnit(ControlUnitInterface cu);
 }

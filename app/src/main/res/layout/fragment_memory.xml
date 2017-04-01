@@ -40,5 +40,13 @@
             android:layout_weight="1"
             android:text="@string/save_button_text"
             />
+        <Button
+            android:id="@+id/mappingButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/mapping_button_text"
+            android:visibility="gone"
+            />
     </LinearLayout>
 </LinearLayout>

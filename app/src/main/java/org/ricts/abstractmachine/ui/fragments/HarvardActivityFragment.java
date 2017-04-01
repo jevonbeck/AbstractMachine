@@ -1,16 +1,16 @@
 package org.ricts.abstractmachine.ui.fragments;
 
+import org.ricts.abstractmachine.components.compute.cu.ControlUnitCore;
 import org.ricts.abstractmachine.components.observables.ObservableComputeCore;
-import org.ricts.abstractmachine.components.observables.ObservableControlUnit;
-import org.ricts.abstractmachine.components.observables.ObservableRAM;
-import org.ricts.abstractmachine.components.observables.ObservableROM;
+import org.ricts.abstractmachine.components.observables.ObservableMemoryPort;
+import org.ricts.abstractmachine.components.observables.ObservableReadPort;
 import org.ricts.abstractmachine.components.storage.ROM;
 
 public abstract class HarvardActivityFragment extends InspectFragment {
     protected ObservableComputeCore mainCore;
-    protected ObservableROM<ROM> instructionCache;
-    protected ObservableRAM dataMemory;
-    protected ObservableControlUnit controlUnit;
+    protected ObservableReadPort<ROM> instructionCache;
+    protected ObservableMemoryPort dataMemory;
+    protected ControlUnitCore controlUnit;
 
     private int actionCount = 0;
 
@@ -18,8 +18,8 @@ public abstract class HarvardActivityFragment extends InspectFragment {
         // Required empty public constructor
     }
 
-    public void setObservables(ObservableComputeCore core, ObservableROM<ROM> iCache, ObservableRAM dataMem,
-                               ObservableControlUnit controlUnitData){
+    public void setObservables(ObservableComputeCore core, ObservableReadPort<ROM> iCache, ObservableMemoryPort dataMem,
+                               ControlUnitCore controlUnitData){
         mainCore = core;
         instructionCache = iCache;
         dataMemory = dataMem;

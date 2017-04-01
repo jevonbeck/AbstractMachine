@@ -1,29 +1,25 @@
 package org.ricts.abstractmachine.components.compute.cu;
 
 import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
-import org.ricts.abstractmachine.components.interfaces.CuInternalInterface;
-import org.ricts.abstractmachine.components.interfaces.MemoryPort;
+import org.ricts.abstractmachine.components.interfaces.ControlUnitRegCore;
 
 public class ControlUnitExecuteState extends ControlUnitState {
-    private CuInternalInterface cu;
-    private MemoryPort dataMemory;
+    private ControlUnitRegCore cuRegCore;
     private ComputeCoreInterface core;
 
-    public ControlUnitExecuteState(ComputeCoreInterface proc,
-                                   MemoryPort dMemory, CuInternalInterface controlUnit){
-        super("execute");
+    public ControlUnitExecuteState(ComputeCoreInterface proc, ControlUnitRegCore regCore){
+        super(GenericCUState.EXECUTE);
         core = proc;
-        dataMemory = dMemory;
-        cu = controlUnit;
+        cuRegCore = regCore;
     }
 
     @Override
     public void performAction(){
-        core.executeInstruction(cu.getPC(), cu.getIR(), dataMemory, cu);
+        core.executeInstruction(cuRegCore.getPC(), cuRegCore.getIR());
     }
 
     @Override
     public int actionDuration(){
-        return core.instrExecTime(cu.getIR(), dataMemory);
+        return core.instrExecTime(cuRegCore.getIR());
     }
 }

@@ -25,7 +25,7 @@ public class ROM extends Device implements AddressDevice, DataDevice, ReadPort {
         addressWidth = aWidth;
         addressBitMask = bitMaskOfWidth(aWidth);
 
-        dataArray = new int[(int) Math.pow(2, addressWidth)];
+        dataArray = new int[1 << addressWidth]; // array size is 2^addressWidth
     }
 
     @Override
@@ -48,10 +48,27 @@ public class ROM extends Device implements AddressDevice, DataDevice, ReadPort {
         return accessTime;
     }
 
+    @Override
+    public String addressString(int address){
+        return formatNumberInHex(address, addressWidth);
+    }
+
+    @Override
+    public String dataAtAddressString(int address){
+        return formatNumberInHex(read(address), dataWidth);
+    }
+
+    @Override
+    public void setData(List<Integer> data) {
+        setData(data, 0);
+    }
+
     public void setData(List<Integer> data, int addrOffset) {
         int dataSize = data.size();
         int offset = addrOffset & addressBitMask;
-        int addrLimit = Math.min((int) Math.pow(2, addressWidth), offset + dataSize);
+
+        // limit is min of address full range and offset data size
+        int addrLimit = Math.min(1 << addressWidth, offset + dataSize);
 
         for (int index = 0, address = offset; address < addrLimit; ++index, ++address) {
             dataArray[address] = data.get(index) & dataBitMask;
@@ -60,13 +77,5 @@ public class ROM extends Device implements AddressDevice, DataDevice, ReadPort {
 
     public int size(){
         return dataArray.length;
-    }
-
-    public String addressString(int address){
-        return formatNumberInHex(address, addressWidth);
-    }
-
-    public String dataAtAddressString(int address){
-        return formatNumberInHex(read(address), dataWidth);
     }
 }

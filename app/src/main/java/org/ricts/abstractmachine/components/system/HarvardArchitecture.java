@@ -1,57 +1,57 @@
 package org.ricts.abstractmachine.components.system;
 
-import org.ricts.abstractmachine.components.compute.cores.ComputeCore;
 import org.ricts.abstractmachine.components.compute.cores.HarvardCore;
-import org.ricts.abstractmachine.components.observables.ObservableControlUnit;
-import org.ricts.abstractmachine.components.observables.ObservableRAM;
-import org.ricts.abstractmachine.components.observables.ObservableROM;
+import org.ricts.abstractmachine.components.compute.cores.UniMemoryComputeCore;
+import org.ricts.abstractmachine.components.compute.cu.ControlUnitCore;
+import org.ricts.abstractmachine.components.observables.ObservableComputeCore;
+import org.ricts.abstractmachine.components.observables.ObservableMemoryPort;
+import org.ricts.abstractmachine.components.observables.ObservableReadPort;
+import org.ricts.abstractmachine.components.observables.ObservableUniMemoryComputeCore;
 import org.ricts.abstractmachine.components.storage.RAM;
 import org.ricts.abstractmachine.components.storage.ROM;
 
 import java.util.List;
 
-public class HarvardArchitecture extends SystemArchitecture {
-    private ObservableROM<ROM> instructionCache;
-    private ObservableRAM dataRAM;
-    private ObservableControlUnit controlUnit;
+public class HarvardArchitecture extends SystemArchitecture<UniMemoryComputeCore> {
+    private ObservableReadPort<ROM> instructionCache;
+    private ObservableMemoryPort dataRAM;
+    private ControlUnitCore controlUnit;
 
-    public HarvardArchitecture(ComputeCore core, int iMemAccessTime, int dMemAccessTime) {
+    public HarvardArchitecture(UniMemoryComputeCore core, int iMemAccessTime, int dMemAccessTime) {
         super(core);
 
-        instructionCache = new  ObservableROM<ROM>(new ROM(core.instrWidth(), core.iAddrWidth(), iMemAccessTime));
-        dataRAM = new ObservableRAM(new RAM(core.dataWidth(), core.dAddrWidth(), dMemAccessTime));
+        instructionCache = new ObservableReadPort<ROM>(new ROM(core.instrWidth(), core.iAddrWidth(), iMemAccessTime));
+        dataRAM = new ObservableMemoryPort(new RAM(core.dataWidth(), core.dAddrWidth(), dMemAccessTime));
+        core.setDataMemory(dataRAM);
 
-        HarvardCore hCore = new HarvardCore(mainCore, instructionCache, dataRAM);
+        HarvardCore hCore = new HarvardCore(mainCore, instructionCache);
         controlUnit = hCore.getControlUnit();
 
         tpu = hCore;
     }
 
-    public void initInstructionCache(List<Integer> data, int addrOffset){
-        instructionCache.getType().setData(data, addrOffset);
-    }
-
-    public void initDataMemory(List<Integer> data, int addrOffset){
-        dataRAM.getType().setData(data, addrOffset);
-    }
-
     public void initInstructionCache(List<Integer> data){
-        initInstructionCache(data, 0);
+        instructionCache.setData(data);
     }
 
     public void initDataMemory(List<Integer> data){
-        initDataMemory(data, 0);
+        dataRAM.setData(data);
     }
 
-    public ObservableRAM getDataMemory(){
+    public ObservableMemoryPort getDataMemory(){
         return dataRAM;
     }
 
-    public ObservableROM<ROM> getInstructionCache(){
+    public ObservableReadPort<ROM> getInstructionCache(){
         return instructionCache;
     }
 
-    public ObservableControlUnit getControlUnit(){
+    public ControlUnitCore getControlUnit(){
         return controlUnit;
+    }
+
+    @Override
+    protected ObservableComputeCore<UniMemoryComputeCore> createObservableComputeCore(UniMemoryComputeCore core) {
+        return new ObservableUniMemoryComputeCore<>(core);
     }
 }
