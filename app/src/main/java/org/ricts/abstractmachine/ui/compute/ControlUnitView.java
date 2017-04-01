@@ -139,9 +139,12 @@ public class ControlUnitView extends RelativeLayout implements Observer{
             pcText = regCore.getPCString();
             irText = regCore.getIRString();
 
-            if( updateImmediately || (isUpdateFromReset && !regCore.hasTempRegs()) ){
+            boolean isControlUnitReset = isUpdateFromReset && !regCore.hasTempRegs();
+            if(updateImmediately || isControlUnitReset){
                 updateIR();
-                actionResponder.onResetAnimationEnd(); // ControlUnit case
+                if(isControlUnitReset){
+                    actionResponder.onResetAnimationEnd(); // ControlUnit case
+                }
             }
 
             if(updateImmediately || isUpdateFromReset || isUpdateFromFetch || isUpdateFromExpectedPC){
