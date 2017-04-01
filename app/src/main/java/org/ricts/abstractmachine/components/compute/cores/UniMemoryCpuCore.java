@@ -25,7 +25,7 @@ public abstract class UniMemoryCpuCore extends CpuCore {
         multiMemoryPort = (ObservableMultiMemoryPort) serializer.getObservable();
 
         MemoryPort[] serializerInputs = serializer.getInputs();
-        createObservableControlUnit(core, serializerInputs[SerializerInputId.INSTRUCTION_MEM.ordinal()]);
+        initCpuCore(core, serializerInputs[SerializerInputId.INSTRUCTION_MEM.ordinal()]);
         core.setDataMemory(serializerInputs[SerializerInputId.DATA_MEM.ordinal()]);
     }
 

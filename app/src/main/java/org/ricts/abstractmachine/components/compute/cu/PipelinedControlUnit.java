@@ -1,7 +1,8 @@
 package org.ricts.abstractmachine.components.compute.cu;
 
-import org.ricts.abstractmachine.components.compute.cu.ControlUnitState.GenericCUState;
 import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
+import org.ricts.abstractmachine.components.interfaces.ControlUnitRegCore;
+import org.ricts.abstractmachine.components.interfaces.CuFsmInterface;
 import org.ricts.abstractmachine.components.interfaces.ReadPort;
 import org.ricts.abstractmachine.components.storage.Register;
 
@@ -10,17 +11,14 @@ import org.ricts.abstractmachine.components.storage.Register;
  */
 public class PipelinedControlUnit extends ControlUnitCore {
     private boolean branched;
-    private GenericCUState currentState;
 
     private ComputeCoreInterface mainCore;
-    private ControlUnitFSM fsm1;
-    private ControlUnitFSM fsm2;
+    private PipelinedControlUnitFSM pipelinedCuFSM;
 
-    private Register branchPC;
-    private Register branchIR;
+    private Register branchPC, branchIR;
 
     public PipelinedControlUnit(ComputeCoreInterface core, ReadPort instructionCache){
-        super(instructionCache, core.iAddrWidth(), core.instrWidth());
+        super(core, instructionCache);
         mainCore = core;
 
         int iAddrWidth = mainCore.iAddrWidth();
@@ -28,15 +26,6 @@ public class PipelinedControlUnit extends ControlUnitCore {
 
         branchPC = new Register(iAddrWidth);
         branchIR = new Register(instrWidth);
-
-        /* N.B. : Both FSMs are connected to the same instructionCache and dataMemory!
-           During normal operation, one performs a fetch while the other executes... ALWAYS! */
-
-        // FSM 1 - initial state = 'fetch'
-        fsm1 = new ControlUnitFSM(regCore, core);
-
-        // FSM 2 - initial state = 'execute'
-        fsm2 = new ControlUnitFSM(regCore, core);
 
         // initialise FSMs
         reset();
@@ -52,26 +41,21 @@ public class PipelinedControlUnit extends ControlUnitCore {
         if(isNormalExecution()) { // if normal execution ...
             // ... set branch registers
             branched = true;
-            setBranchPC(instructionAddress);
-            setBranchIR(nopInstruction);
+            branchPC.write(instructionAddress);
+            branchIR.write(nopInstruction);
         }
         else { // ... we need to explicitly set each FSM state
-            currentState = GenericCUState.ACTIVE;
-
             regCore.setPcAndIr(instructionAddress, nopInstruction);
-            fsm1.setToFetchState();
-            fsm2.setToExecuteState();
+            mainFSM.setNextState(ACTIVE_STATE);
         }
     }
 
     @Override
     public void setStartExecFrom(int currentPC) {
-        currentState = GenericCUState.ACTIVE;
         branched = false;
 
-        regCore.setPcAndIr(currentPC, mainCore.getNopInstruction());
-        fsm1.setToFetchState();
-        fsm2.setToExecuteState();
+        regCore.reset(currentPC, mainCore.getNopInstruction());
+        mainFSM.reset();
     }
 
     @Override
@@ -80,36 +64,9 @@ public class PipelinedControlUnit extends ControlUnitCore {
     }
 
     @Override
-    public void setNextStateToHalt() {
-        // fsm1 and fsm2 do nothing
-        fsm1.setNextStateToHalt();
-        fsm2.setNextStateToHalt();
-        currentState = GenericCUState.HALT;
-    }
-
-    @Override
-    public void setNextStateToSleep() {
-        // fsm1 does nothing while fsm2 executes sleep
-        fsm1.setNextStateToHalt();
-        fsm2.setNextStateToSleep();
-        currentState = GenericCUState.SLEEP;
-    }
-
-    @Override
-    public boolean isInHaltState() {
-        return currentState.equals(GenericCUState.HALT);
-    }
-
-    @Override
-    public boolean isInSleepState() {
-        return currentState.equals(GenericCUState.SLEEP);
-    }
-
-    @Override
     public void performNextAction() {
         // advance both FSMs
-        fsm1.triggerStateChange();
-        fsm2.triggerStateChange();
+        mainFSM.triggerStateChange();
 
         if(isNormalExecution()){
             /*
@@ -118,10 +75,9 @@ public class PipelinedControlUnit extends ControlUnitCore {
              * This is true since the fetch stage increments the PC, while the execute stage only modifies PC if the instruction is branching.
              * If a branch is detected, the next instruction to execute should be a NOP.
              * */
-
             if(branched){ // if branch has occurred ...
                 // ... don't execute instruction that was just fetched!
-                regCore.setPcAndIr(getBranchPC(), getBranchIR());
+                regCore.setPcAndIr(branchPC.read(), branchIR.read());
                 branched = false;
             }
             else {
@@ -132,22 +88,7 @@ public class PipelinedControlUnit extends ControlUnitCore {
 
     @Override
     public int nextActionDuration() {
-        return Math.max(fsm1.nextActionDuration(), fsm2.nextActionDuration());
-    }
-
-    @Override
-    public String getPCDataString() {
-        return regCore.getPCDataString();
-    }
-
-    @Override
-    public String getIRDataString() {
-        return regCore.getIRDataString();
-    }
-
-    @Override
-    public String getCurrentStateString(){
-        return currentState.name();
+        return pipelinedCuFSM.nextActionDuration();
     }
 
     @Override
@@ -155,31 +96,21 @@ public class PipelinedControlUnit extends ControlUnitCore {
         return new CuRegCore(instructionCache, pcWidth, irWidth, true);
     }
 
+    @Override
+    protected CuFsmInterface createMainFSM(ControlUnitRegCore regCore, ComputeCoreInterface core) {
+        pipelinedCuFSM = new PipelinedControlUnitFSM(regCore, core);
+        return pipelinedCuFSM;
+    }
+
     public ControlUnitFSM getFsm1(){
-        return fsm1;
+        return pipelinedCuFSM.getFsm1();
     }
 
     public ControlUnitFSM getFsm2(){
-        return fsm2;
+        return pipelinedCuFSM.getFsm2();
     }
 
     private boolean isNormalExecution(){
-        return currentState.equals(GenericCUState.ACTIVE);
-    }
-
-    private int getBranchPC(){
-        return branchPC.read();
-    }
-
-    private void setBranchPC(int currentPC){
-        branchPC.write(currentPC);
-    }
-
-    private int getBranchIR(){
-        return branchIR.read();
-    }
-
-    private void setBranchIR(int currentIR){
-        branchIR.write(currentIR);
+        return pipelinedCuFSM.isInActiveState();
     }
 }

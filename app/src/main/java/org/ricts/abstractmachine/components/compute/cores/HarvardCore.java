@@ -8,7 +8,7 @@ import org.ricts.abstractmachine.components.interfaces.ReadPort;
 public class HarvardCore extends CpuCore {
 
     public HarvardCore(ComputeCoreInterface core, ReadPort instructionCache){
-        createObservableControlUnit(core, instructionCache);
+        initCpuCore(core, instructionCache);
     }
 
     @Override

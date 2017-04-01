@@ -2,8 +2,8 @@ package org.ricts.abstractmachine.components.system;
 
 import org.ricts.abstractmachine.components.compute.cores.HarvardCore;
 import org.ricts.abstractmachine.components.compute.cores.UniMemoryComputeCore;
+import org.ricts.abstractmachine.components.compute.cu.ControlUnitCore;
 import org.ricts.abstractmachine.components.observables.ObservableComputeCore;
-import org.ricts.abstractmachine.components.observables.ObservableControlUnit;
 import org.ricts.abstractmachine.components.observables.ObservableMemoryPort;
 import org.ricts.abstractmachine.components.observables.ObservableReadPort;
 import org.ricts.abstractmachine.components.observables.ObservableUniMemoryComputeCore;
@@ -15,7 +15,7 @@ import java.util.List;
 public class HarvardArchitecture extends SystemArchitecture<UniMemoryComputeCore> {
     private ObservableReadPort<ROM> instructionCache;
     private ObservableMemoryPort dataRAM;
-    private ObservableControlUnit controlUnit;
+    private ControlUnitCore controlUnit;
 
     public HarvardArchitecture(UniMemoryComputeCore core, int iMemAccessTime, int dMemAccessTime) {
         super(core);
@@ -46,7 +46,7 @@ public class HarvardArchitecture extends SystemArchitecture<UniMemoryComputeCore
         return instructionCache;
     }
 
-    public ObservableControlUnit getControlUnit(){
+    public ControlUnitCore getControlUnit(){
         return controlUnit;
     }
 

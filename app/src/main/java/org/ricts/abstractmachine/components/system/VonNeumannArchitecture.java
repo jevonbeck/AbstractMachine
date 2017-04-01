@@ -2,8 +2,8 @@ package org.ricts.abstractmachine.components.system;
 
 import org.ricts.abstractmachine.components.compute.cores.UniMemoryComputeCore;
 import org.ricts.abstractmachine.components.compute.cores.VonNeumannCore;
+import org.ricts.abstractmachine.components.compute.cu.ControlUnitCore;
 import org.ricts.abstractmachine.components.observables.ObservableComputeCore;
-import org.ricts.abstractmachine.components.observables.ObservableControlUnit;
 import org.ricts.abstractmachine.components.observables.ObservableMemoryPort;
 import org.ricts.abstractmachine.components.observables.ObservableMultiMemoryPort;
 import org.ricts.abstractmachine.components.observables.ObservableMultiplexer;
@@ -14,7 +14,7 @@ import java.util.List;
 
 public class VonNeumannArchitecture extends SystemArchitecture<UniMemoryComputeCore> {
     private ObservableMemoryPort mainMemory;
-    private ObservableControlUnit controlUnit;
+    private ControlUnitCore controlUnit;
     private ObservableMultiplexer multiplexer;
     private ObservableMultiMemoryPort multiplexerPorts;
 
@@ -39,7 +39,7 @@ public class VonNeumannArchitecture extends SystemArchitecture<UniMemoryComputeC
         return mainMemory;
     }
 
-    public ObservableControlUnit getControlUnit(){
+    public ControlUnitCore getControlUnit(){
         return controlUnit;
     }
 

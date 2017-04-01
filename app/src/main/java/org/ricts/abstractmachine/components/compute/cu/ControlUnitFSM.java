@@ -1,15 +1,14 @@
 package org.ricts.abstractmachine.components.compute.cu;
 
+import org.ricts.abstractmachine.components.compute.cu.ControlUnitState.GenericCUState;
 import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
 import org.ricts.abstractmachine.components.interfaces.ControlUnitRegCore;
 
 /**
  * Created by Jevon on 26/08/2016.
  */
-public class ControlUnitFSM extends FiniteStateMachine {
-
-    private ControlUnitState fetch, execute, halt, sleep;
-    private State nextState = null;
+public class ControlUnitFSM extends CuFsmCore {
+    private ControlUnitState fetch, execute;
 
     public ControlUnitFSM(ControlUnitRegCore regCore, ComputeCoreInterface core){
         // setup instruction cycle
@@ -20,15 +19,7 @@ public class ControlUnitFSM extends FiniteStateMachine {
     }
 
     @Override
-    protected State getNextState(State currentState) {
-        if(nextState != null){ // If normal cycle interrupted ...
-            // ... next state determined by interrupting state
-            currentState = nextState;
-            nextState = null;
-            return currentState;
-        }
-
-        // Otherwise next state determined by current state
+    protected State desiredNextState(State currentState) {
         if(currentState == fetch)
             return execute;
         else if(currentState == execute)
@@ -39,47 +30,32 @@ public class ControlUnitFSM extends FiniteStateMachine {
         return halt;
     }
 
-    public void setNextStateToHalt() {
-        nextState = halt;
+    @Override
+    protected State convertToState(String stateName){
+        switch (Enum.valueOf(GenericCUState.class, stateName)){
+            case FETCH:
+                return fetch;
+            case EXECUTE:
+                return execute;
+            case HALT:
+                return halt;
+            case SLEEP:
+                return sleep;
+            default:
+                return null;
+        }
     }
 
-    public void setNextStateToSleep() {
-        nextState = sleep;
-    }
-
-    public void setNextStateToFetch() {
-        nextState = fetch;
-    }
-
-    public void setToFetchState(){
-        setCurrentState(fetch);
-    }
-
-    public void setToExecuteState(){
-        setCurrentState(execute);
+    @Override
+    protected String initialState() {
+        return fetch.getName();
     }
 
     public boolean isInFetchState() {
-        return currentState() == fetch;
+        return getCurrentState() == fetch;
     }
 
     public boolean isInExecuteState(){
-        return currentState() == execute;
-    }
-
-    public boolean isInHaltState(){
-        return currentState() == halt;
-    }
-
-    public boolean isInSleepState(){
-        return currentState() == sleep;
-    }
-
-    public int nextActionDuration(){ // in clock cycles
-        return ((ControlUnitState) currentState()).actionDuration();
-    }
-
-    public String getCurrentStateString(){
-        return currentState().getName();
+        return getCurrentState() == execute;
     }
 }

@@ -3,15 +3,16 @@ package org.ricts.abstractmachine.ui.compute;
 import android.content.Context;
 import android.graphics.Typeface;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import org.ricts.abstractmachine.R;
-import org.ricts.abstractmachine.components.compute.cu.ControlUnit;
 import org.ricts.abstractmachine.components.compute.cu.ControlUnitState;
-import org.ricts.abstractmachine.components.interfaces.CuDataInterface;
-import org.ricts.abstractmachine.components.observables.ObservableControlUnit;
+import org.ricts.abstractmachine.components.compute.cu.CuRegCore;
+import org.ricts.abstractmachine.components.interfaces.ControlUnitRegCore;
+import org.ricts.abstractmachine.components.interfaces.CuFsmInterface;
+import org.ricts.abstractmachine.components.observables.ObservableCuFSM;
+import org.ricts.abstractmachine.components.observables.ObservableCuRegCore;
 import org.ricts.abstractmachine.ui.storage.ReadPortView;
 
 import java.util.Observable;
@@ -119,49 +120,43 @@ public class ControlUnitView extends RelativeLayout implements Observer{
 
     @Override
     public void update(Observable observable, Object o) {
-        CuDataInterface controlUnit = ((ObservableControlUnit) observable).getType();
-        updateStateText(controlUnit.getCurrentStateString());
-        pcText = controlUnit.getPCDataString();
-        irText = controlUnit.getIRDataString();
+        boolean isUpdateFromReset = o != null && o instanceof Boolean;
 
-        if(updateImmediately){
-            updatePC();
-            updateState();
-            updateIR();
+        if(observable instanceof ObservableCuFSM) {
+            CuFsmInterface fsm = ((ObservableCuFSM) observable).getType();
+            updateStateText(fsm.currentState());
+
+            if( updateImmediately || isUpdateFromReset ||
+               !(fsm.isInHaltState() || fsm.isInSleepState()) ){
+                updateState();
+            }
         }
-        else if (o != null && o instanceof Boolean) {
-            updatePC();
-            updateState();
+        else if(observable instanceof ObservableCuRegCore) {
+            boolean isUpdateFromFetch = o != null && o instanceof ObservableCuRegCore.FetchObject;
+            boolean isUpdateFromExpectedPC = o != null && o instanceof ObservableCuRegCore.ExpectedPcObject;
 
-            if(controlUnit instanceof ControlUnit) {
+            CuRegCore regCore = ((ObservableCuRegCore) observable).getType();
+            pcText = regCore.getPCString();
+            irText = regCore.getIRString();
+
+            if( updateImmediately || (isUpdateFromReset && !regCore.hasTempRegs()) ){
                 updateIR();
                 actionResponder.onResetAnimationEnd(); // ControlUnit case
             }
-        }
-        else {
-            if ( !(controlUnit.isInHaltState() || controlUnit.isInSleepState()) ) {
-                updateState();
-            }
 
-            if(controlUnit instanceof ControlUnit) {
-                ControlUnit cu = (ControlUnit) controlUnit;
-                if (cu.isInFetchState()) {
-                    updatePC();
-                }
-            }
-            else {
+            if(updateImmediately || isUpdateFromReset || isUpdateFromFetch || isUpdateFromExpectedPC){
                 updatePC();
             }
         }
     }
 
-    public void initCU(CuDataInterface controlUnit, ComputeCoreView coreView,
+    public void initCU(CuFsmInterface fsm, ControlUnitRegCore regCore, ComputeCoreView coreView,
                        ReadPortView instructionCache){
         /** initialise variables **/
-        updateStateText(controlUnit.getCurrentStateString());
+        updateStateText(fsm.currentState());
         updateState();
-        pc.setText(controlUnit.getPCDataString());
-        ir.setText(controlUnit.getIRDataString());
+        pc.setText(regCore.getPCString());
+        ir.setText(regCore.getIRString());
 
         /** setup callback behaviour **/
         instructionCache.setReadResponder(new ReadPortView.ReadResponder() {

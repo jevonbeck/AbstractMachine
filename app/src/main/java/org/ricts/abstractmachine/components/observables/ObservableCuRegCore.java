@@ -12,11 +12,14 @@ public class ObservableCuRegCore extends ObservableType<CuRegCore> implements Co
         super(type);
     }
 
+    public static class FetchObject {}
+    public static class ExpectedPcObject {}
+
     @Override
     public void fetchInstruction() {
         observable_data.fetchInstruction();
         setChanged();
-        notifyObservers();
+        notifyObservers(new FetchObject());
     }
 
     @Override
@@ -34,10 +37,22 @@ public class ObservableCuRegCore extends ObservableType<CuRegCore> implements Co
     }
 
     @Override
+    public void reset(int currentPC, int currentIR) {
+        observable_data.reset(currentPC, currentIR);
+        setChanged();
+        notifyObservers(true); // to differentiate that this update is from a reset!
+    }
+
+    @Override
     public void updatePcWithExpectedValues() {
         observable_data.updatePcWithExpectedValues();
         setChanged();
-        notifyObservers();
+        notifyObservers(new ExpectedPcObject());
+    }
+
+    @Override
+    public boolean hasTempRegs() {
+        return observable_data.hasTempRegs();
     }
 
     @Override
@@ -56,12 +71,12 @@ public class ObservableCuRegCore extends ObservableType<CuRegCore> implements Co
     }
 
     @Override
-    public String getPCDataString() {
-        return observable_data.getPCDataString();
+    public String getPCString() {
+        return observable_data.getPCString();
     }
 
     @Override
-    public String getIRDataString() {
-        return observable_data.getIRDataString();
+    public String getIRString() {
+        return observable_data.getIRString();
     }
 }

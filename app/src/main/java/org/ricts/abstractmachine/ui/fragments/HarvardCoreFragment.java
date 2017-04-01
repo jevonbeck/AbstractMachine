@@ -3,8 +3,10 @@ package org.ricts.abstractmachine.ui.fragments;
 import android.view.View;
 
 import org.ricts.abstractmachine.R;
+import org.ricts.abstractmachine.components.compute.cu.ControlUnitCore;
 import org.ricts.abstractmachine.components.observables.ObservableComputeCore;
-import org.ricts.abstractmachine.components.observables.ObservableControlUnit;
+import org.ricts.abstractmachine.components.observables.ObservableCuFSM;
+import org.ricts.abstractmachine.components.observables.ObservableCuRegCore;
 import org.ricts.abstractmachine.components.observables.ObservableMemoryPort;
 import org.ricts.abstractmachine.components.observables.ObservableReadPort;
 import org.ricts.abstractmachine.components.storage.ROM;
@@ -92,12 +94,16 @@ public class HarvardCoreFragment extends HarvardActivityFragment implements Obse
 
     @Override
     protected void bindObservablesToViews() {
+        ObservableCuFSM fsm = controlUnit.getMainFSM();
+        ObservableCuRegCore regCore = controlUnit.getRegCore();
+
         /** Initialise Views **/
-        cuView.initCU(controlUnit.getType(), coreView, instructionCacheView);
+        cuView.initCU(fsm, regCore, coreView, instructionCacheView);
 
         /** Add observers to observables **/
         mainCore.addObserver(coreView);
-        controlUnit.addObserver(cuView);
+        fsm.addObserver(cuView);
+        regCore.addObserver(cuView);
         dataMemory.addObserver(this);
         instructionCache.addObserver(this);
     }
@@ -145,7 +151,7 @@ public class HarvardCoreFragment extends HarvardActivityFragment implements Obse
      */
     public static HarvardCoreFragment newInstance(ObservableComputeCore mainCore,
                                                   ObservableReadPort<ROM> instructionCache,
-                                                  ObservableMemoryPort dataMemory, ObservableControlUnit cu) {
+                                                  ObservableMemoryPort dataMemory, ControlUnitCore cu) {
         HarvardCoreFragment fragment = new HarvardCoreFragment();
         fragment.setObservables(mainCore, instructionCache, dataMemory, cu);
         return fragment;

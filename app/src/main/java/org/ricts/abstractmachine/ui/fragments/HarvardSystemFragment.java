@@ -3,8 +3,10 @@ package org.ricts.abstractmachine.ui.fragments;
 import android.view.View;
 
 import org.ricts.abstractmachine.R;
+import org.ricts.abstractmachine.components.compute.cu.ControlUnitCore;
 import org.ricts.abstractmachine.components.observables.ObservableComputeCore;
-import org.ricts.abstractmachine.components.observables.ObservableControlUnit;
+import org.ricts.abstractmachine.components.observables.ObservableCuFSM;
+import org.ricts.abstractmachine.components.observables.ObservableCuRegCore;
 import org.ricts.abstractmachine.components.observables.ObservableMemoryPort;
 import org.ricts.abstractmachine.components.observables.ObservableReadPort;
 import org.ricts.abstractmachine.components.storage.RAM;
@@ -43,15 +45,19 @@ public class HarvardSystemFragment extends HarvardActivityFragment {
 
     @Override
     protected void bindObservablesToViews() {
+        ObservableCuFSM fsm = controlUnit.getMainFSM();
+        ObservableCuRegCore regCore = controlUnit.getRegCore();
+
         /** Initialise Views **/
         instructionCacheView.setDataSource(instructionCache.getType());
         dataMemoryView.setDataSource((RAM) dataMemory.getType());
-        cpuView.initCpu(controlUnit.getType(), instructionCacheView, dataMemoryView);
+        cpuView.initCpu(fsm, regCore, instructionCacheView, dataMemoryView);
 
         /** Add observers to observables **/
         instructionCache.addObserver(instructionCacheView);
         dataMemory.addObserver(dataMemoryView);
-        controlUnit.addObserver(cpuView);
+        fsm.addObserver(cpuView);
+        regCore.addObserver(cpuView);
         mainCore.addObserver(cpuView);
     }
 
@@ -83,7 +89,7 @@ public class HarvardSystemFragment extends HarvardActivityFragment {
      */
     public static HarvardSystemFragment newInstance(ObservableComputeCore mainCore,
                                                     ObservableReadPort<ROM> instructionCache,
-                                                    ObservableMemoryPort dataMemory, ObservableControlUnit cu) {
+                                                    ObservableMemoryPort dataMemory, ControlUnitCore cu) {
         HarvardSystemFragment fragment = new HarvardSystemFragment();
         fragment.setObservables(mainCore, instructionCache, dataMemory, cu);
         return fragment;

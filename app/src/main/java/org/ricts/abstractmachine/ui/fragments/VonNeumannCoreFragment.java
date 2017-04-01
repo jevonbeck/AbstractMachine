@@ -6,8 +6,10 @@ import android.widget.TextView;
 
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.compute.cores.UniMemoryCpuCore;
+import org.ricts.abstractmachine.components.compute.cu.ControlUnitCore;
 import org.ricts.abstractmachine.components.observables.ObservableComputeCore;
-import org.ricts.abstractmachine.components.observables.ObservableControlUnit;
+import org.ricts.abstractmachine.components.observables.ObservableCuFSM;
+import org.ricts.abstractmachine.components.observables.ObservableCuRegCore;
 import org.ricts.abstractmachine.components.observables.ObservableMemoryPort;
 import org.ricts.abstractmachine.components.observables.ObservableMultiMemoryPort;
 import org.ricts.abstractmachine.components.observables.ObservableMultiplexer;
@@ -102,13 +104,17 @@ public class VonNeumannCoreFragment extends VonNeumannActivityFragment {
 
     @Override
     protected void bindObservablesToViews(){
+        ObservableCuFSM fsm = controlUnit.getMainFSM();
+        ObservableCuRegCore regCore = controlUnit.getRegCore();
+
         /** Initialise Views **/
         MemoryPortView instructionCache = (MemoryPortView) (muxView.getInputs())[INS_MEM_ID];
-        cuView.initCU(controlUnit.getType(), coreView, instructionCache);
+        cuView.initCU(fsm, regCore, coreView, instructionCache);
 
         /** Add observers to observables **/
         mainCore.addObserver(coreView);
-        controlUnit.addObserver(cuView);
+        fsm.addObserver(cuView);
+        regCore.addObserver(cuView);
         muxSelector.addObserver(new Observer() {
             @Override
             public void update(Observable observable, Object o) {
@@ -149,10 +155,10 @@ public class VonNeumannCoreFragment extends VonNeumannActivityFragment {
      * @return A new instance of fragment VonNeumannCoreFragment.
      */
     public static VonNeumannCoreFragment newInstance(ObservableComputeCore core, ObservableMemoryPort memData,
-                                                     ObservableControlUnit fsmData, ObservableMultiplexer muxSelect,
+                                                     ControlUnitCore controlUnit, ObservableMultiplexer muxSelect,
                                                      ObservableMultiMemoryPort muxPorts) {
         VonNeumannCoreFragment fragment = new VonNeumannCoreFragment();
-        fragment.setObservables(core, memData, fsmData, muxSelect, muxPorts);
+        fragment.setObservables(core, memData, controlUnit, muxSelect, muxPorts);
         return fragment;
     }
 }

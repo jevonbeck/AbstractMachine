@@ -1,7 +1,7 @@
 package org.ricts.abstractmachine.ui.fragments;
 
+import org.ricts.abstractmachine.components.compute.cu.ControlUnitCore;
 import org.ricts.abstractmachine.components.observables.ObservableComputeCore;
-import org.ricts.abstractmachine.components.observables.ObservableControlUnit;
 import org.ricts.abstractmachine.components.observables.ObservableMemoryPort;
 import org.ricts.abstractmachine.components.observables.ObservableMultiMemoryPort;
 import org.ricts.abstractmachine.components.observables.ObservableMultiplexer;
@@ -9,7 +9,7 @@ import org.ricts.abstractmachine.components.observables.ObservableMultiplexer;
 public abstract class VonNeumannActivityFragment extends InspectFragment {
     protected ObservableComputeCore mainCore;
     protected ObservableMemoryPort mainMemory;
-    protected ObservableControlUnit controlUnit;
+    protected ControlUnitCore controlUnit;
 
     protected ObservableMultiplexer muxSelector;
     protected ObservableMultiMemoryPort muxInputPorts;
@@ -19,7 +19,7 @@ public abstract class VonNeumannActivityFragment extends InspectFragment {
     }
 
     public void setObservables(ObservableComputeCore core, ObservableMemoryPort memData,
-                               ObservableControlUnit controlUnitData){
+                               ControlUnitCore controlUnitData){
         mainCore = core;
         mainMemory = memData;
         controlUnit = controlUnitData;
@@ -29,7 +29,7 @@ public abstract class VonNeumannActivityFragment extends InspectFragment {
     }
 
     public void setObservables(ObservableComputeCore core, ObservableMemoryPort memData,
-                               ObservableControlUnit controlUnitData, ObservableMultiplexer muxSelect,
+                               ControlUnitCore controlUnitData, ObservableMultiplexer muxSelect,
                                ObservableMultiMemoryPort muxPorts){
         muxSelector = muxSelect;
         muxInputPorts = muxPorts;

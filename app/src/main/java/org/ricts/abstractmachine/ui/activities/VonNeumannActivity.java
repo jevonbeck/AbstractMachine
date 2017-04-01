@@ -9,8 +9,8 @@ import android.support.v4.view.PagerAdapter;
 
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.compute.cores.UniMemoryComputeCore;
+import org.ricts.abstractmachine.components.compute.cu.ControlUnitCore;
 import org.ricts.abstractmachine.components.observables.ObservableComputeCore;
-import org.ricts.abstractmachine.components.observables.ObservableControlUnit;
 import org.ricts.abstractmachine.components.observables.ObservableMemoryPort;
 import org.ricts.abstractmachine.components.observables.ObservableMultiMemoryPort;
 import org.ricts.abstractmachine.components.observables.ObservableMultiplexer;
@@ -43,7 +43,7 @@ public class VonNeumannActivity extends InspectActivity<UniMemoryComputeCore> {
 
         private ObservableComputeCore mainCore;
         private ObservableMemoryPort mainMemory;
-        private ObservableControlUnit cu;
+        private ControlUnitCore cu;
         private ObservableMultiplexer muxSelect;
         private ObservableMultiMemoryPort muxPorts;
 

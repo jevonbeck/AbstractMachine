@@ -9,8 +9,8 @@ import android.support.v4.view.PagerAdapter;
 
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.compute.cores.UniMemoryComputeCore;
+import org.ricts.abstractmachine.components.compute.cu.ControlUnitCore;
 import org.ricts.abstractmachine.components.observables.ObservableComputeCore;
-import org.ricts.abstractmachine.components.observables.ObservableControlUnit;
 import org.ricts.abstractmachine.components.observables.ObservableMemoryPort;
 import org.ricts.abstractmachine.components.observables.ObservableReadPort;
 import org.ricts.abstractmachine.components.storage.ROM;
@@ -47,7 +47,7 @@ public class HarvardActivity extends InspectActivity<UniMemoryComputeCore> {
         private ObservableComputeCore mainCore;
         private ObservableReadPort<ROM> instructionCache;
         private ObservableMemoryPort dataMemory;
-        private ObservableControlUnit cu;
+        private ControlUnitCore cu;
 
         private String systemString, coreString;
 

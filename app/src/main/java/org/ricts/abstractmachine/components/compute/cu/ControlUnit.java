@@ -2,6 +2,8 @@ package org.ricts.abstractmachine.components.compute.cu;
 
 import org.ricts.abstractmachine.components.compute.cores.UniMemoryCpuCore;
 import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
+import org.ricts.abstractmachine.components.interfaces.ControlUnitRegCore;
+import org.ricts.abstractmachine.components.interfaces.CuFsmInterface;
 import org.ricts.abstractmachine.components.interfaces.Multiplexer;
 import org.ricts.abstractmachine.components.interfaces.ReadPort;
 
@@ -13,9 +15,7 @@ public class ControlUnit extends ControlUnitCore {
     private ControlUnitFSM fsm;
 
     public ControlUnit(ComputeCoreInterface core, ReadPort instructionCache, Multiplexer muxInterface){
-        super(instructionCache, core.iAddrWidth(), core.instrWidth());
-
-        fsm = new ControlUnitFSM(regCore, core);
+        super(core, instructionCache);
         mux = muxInterface;
 
         // initialise
@@ -23,31 +23,11 @@ public class ControlUnit extends ControlUnitCore {
     }
 
     @Override
-    public void setNextStateToHalt() {
-        fsm.setNextStateToHalt();
-    }
-
-    @Override
-    public void setNextStateToSleep() {
-        fsm.setNextStateToSleep();
-    }
-
-    @Override
-    public boolean isInHaltState(){
-        return fsm.isInHaltState();
-    }
-
-    @Override
-    public boolean isInSleepState(){
-        return fsm.isInSleepState();
-    }
-
-    @Override
     public void performNextAction(){
-        int selection = isInExecuteState() ? DATA_MEM_ID : INS_MEM_ID;
+        int selection = fsm.isInExecuteState() ? DATA_MEM_ID : INS_MEM_ID;
         mux.setSelection(selection);
 
-        fsm.triggerStateChange();
+        mainFSM.triggerStateChange();
     }
 
     @Override
@@ -58,7 +38,7 @@ public class ControlUnit extends ControlUnitCore {
     @Override
     public void setNextFetch(int instructionAddress){
         regCore.setPC(instructionAddress);
-        fsm.setNextStateToFetch();
+        mainFSM.setNextState(FETCH_STATE);
     }
 
     @Override
@@ -68,8 +48,9 @@ public class ControlUnit extends ControlUnitCore {
 
     @Override
     public void setStartExecFrom(int currentPC) {
-        regCore.setPcAndIr(currentPC, 0);
-        setToFetchState();
+        regCore.reset(currentPC, 0);
+        mainFSM.reset();
+        mux.setSelection(INS_MEM_ID);
     }
 
     @Override
@@ -78,34 +59,13 @@ public class ControlUnit extends ControlUnitCore {
     }
 
     @Override
-    public String getPCDataString() {
-        return regCore.getPCDataString();
-    }
-
-    @Override
-    public String getIRDataString() {
-        return regCore.getIRDataString();
-    }
-
-    @Override
-    public String getCurrentStateString(){
-        return fsm.getCurrentStateString();
+    protected CuFsmInterface createMainFSM(ControlUnitRegCore regCore, ComputeCoreInterface core) {
+        fsm = new ControlUnitFSM(regCore, core);
+        return fsm;
     }
 
     @Override
     protected CuRegCore createRegCore(ReadPort instructionCache, int pcWidth, int irWidth) {
         return new CuRegCore(instructionCache, pcWidth, irWidth);
-    }
-
-    public boolean isInFetchState() {
-        return fsm.isInFetchState();
-    }
-
-    public boolean isInExecuteState(){
-        return fsm.isInExecuteState();
-    }
-
-    private void setToFetchState(){
-        fsm.setToFetchState();
     }
 }
