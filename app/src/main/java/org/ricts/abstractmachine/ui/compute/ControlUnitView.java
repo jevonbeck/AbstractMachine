@@ -13,6 +13,7 @@ import org.ricts.abstractmachine.components.interfaces.ControlUnitRegCore;
 import org.ricts.abstractmachine.components.interfaces.CuFsmInterface;
 import org.ricts.abstractmachine.components.observables.ObservableCuFSM;
 import org.ricts.abstractmachine.components.observables.ObservableCuRegCore;
+import org.ricts.abstractmachine.components.observables.ObservableDefaultValueSource;
 import org.ricts.abstractmachine.ui.storage.ReadPortView;
 
 import java.util.Observable;
@@ -26,7 +27,7 @@ public class ControlUnitView extends RelativeLayout implements Observer{
     private TextView stateView; // Control Unit state
 
     private String pcText, irText, stateText;
-    private boolean updateImmediately;
+    private boolean updateImmediately, irDefaultValueSourceCalled;
 
     public ControlUnitView(Context context) {
         this(context, null);
@@ -120,9 +121,9 @@ public class ControlUnitView extends RelativeLayout implements Observer{
 
     @Override
     public void update(Observable observable, Object o) {
-        boolean isUpdateFromReset = o != null && o instanceof Boolean;
-
         if(observable instanceof ObservableCuFSM) {
+            boolean isUpdateFromReset = o != null && o instanceof Boolean;
+
             CuFsmInterface fsm = ((ObservableCuFSM) observable).getType();
             updateStateText(fsm.currentState());
 
@@ -134,6 +135,12 @@ public class ControlUnitView extends RelativeLayout implements Observer{
         else if(observable instanceof ObservableCuRegCore) {
             boolean isUpdateFromFetch = o != null && o instanceof ObservableCuRegCore.FetchObject;
             boolean isUpdateFromExpectedPC = o != null && o instanceof ObservableCuRegCore.ExpectedPcObject;
+            boolean isUpdateFromSetRegs = o != null && o instanceof ObservableCuRegCore.SetRegsObject;
+
+            boolean isUpdateFromReset = irDefaultValueSourceCalled && isUpdateFromSetRegs;
+            if(isUpdateFromReset) {
+                irDefaultValueSourceCalled = false; // clear indication that update was from reset
+            }
 
             CuRegCore regCore = ((ObservableCuRegCore) observable).getType();
             pcText = regCore.getPCString();
@@ -150,6 +157,9 @@ public class ControlUnitView extends RelativeLayout implements Observer{
             if(updateImmediately || isUpdateFromReset || isUpdateFromFetch || isUpdateFromExpectedPC){
                 updatePC();
             }
+        }
+        else if(observable instanceof ObservableDefaultValueSource) {
+            irDefaultValueSourceCalled = true; // indicate to reg core that update is from reset
         }
     }
 

@@ -14,6 +14,7 @@ public class ObservableCuRegCore extends ObservableType<CuRegCore> implements Co
 
     public static class FetchObject {}
     public static class ExpectedPcObject {}
+    public static class SetRegsObject {}
 
     @Override
     public void fetchInstruction() {
@@ -33,14 +34,7 @@ public class ObservableCuRegCore extends ObservableType<CuRegCore> implements Co
     public void setPcAndIr(int currentPC, int currentIR) {
         observable_data.setPcAndIr(currentPC, currentIR);
         setChanged();
-        notifyObservers();
-    }
-
-    @Override
-    public void reset(int currentPC, int currentIR) {
-        observable_data.reset(currentPC, currentIR);
-        setChanged();
-        notifyObservers(true); // to differentiate that this update is from a reset!
+        notifyObservers(new SetRegsObject());
     }
 
     @Override

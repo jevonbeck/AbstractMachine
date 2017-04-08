@@ -7,6 +7,7 @@ import org.ricts.abstractmachine.components.compute.cu.ControlUnitCore;
 import org.ricts.abstractmachine.components.observables.ObservableComputeCore;
 import org.ricts.abstractmachine.components.observables.ObservableCuFSM;
 import org.ricts.abstractmachine.components.observables.ObservableCuRegCore;
+import org.ricts.abstractmachine.components.observables.ObservableDefaultValueSource;
 import org.ricts.abstractmachine.components.observables.ObservableMemoryPort;
 import org.ricts.abstractmachine.components.observables.ObservableReadPort;
 import org.ricts.abstractmachine.components.storage.ROM;
@@ -96,6 +97,7 @@ public class HarvardCoreFragment extends HarvardActivityFragment implements Obse
     protected void bindObservablesToViews() {
         ObservableCuFSM fsm = controlUnit.getMainFSM();
         ObservableCuRegCore regCore = controlUnit.getRegCore();
+        ObservableDefaultValueSource irDefaultValueSource = controlUnit.getIrDefaultValueSource();
 
         /** Initialise Views **/
         cuView.initCU(fsm, regCore, coreView, instructionCacheView);
@@ -104,6 +106,7 @@ public class HarvardCoreFragment extends HarvardActivityFragment implements Obse
         mainCore.addObserver(coreView);
         fsm.addObserver(cuView);
         regCore.addObserver(cuView);
+        irDefaultValueSource.addObserver(cuView);
         dataMemory.addObserver(this);
         instructionCache.addObserver(this);
     }

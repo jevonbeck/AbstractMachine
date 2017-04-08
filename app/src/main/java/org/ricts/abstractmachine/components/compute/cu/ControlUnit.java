@@ -4,6 +4,7 @@ import org.ricts.abstractmachine.components.compute.cores.UniMemoryCpuCore;
 import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
 import org.ricts.abstractmachine.components.interfaces.ControlUnitRegCore;
 import org.ricts.abstractmachine.components.interfaces.CuFsmInterface;
+import org.ricts.abstractmachine.components.interfaces.DefaultValueSource;
 import org.ricts.abstractmachine.components.interfaces.Multiplexer;
 import org.ricts.abstractmachine.components.interfaces.ReadPort;
 
@@ -48,8 +49,7 @@ public class ControlUnit extends ControlUnitCore {
 
     @Override
     public void setStartExecFrom(int currentPC) {
-        regCore.reset(currentPC, 0);
-        mainFSM.reset();
+        super.setStartExecFrom(currentPC);
         mux.setSelection(INS_MEM_ID);
     }
 
@@ -62,6 +62,16 @@ public class ControlUnit extends ControlUnitCore {
     protected CuFsmInterface createMainFSM(ControlUnitRegCore regCore, ComputeCoreInterface core) {
         fsm = new ControlUnitFSM(regCore, core);
         return fsm;
+    }
+
+    @Override
+    protected DefaultValueSource createDefaultValueSource() {
+        return new DefaultValueSource(){
+            @Override
+            public int defaultValue() {
+                return 0;
+            }
+        };
     }
 
     @Override
