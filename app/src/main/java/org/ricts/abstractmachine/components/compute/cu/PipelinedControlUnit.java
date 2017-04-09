@@ -52,12 +52,6 @@ public class PipelinedControlUnit extends ControlUnitCore {
     }
 
     @Override
-    public void setStartExecFrom(int currentPC) {
-        super.setStartExecFrom(currentPC);
-        branched = false;
-    }
-
-    @Override
     public boolean isPipelined() {
         return true;
     }
@@ -109,6 +103,11 @@ public class PipelinedControlUnit extends ControlUnitCore {
                 return mainCore.getNopInstruction();
             }
         };
+    }
+
+    @Override
+    protected void resetInternal() {
+        branched = false;
     }
 
     public ControlUnitFSM getFsm1(){

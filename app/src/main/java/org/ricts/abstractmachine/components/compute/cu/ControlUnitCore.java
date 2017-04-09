@@ -24,6 +24,7 @@ public abstract class ControlUnitCore implements ControlUnitInterface {
     protected abstract CuRegCore createRegCore(ReadPort instructionCache, int pcWidth, int irWidth);
     protected abstract CuFsmInterface createMainFSM(ControlUnitRegCore regCore, ComputeCoreInterface core);
     protected abstract DefaultValueSource createDefaultValueSource();
+    protected abstract void resetInternal();
 
     protected ObservableCuRegCore regCore;
     protected ObservableCuFSM mainFSM;
@@ -44,6 +45,7 @@ public abstract class ControlUnitCore implements ControlUnitInterface {
     public void setStartExecFrom(int currentPC) {
         regCore.setPcAndIr(currentPC, irDefaultValueSource.defaultValue());
         mainFSM.reset();
+        resetInternal();
     }
 
     @Override

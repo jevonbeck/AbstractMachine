@@ -48,12 +48,6 @@ public class ControlUnit extends ControlUnitCore {
     }
 
     @Override
-    public void setStartExecFrom(int currentPC) {
-        super.setStartExecFrom(currentPC);
-        mux.setSelection(INS_MEM_ID);
-    }
-
-    @Override
     public boolean isPipelined() {
         return false;
     }
@@ -77,5 +71,10 @@ public class ControlUnit extends ControlUnitCore {
     @Override
     protected CuRegCore createRegCore(ReadPort instructionCache, int pcWidth, int irWidth) {
         return new CuRegCore(instructionCache, pcWidth, irWidth);
+    }
+
+    @Override
+    protected void resetInternal() {
+        mux.setSelection(INS_MEM_ID);
     }
 }
