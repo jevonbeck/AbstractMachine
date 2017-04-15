@@ -91,4 +91,8 @@ public class CuRegCore implements ControlUnitRegCore {
     public boolean hasTempRegs() {
         return useTempRegs;
     }
+
+    public String getTempPCString(){
+        return tempPC.dataString();
+    }
 }

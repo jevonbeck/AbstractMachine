@@ -12,15 +12,29 @@ public class ObservableCuRegCore extends ObservableType<CuRegCore> implements Co
         super(type);
     }
 
-    public static class FetchObject {}
     public static class ExpectedPcObject {}
     public static class SetRegsObject {}
+
+    public static class FetchObject {
+        private String PC;
+
+        public FetchObject(String pc) {
+            PC = pc;
+        }
+
+        public String getPC() {
+            return PC;
+        }
+    }
 
     @Override
     public void fetchInstruction() {
         observable_data.fetchInstruction();
         setChanged();
-        notifyObservers(new FetchObject());
+
+        String pc = observable_data.hasTempRegs() ?
+                observable_data.getTempPCString() : observable_data.getPCString();
+        notifyObservers(new FetchObject(pc));
     }
 
     @Override

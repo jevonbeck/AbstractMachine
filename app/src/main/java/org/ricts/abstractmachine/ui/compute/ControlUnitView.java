@@ -155,6 +155,10 @@ public class ControlUnitView extends RelativeLayout implements Observer{
             }
 
             if(updateImmediately || isUpdateFromReset || isUpdateFromFetch || isUpdateFromExpectedPC){
+                if(isUpdateFromFetch){
+                    ObservableCuRegCore.FetchObject fetchObject = (ObservableCuRegCore.FetchObject) o;
+                    pcText = fetchObject.getPC();
+                }
                 updatePC();
             }
         }
