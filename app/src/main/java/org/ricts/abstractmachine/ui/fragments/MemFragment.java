@@ -167,7 +167,7 @@ public abstract class MemFragment extends WizardFragment {
         final Context context = getContext();
 
         // Create appropriate ComputeCore
-        mainCore = InspectActivity.getComputeCore(dataBundle);
+        mainCore = InspectActivity.getComputeCore(getResources(), dataBundle);
 
         /** Configure ListView **/
         if(initFromFile){

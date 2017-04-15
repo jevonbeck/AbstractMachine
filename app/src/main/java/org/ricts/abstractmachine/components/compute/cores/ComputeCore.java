@@ -26,6 +26,9 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
     }
 
     public abstract String [] getMneumonicList();
+    public abstract String [] getOperandLabels(String mneumonic);
+    public abstract String getDescription(String mneumonic);
+    public abstract String getInstructionFormat(String mneumonic);
     public abstract OperandInfo[] getOperandInfoArray(String mneumonic);
     public abstract OperandInfo getDataOperandInfo();
     public abstract OperandInfo getDataRegOperandInfo();

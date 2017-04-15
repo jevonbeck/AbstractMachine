@@ -34,7 +34,7 @@ public class TestActivity extends Activity {
         int dAdrRegAdWidth = 1;
         int iAdrRegAdWidth = 1;
 
-        BasicScalar core = new BasicScalar(byteMultiplierWidth, dAdWidth, iAdWidth,
+        BasicScalar core = new BasicScalar(getResources(), byteMultiplierWidth, dAdWidth, iAdWidth,
                 stkAdWidth,dRegAdWidth, dAdrRegAdWidth, iAdrRegAdWidth);
 
         ArrayList<Integer> memData = new ArrayList<Integer>();

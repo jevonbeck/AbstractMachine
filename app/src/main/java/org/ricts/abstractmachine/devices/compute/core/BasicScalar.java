@@ -1,5 +1,8 @@
 package org.ricts.abstractmachine.devices.compute.core;
 
+import android.content.res.Resources;
+
+import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.compute.cores.UniMemoryComputeCore;
 import org.ricts.abstractmachine.components.compute.isa.InstructionGroup;
 import org.ricts.abstractmachine.components.compute.isa.IsaDecoder;
@@ -16,51 +19,116 @@ import java.util.Map;
 public class BasicScalar extends UniMemoryComputeCore {
     /*** Start of Instruction Definitions ***/
     public enum Instruction {
-        POP, NOP, HALT,
-        JUMP, PUSH, STOREPC,
-        JUMPL,
-        LOAD,
-        SETB, CLRB,
-        LOADM, STOREM, LOADA, STOREA,
-        LOADI, STOREI,
-        MOVE, NOT, RLC, RRC, INC, DEC,
-        LOADBYTE,
-        JUMPIFBC, JUMPIFBS,
-        JUMPIFBCL, JUMPIFBSL,
-        SHIFTL, SHIFTR,
-        ADD, ADDWC, SUB, SUBWB, AND, OR, XOR,
-        MOVEBYTE,
-        ADDWIDTH, ADDCWIDTH, SUBWIDTH, SUBCWIDTH, ANDWIDTH, ORWIDTH, XORWIDTH
+        POP(R.string.basic_scalar_pop_format, R.string.basic_scalar_pop_desc),
+        NOP(R.string.basic_scalar_nop_format, R.string.basic_scalar_nop_desc),
+        HALT(R.string.basic_scalar_halt_format, R.string.basic_scalar_halt_desc),
+        JUMP(R.string.basic_scalar_jump_format, R.string.basic_scalar_jump_desc),
+        PUSH(R.string.basic_scalar_push_format, R.string.basic_scalar_push_desc),
+        STOREPC(R.string.basic_scalar_storepc_format, R.string.basic_scalar_storepc_desc),
+        JUMPL(R.string.basic_scalar_jumpl_format, R.string.basic_scalar_jumpl_desc),
+        LOAD(R.string.basic_scalar_load_format, R.string.basic_scalar_load_desc),
+        SETB(R.string.basic_scalar_setb_format, R.string.basic_scalar_setb_desc),
+        CLRB(R.string.basic_scalar_clrb_format, R.string.basic_scalar_clrb_desc),
+        LOADM(R.string.basic_scalar_loadm_format, R.string.basic_scalar_loadm_desc),
+        STOREM(R.string.basic_scalar_storem_format, R.string.basic_scalar_storem_desc),
+        LOADA(R.string.basic_scalar_loada_format, R.string.basic_scalar_loada_desc),
+        STOREA(R.string.basic_scalar_storea_format, R.string.basic_scalar_storea_desc),
+        LOADI(R.string.basic_scalar_loadi_format, R.string.basic_scalar_loadi_desc),
+        STOREI(R.string.basic_scalar_storei_format, R.string.basic_scalar_storei_desc),
+        MOVE(R.string.basic_scalar_move_format, R.string.basic_scalar_move_desc),
+        NOT(R.string.basic_scalar_not_format, R.string.basic_scalar_not_desc),
+        RLC(R.string.basic_scalar_rlc_format, R.string.basic_scalar_rlc_desc),
+        RRC(R.string.basic_scalar_rrc_format, R.string.basic_scalar_rrc_desc),
+        INC(R.string.basic_scalar_inc_format, R.string.basic_scalar_inc_desc),
+        DEC(R.string.basic_scalar_dec_format, R.string.basic_scalar_dec_desc),
+        LOADBYTE(R.string.basic_scalar_loadbyte_format, R.string.basic_scalar_loadbyte_desc),
+        JUMPIFBC(R.string.basic_scalar_jumpifbc_format, R.string.basic_scalar_jumpifbc_desc),
+        JUMPIFBS(R.string.basic_scalar_jumpifbs_format, R.string.basic_scalar_jumpifbs_desc),
+        JUMPIFBCL(R.string.basic_scalar_jumpifbcl_format, R.string.basic_scalar_jumpifbcl_desc),
+        JUMPIFBSL(R.string.basic_scalar_jumpifbsl_format, R.string.basic_scalar_jumpifbsl_desc),
+        SHIFTL(R.string.basic_scalar_shiftl_format, R.string.basic_scalar_shiftl_desc),
+        SHIFTR(R.string.basic_scalar_shiftr_format, R.string.basic_scalar_shiftr_desc),
+        ADD(R.string.basic_scalar_add_format, R.string.basic_scalar_add_desc),
+        ADDWC(R.string.basic_scalar_addwc_format, R.string.basic_scalar_addwc_desc),
+        SUB(R.string.basic_scalar_sub_format, R.string.basic_scalar_sub_desc),
+        SUBWB(R.string.basic_scalar_subwb_format, R.string.basic_scalar_subc_desc),
+        AND(R.string.basic_scalar_and_format, R.string.basic_scalar_and_desc),
+        OR(R.string.basic_scalar_or_format, R.string.basic_scalar_or_desc),
+        XOR(R.string.basic_scalar_xor_format, R.string.basic_scalar_xor_desc),
+        MOVEBYTE(R.string.basic_scalar_movebyte_format, R.string.basic_scalar_movebyte_desc),
+        ADDWIDTH(R.string.basic_scalar_addwidth_format, R.string.basic_scalar_addwidth_desc),
+        ADDCWIDTH(R.string.basic_scalar_addcwidth_format, R.string.basic_scalar_addcwidth_desc),
+        SUBWIDTH(R.string.basic_scalar_subwidth_format, R.string.basic_scalar_subwidth_desc),
+        SUBCWIDTH(R.string.basic_scalar_subcwidth_format, R.string.basic_scalar_subcwidth_desc),
+        ANDWIDTH(R.string.basic_scalar_andwidth_format, R.string.basic_scalar_andwidth_desc),
+        ORWIDTH(R.string.basic_scalar_orwidth_format, R.string.basic_scalar_orwidth_desc),
+        XORWIDTH(R.string.basic_scalar_xorwidth_format, R.string.basic_scalar_xorwidth_desc);
+
+        private int formatResId, descriptionResId;
+
+        Instruction(int format, int description){
+            formatResId = format;
+            descriptionResId = description;
+        }
+
+        public int getDescription() {
+            return descriptionResId;
+        }
+
+        public int getFormat() {
+            return formatResId;
+        }
     }
 
     public enum InstructionGrouping {
-        NoOperands(new Instruction[]{Instruction.POP, Instruction.NOP, Instruction.HALT}, 0),
-        InstrAddressReg(new Instruction[]{Instruction.JUMP, Instruction.PUSH, Instruction.STOREPC}, 1),
-        InstrAddressLiteral(new Instruction[]{Instruction.JUMPL}, 1),
-        DataAssignLit(new Instruction[]{Instruction.LOAD}, 2),
-        RegBitManip(new Instruction[]{Instruction.SETB, Instruction.CLRB}, 2),
-        DataMemOps(new Instruction[]{Instruction.LOADM, Instruction.STOREM, Instruction.LOADA, Instruction.STOREA}, 2),
-        InstrAddrConvert(new Instruction[]{Instruction.LOADI, Instruction.STOREI}, 2),
+        NoOperands(new Instruction[]{Instruction.POP, Instruction.NOP, Instruction.HALT}, new int[]{}),
+        InstrAddressReg(new Instruction[]{Instruction.JUMP, Instruction.PUSH, Instruction.STOREPC},
+                new int []{R.string.basic_scalar_iareg_label}),
+        InstrAddressLiteral(new Instruction[]{Instruction.JUMPL},
+                new int []{R.string.basic_scalar_ialit_label}),
+        DataAssignLit(new Instruction[]{Instruction.LOAD},
+                new int []{R.string.basic_scalar_dreg_label, R.string.basic_scalar_dlit_label}),
+        RegBitManip(new Instruction[]{Instruction.SETB, Instruction.CLRB},
+                new int []{R.string.basic_scalar_dreg_label, R.string.basic_scalar_indx_label}),
+        DataMemOps(new Instruction[]{Instruction.LOADM, Instruction.STOREM, Instruction.LOADA, Instruction.STOREA},
+                new int []{R.string.basic_scalar_dreg_label, R.string.basic_scalar_dareg_label}),
+        InstrAddrConvert(new Instruction[]{Instruction.LOADI, Instruction.STOREI},
+                new int []{R.string.basic_scalar_dreg_label, R.string.basic_scalar_iareg_label}),
         TwoRegOps(new Instruction[]{Instruction.MOVE, Instruction.NOT, Instruction.RLC,
-                Instruction.RRC, Instruction.INC, Instruction.DEC}, 2),
-        ByteLoad(new Instruction[]{Instruction.LOADBYTE}, 3),
-        ConditionalBranch(new Instruction[]{Instruction.JUMPIFBC, Instruction.JUMPIFBS}, 3),
-        ConditionalBranchLiteral(new Instruction[]{Instruction.JUMPIFBCL, Instruction.JUMPIFBSL}, 3),
-        ShiftReg(new Instruction[]{Instruction.SHIFTL, Instruction.SHIFTR}, 3),
+                Instruction.RRC, Instruction.INC, Instruction.DEC},
+                new int []{R.string.basic_scalar_destdreg_label, R.string.basic_scalar_srcdreg_label}),
+        ByteLoad(new Instruction[]{Instruction.LOADBYTE},
+                new int []{R.string.basic_scalar_dreg_label, R.string.basic_scalar_indx_label,
+                        R.string.basic_scalar_dlit_label}),
+        ConditionalBranch(new Instruction[]{Instruction.JUMPIFBC, Instruction.JUMPIFBS},
+                new int []{R.string.basic_scalar_dreg_label, R.string.basic_scalar_indx_label,
+                        R.string.basic_scalar_iareg_label}),
+        ConditionalBranchLiteral(new Instruction[]{Instruction.JUMPIFBCL, Instruction.JUMPIFBSL},
+                new int []{R.string.basic_scalar_dreg_label, R.string.basic_scalar_indx_label,
+                        R.string.basic_scalar_ialit_label}),
+        ShiftReg(new Instruction[]{Instruction.SHIFTL, Instruction.SHIFTR},
+                new int []{R.string.basic_scalar_destdreg_label, R.string.basic_scalar_srcdreg_label,
+                        R.string.basic_scalar_amount_label}),
         AluOps(new Instruction[]{Instruction.ADD, Instruction.ADDWC, Instruction.SUB,
-                Instruction.SUBWB, Instruction.AND, Instruction.OR, Instruction.XOR}, 3),
-        RegByteManip(new Instruction[]{Instruction.MOVEBYTE}, 4),
+                Instruction.SUBWB, Instruction.AND, Instruction.OR, Instruction.XOR},
+                new int []{R.string.basic_scalar_res_label, R.string.basic_scalar_a_label,
+                        R.string.basic_scalar_b_label}),
+        RegByteManip(new Instruction[]{Instruction.MOVEBYTE},
+                new int []{R.string.basic_scalar_destdreg_label, R.string.basic_scalar_dindex_label,
+                        R.string.basic_scalar_srcdreg_label, R.string.basic_scalar_sindex_label}),
         MultiWidthAluOps(new Instruction[]{Instruction.ADDWIDTH, Instruction.ADDCWIDTH,
                 Instruction.SUBWIDTH, Instruction.SUBCWIDTH, Instruction.ANDWIDTH,
-                Instruction.ORWIDTH, Instruction.XORWIDTH}, 4);
+                Instruction.ORWIDTH, Instruction.XORWIDTH},
+                new int []{R.string.basic_scalar_res_label, R.string.basic_scalar_a_label,
+                        R.string.basic_scalar_b_label, R.string.basic_scalar_byte_multiplier_label});
 
         private Instruction[] instructionSet;
         private String[] mneumonicArr;
-        private int operandCount;
+        private int [] operandResIds;
 
-        InstructionGrouping(Instruction[] set, int opCount){
+        InstructionGrouping(Instruction[] set, int [] resIds){
             instructionSet = set;
-            operandCount = opCount;
+            operandResIds = resIds;
 
             mneumonicArr = new String[instructionSet.length];
             for(int x=0; x!= instructionSet.length; ++x){
@@ -72,12 +140,16 @@ public class BasicScalar extends UniMemoryComputeCore {
             return mneumonicArr;
         }
 
+        public int[] getOperandResIdArr() {
+            return operandResIds;
+        }
+
         public Instruction decode(int opcode){
             return instructionSet[opcode];
         }
 
         public int getOperandCount(){
-            return operandCount;
+            return operandResIds.length;
         }
     }
     /*** End of Instruction Definitions ***/
@@ -118,12 +190,15 @@ public class BasicScalar extends UniMemoryComputeCore {
     private RegisterStack callStack; // presence or absence of on-chip call stack
     private BasicALU alu; // operations allowed by ALU
 
-    public BasicScalar(int byteMultiplierWidth, int dAdWidth, int iAdWidth, int stkAdWidth,
+    private Resources resources;
+
+    public BasicScalar(Resources res, int byteMultiplierWidth, int dAdWidth, int iAdWidth, int stkAdWidth,
                        int dRegAdWidth, int dAdrRegAdWidth, int iAdrRegAdWidth) {
         // byteMultiplierWidth - for making number of bytes in dataWidth a power of 2
         // dRegAdWidth - for accessing data registers.
         // dAdrRegAdWidth - for accessing data address registers.
         // iAdrRegAdWidth - for accessing instruction address registers. iAdrRegAdWidth >= 1 (PC must be one of them)
+        resources = res;
 
 		/* Initialise important widths */
         iAddrWidth = iAdWidth;
@@ -148,9 +223,14 @@ public class BasicScalar extends UniMemoryComputeCore {
         dAddrOpInfo = new OperandInfo(dAddrWidth, true, true);
 
         dataRegAddrInfo = new OperandInfo(dataRegAddrWidth, true, true);
-        int maxAddress = 1 << dataRegAddrWidth;
+
+        int dataRegAddrCount = 0;
+        dataRegAddrInfo.addMappingWithoutReplacement(resources.getString(R.string.basic_scalar_status_reg), dataRegAddrCount++);
+        dataRegAddrInfo.addMappingWithoutReplacement(resources.getString(R.string.basic_scalar_intenable_reg), dataRegAddrCount++);
+        dataRegAddrInfo.addMappingWithoutReplacement(resources.getString(R.string.basic_scalar_intflags_reg), dataRegAddrCount++);
+        int maxAddress = (1 << dataRegAddrWidth) - dataRegAddrCount;
         for(int x=0; x < maxAddress; ++x) {
-            dataRegAddrInfo.addMappingWithoutReplacement("R" + x, x);
+            dataRegAddrInfo.addMappingWithoutReplacement("R" + x, dataRegAddrCount + x);
         }
         
         dAddrRegAddrInfo = new OperandInfo(dAddrRegAddrWidth, true, true);
@@ -281,6 +361,31 @@ public class BasicScalar extends UniMemoryComputeCore {
     @Override
     public String[] getMneumonicList() {
         return mneumonicList;
+    }
+
+    @Override
+    public String[] getOperandLabels(String mneumonic) {
+        InstructionGrouping grouping = Enum.valueOf(InstructionGrouping.class, getGroupName(mneumonic));
+        int [] resIds = grouping.getOperandResIdArr();
+
+        String [] result = new String [resIds.length];
+        for(int x=0; x < resIds.length; ++x) {
+            result[x] = resources.getString(resIds[x]);
+        }
+
+        return result;
+    }
+
+    @Override
+    public String getDescription(String mneumonic) {
+        Instruction instruction = Enum.valueOf(Instruction.class, mneumonic);
+        return resources.getString(instruction.getDescription());
+    }
+
+    @Override
+    public String getInstructionFormat(String mneumonic) {
+        Instruction instruction = Enum.valueOf(Instruction.class, mneumonic);
+        return resources.getString(instruction.getFormat());
     }
 
     @Override
@@ -531,13 +636,8 @@ public class BasicScalar extends UniMemoryComputeCore {
                 break;
             case MultiWidthAluOps:
                 // Instructions with 3 data registers (result, A, B) and 1 byte multiplier literal
-                int bitWidth;
                 int byteMultiplier = operands[3];
-                if (byteMultiplier != 0) {
-                    bitWidth = BYTE_WIDTH * byteMultiplier;
-                } else {
-                    bitWidth = 4; // nibble
-                }
+                int bitWidth = (byteMultiplier != 0) ? BYTE_WIDTH * byteMultiplier : 4;
                 int byteMask = bitMaskOfWidth(bitWidth);
 
                 int resultRegAddr = operands[0];

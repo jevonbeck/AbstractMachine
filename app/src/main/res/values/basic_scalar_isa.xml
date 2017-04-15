@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Instruction Format -->
+    <string name="basic_scalar_pop_format">POP</string>
+    <string name="basic_scalar_nop_format">NOP</string>
+    <string name="basic_scalar_halt_format">HALT</string>
+    <string name="basic_scalar_jump_format">JUMP IAREG</string>
+    <string name="basic_scalar_push_format">PUSH IAREG</string>
+    <string name="basic_scalar_storepc_format">STOREPC IAREG</string>
+    <string name="basic_scalar_jumpl_format">JUMPL IALIT</string>
+    <string name="basic_scalar_load_format">LOAD DLIT</string>
+    <string name="basic_scalar_setb_format">SETB DREG, indx</string>
+    <string name="basic_scalar_clrb_format">CLRB DREG, indx</string>
+    <string name="basic_scalar_loadm_format">LOADM DREG, DAREG</string>
+    <string name="basic_scalar_storem_format">STOREM DREG, DAREG</string>
+    <string name="basic_scalar_loada_format">LOADA DREG, DAREG</string>
+    <string name="basic_scalar_storea_format">STOREA DREG, DAREG</string>
+    <string name="basic_scalar_loadi_format">LOADI DREG, IAREG</string>
+    <string name="basic_scalar_storei_format">STOREI DREG, IAREG</string>
+    <string name="basic_scalar_move_format">MOVE DESTDREG, SRCDREG</string>
+    <string name="basic_scalar_not_format">NOT DESTDREG, SRCDREG</string>
+    <string name="basic_scalar_rlc_format">RLC DESTDREG, SRCDREG</string>
+    <string name="basic_scalar_rrc_format">RRC DESTDREG, SRCDREG</string>
+    <string name="basic_scalar_inc_format">INC DESTDREG, SRCDREG</string>
+    <string name="basic_scalar_dec_format">DEC DESTDREG, SRCDREG</string>
+    <string name="basic_scalar_loadbyte_format">LOADBYTE DREG, indx, DLIT</string>
+    <string name="basic_scalar_jumpifbs_format">JUMPIFBS DREG, indx, IAREG</string>
+    <string name="basic_scalar_jumpifbc_format">JUMPIFBC DREG, indx, IAREG</string>
+    <string name="basic_scalar_jumpifbsl_format">JUMPIFBSL DREG, indx, IALIT</string>
+    <string name="basic_scalar_jumpifbcl_format">JUMPIFBCL DREG, indx, IALIT</string>
+    <string name="basic_scalar_shiftl_format">SHIFTL DESTDREG, SRCDREG, amount</string>
+    <string name="basic_scalar_shiftr_format">SHIFTR DESTDREG, SRCDREG, amount</string>
+    <string name="basic_scalar_add_format">ADD RES, A, B</string>
+    <string name="basic_scalar_addwc_format">ADDWC RES, A, B</string>
+    <string name="basic_scalar_sub_format">SUB RES, A, B</string>
+    <string name="basic_scalar_subwb_format">SUBWB RES, A, B</string>
+    <string name="basic_scalar_and_format">AND RES, A, B</string>
+    <string name="basic_scalar_or_format">OR RES, A, B</string>
+    <string name="basic_scalar_xor_format">XOR RES, A, B</string>
+    <string name="basic_scalar_movebyte_format">MOVEBYTE DESTDREG, dIndex, SRCDREG, sIndex</string>
+    <string name="basic_scalar_addwidth_format">ADDWIDTH RES, A, B, byteMultiplier</string>
+    <string name="basic_scalar_addcwidth_format">ADDCWIDTH RES, A, B, byteMultiplier</string>
+    <string name="basic_scalar_subwidth_format">SUBWIDTH RES, A, B, byteMultiplier</string>
+    <string name="basic_scalar_subcwidth_format">SUBCWIDTH RES, A, B, byteMultiplier</string>
+    <string name="basic_scalar_andwidth_format">ANDWIDTH RES, A, B, byteMultiplier</string>
+    <string name="basic_scalar_orwidth_format">ORWIDTH RES, A, B, byteMultiplier</string>
+    <string name="basic_scalar_xorwidth_format">XORWIDTH RES, A, B, byteMultiplier</string>
+
+    <!-- Instruction Operand Labels -->
+    <string name="basic_scalar_dreg_label">DREG</string>
+    <string name="basic_scalar_dareg_label">DAREG</string>
+    <string name="basic_scalar_iareg_label">IAREG</string>
+    <string name="basic_scalar_dlit_label">DLIT</string>
+    <string name="basic_scalar_ialit_label">IALIT</string>
+    <string name="basic_scalar_srcdreg_label">SRCDREG</string>
+    <string name="basic_scalar_destdreg_label">DESTDREG</string>
+    <string name="basic_scalar_indx_label">indx</string>
+    <string name="basic_scalar_amount_label">amount</string>
+    <string name="basic_scalar_a_label">A</string>
+    <string name="basic_scalar_b_label">B</string>
+    <string name="basic_scalar_res_label">RES</string>
+    <string name="basic_scalar_dindex_label">dIndex</string>
+    <string name="basic_scalar_sindex_label">sIndex</string>
+    <string name="basic_scalar_byte_multiplier_label">byteMultiplier</string>
+
+    <!-- Instruction Descriptions -->
+    <string name="basic_scalar_pop_desc">Pop the call stack and update Program Counter</string>
+    <string name="basic_scalar_nop_desc">No Operation</string>
+    <string name="basic_scalar_halt_desc">Stop program execution</string>
+    <string name="basic_scalar_jump_desc">Unconditional branch to instruction address register value</string>
+    <string name="basic_scalar_push_desc">Push the instruction address register value onto the call stack</string>
+    <string name="basic_scalar_storepc_desc">Store the current Program Counter in the instruction address register</string>
+    <string name="basic_scalar_jumpl_desc">Unconditional branch to literal address</string>
+    <string name="basic_scalar_load_desc">Write data literal to data register</string>
+    <string name="basic_scalar_setb_desc">Set register bit \'indx\'</string>
+    <string name="basic_scalar_clrb_desc">Clear register bit \'indx\'</string>
+    <string name="basic_scalar_loadm_desc">Write data memory (address specified in data address register) to data register</string>
+    <string name="basic_scalar_storem_desc">Write data register value to data memory (address specified in data address register)</string>
+    <string name="basic_scalar_loada_desc">Write data address register value to data register</string>
+    <string name="basic_scalar_storea_desc">Write data register value to data address register</string>
+    <string name="basic_scalar_loadi_desc">Write instruction address register value to data register</string>
+    <string name="basic_scalar_storei_desc">Write data register value to instruction address register</string>
+    <string name="basic_scalar_move_desc">Write \'source\' register value to \'destination\' register</string>
+    <string name="basic_scalar_not_desc">Write one\'s compliment of \'source\' register value to \'destination\' register</string>
+    <string name="basic_scalar_rlc_desc">\'source\' register value is rotated left through the carry flag and stored in \'destination\' register</string>
+    <string name="basic_scalar_rrc_desc">\'source\' register value is rotated right through the carry flag and stored in \'destination\' register</string>
+    <string name="basic_scalar_inc_desc">\'source\' register value is incremented and stored in \'destination\' register</string>
+    <string name="basic_scalar_dec_desc">\'source\' register value is decremented and stored in \'destination\' register</string>
+    <string name="basic_scalar_loadbyte_desc">Write byte literal into byte index (LSB-indexed) of register</string>
+    <string name="basic_scalar_jumpifbs_desc">Conditional branch to instruction address register value if data register bit \'indx\' is set</string>
+    <string name="basic_scalar_jumpifbc_desc">Conditional branch to instruction address register value if data register bit \'indx\' is clear</string>
+    <string name="basic_scalar_jumpifbsl_desc">Conditional branch to instruction address literal if data register bit \'indx\' is set</string>
+    <string name="basic_scalar_jumpifbcl_desc">Conditional branch to instruction address literal if data register bit \'indx\' is clear</string>
+    <string name="basic_scalar_shiftl_desc">\'source\' register value is logical shifted left by \'amount\' and stored in \'destination\' register</string>
+    <string name="basic_scalar_shiftr_desc">\'source\' register value is logical shifted right by \'amount\' and stored in \'destination\' register</string>
+    <string name="basic_scalar_add_desc">\'RES\' = \'A\' + \'B\'</string>
+    <string name="basic_scalar_addwc_desc">\'RES\' = (\'A\' + \'B\') + \'carry\'</string>
+    <string name="basic_scalar_sub_desc">\'RES\' = \'A\' - \'B\'</string>
+    <string name="basic_scalar_subc_desc">\'RES\' = (\'A\' - \'B\') - \'carry\'</string>
+    <string name="basic_scalar_and_desc">\'RES\' = \'A\' AND \'B\'</string>
+    <string name="basic_scalar_or_desc">\'RES\' = \'A\' OR \'B\'</string>
+    <string name="basic_scalar_xor_desc">\'RES\' = \'A\' XOR \'B\'</string>
+    <string name="basic_scalar_movebyte_desc">Write byte \'sIndex\' in \'source\' register to byte \'dIndex\' in \'destination\' register. Indices from LSB.</string>
+    <string name="basic_scalar_addwidth_desc">Add \'byteMultiplier\' Lowest Significant Bytes of \'A\' and \'B\' and store in \'RES\' LSB</string>
+    <string name="basic_scalar_addcwidth_desc">Add \'byteMultiplier\' Lowest Significant Bytes of \'A\' and \'B\' with \'carry\' and store in \'RES\' LSB</string>
+    <string name="basic_scalar_subwidth_desc">Subtract \'byteMultiplier\' Lowest Significant Bytes of \'B\' from \'A\', i.e. A - B, and store in \'RES\' LSB</string>
+    <string name="basic_scalar_subcwidth_desc">Subtract \'byteMultiplier\' Lowest Significant Bytes of \'B\' from \'A\' with \'carry\', i.e. A - B - carry, and store in \'RES\' LSB</string>
+    <string name="basic_scalar_andwidth_desc">Perform logical AND of \'byteMultiplier\' Lowest Significant Bytes of \'A\' and \'B\' and store in \'RES\' LSB</string>
+    <string name="basic_scalar_orwidth_desc">Perform logical OR of \'byteMultiplier\' Lowest Significant Bytes of \'A\' and \'B\' and store in \'RES\' LSB</string>
+    <string name="basic_scalar_xorwidth_desc">Perform logical XOR of \'byteMultiplier\' Lowest Significant Bytes of \'A\' and \'B\' and store in \'RES\' LSB</string>
+
+    <!-- Register Names -->
+    <string name="basic_scalar_status_reg">STATUS</string>
+    <string name="basic_scalar_intenable_reg">INTENABLE</string>
+    <string name="basic_scalar_intflags_reg">INTFLAGS</string>
+
+</resources>

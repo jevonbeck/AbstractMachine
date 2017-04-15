@@ -1,5 +1,6 @@
 package org.ricts.abstractmachine.ui.activities;
 
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.view.PagerAdapter;
@@ -57,7 +58,7 @@ public abstract class InspectActivity<T extends ComputeCore> extends AppCompatAc
 
         /** Initialise main data **/
         final Bundle options = getIntent().getExtras();
-        architecture = createSystemArchitecture((T) getComputeCore(options), options);
+        architecture = createSystemArchitecture((T) getComputeCore(getResources(), options), options);
         initSystemArchitecture(architecture, options);
         pagerAdapter = createAdapter(architecture);
 
@@ -196,7 +197,7 @@ public abstract class InspectActivity<T extends ComputeCore> extends AppCompatAc
         resetButton.setEnabled(true);
     }
 
-    public static ComputeCore getComputeCore(Bundle options){
+    public static ComputeCore getComputeCore(Resources resources, Bundle options){
         String coreName = options.getString(CORE_NAME);
         int coreDataWidth = options.getInt(CORE_DATA_WIDTH);
         int instrAddrWidth = options.getInt(INSTR_ADDR_WIDTH);
@@ -225,7 +226,7 @@ public abstract class InspectActivity<T extends ComputeCore> extends AppCompatAc
                 int dAdrRegAdWidth = 1;
                 int iAdrRegAdWidth = 1;
 
-                return new BasicScalar(byteMultiplierWidth, dataAddrWidth, instrAddrWidth,
+                return new BasicScalar(resources, byteMultiplierWidth, dataAddrWidth, instrAddrWidth,
                         stkAdWidth,dRegAdWidth, dAdrRegAdWidth, iAdrRegAdWidth);
             default:
                 return null;

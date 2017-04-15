@@ -48,15 +48,12 @@
     <string name="width_32">32</string>
     <string name="width_64">64</string>
 
-    <string name="arg1_hint">Operand 1</string>
-    <string name="arg2_hint">Operand 2</string>
-    <string name="arg3_hint">Operand 3</string>
-    <string name="arg4_hint">Operand 4</string>
-    <string name="search_hint">Operand</string>
     <string name="data_hint">Data Value</string>
     <string name="label_hint">Label</string>
     <string name="comment_hint">Comment</string>
     <string name="filename_hint">File name</string>
+    <string name="format_label">Format:</string>
+    <string name="description_label">Description:</string>
 
     <string name="positive_button_text">OK</string>
     <string name="negative_button_text">Cancel</string>
@@ -107,55 +104,14 @@
     <string name="data_mapping_button_text">Data Literal</string>
     <string name="data_reg_mapping_button_text">Data Register</string>
 
+    <string name="compute_core_data_memory_label">DATA</string>
+    <string name="compute_core_data_memory_format">DATA</string>
+    <string name="compute_core_data_memory_desc">Pure data value</string>
+
     <string name="title_activity_memory_port_multiplexer_tutorial">
         MemoryPortMultiplexerTutorialActivity
     </string>
 
-
-    <!-- Custom View IDs -->
-    <item name="DeviceView_main_view" type="id"/>
-    <item name="DeviceView_pin_view" type="id"/>
-    <item name="ControlUnitView_pc_label" type="id"/>
-    <item name="ControlUnitView_ir_label" type="id"/>
-    <item name="ControlUnitView_pc_view" type="id"/>
-    <item name="ControlUnitView_ir_view" type="id"/>
-    <item name="ControlUnitView_fsm_view" type="id"/>
-    <item name="ControlUnitView_state_label" type="id"/>
-    <item name="ComputeCoreView_instruction_label" type="id"/>
-    <item name="CpuCoreView_pc_view" type="id"/>
-    <item name="CpuCoreView_ir_view" type="id"/>
-    <item name="CpuCoreView_fsm_view" type="id"/>
-    <item name="PinView_background_layout" type="id"/>
-    <item name="PinView_pin_name" type="id"/>
-    <item name="PinView_signal_text" type="id"/>
-    <item name="ManyToOnePortView_input_pins" type="id"/>
-    <item name="ManyToOnePortView_output_pins" type="id"/>
-    <item name="ManyToOnePortView_mainView" type="id"/>
-    <item name="TrapeziumView_middle" type="id"/>
-    <item name="TrapeziumView_first_triangle" type="id"/>
-    <item name="TrapeziumView_last_triangle" type="id"/>
-    <item name="MultiplexerView_input_pins" type="id"/>
-    <item name="MultiplexerView_output_pins" type="id"/>
-    <item name="MultiplexerView_middle" type="id"/>
-    <item name="MultiplexerView_first_triangle" type="id"/>
-    <item name="MultiplexerView_last_triangle" type="id"/>
-    <item name="WizardActivity_ViewPager" type="id"/>
-    <item name="WizardActivity_PreviousButton" type="id"/>
-    <item name="MappingDialogFragment_dataMappingButton" type="id"/>
-    <item name="MappingDialogFragment_dataRegMappingButton" type="id"/>
-
-    <!-- Custom View Attributes -->
-    <integer name="DeviceView_pin_position_left">0</integer>
-    <integer name="DeviceView_pin_position_right">1</integer>
-    <integer name="DeviceView_pin_position_top">2</integer>
-    <integer name="DeviceView_pin_position_bottom">3</integer>
-    <integer name="RightAngleTriangleView_diagonal_topLeftToBottomRight">0</integer>
-    <integer name="RightAngleTriangleView_diagonal_topRightToBottomLeft">1</integer>
-    <integer name="RightAngleTriangleView_fillPosition_left">0</integer>
-    <integer name="RightAngleTriangleView_fillPosition_right">1</integer>
-    <integer name="RightAngleTriangleView_pinOrientation_none">0</integer>
-    <integer name="RightAngleTriangleView_pinOrientation_horizontal">1</integer>
-    <integer name="RightAngleTriangleView_pinOrientation_vertical">2</integer>
     <string name="title_activity_von_neu_frag">VonNeuFragActivity</string>
 
     <!-- TODO: Remove or change this placeholder text -->
