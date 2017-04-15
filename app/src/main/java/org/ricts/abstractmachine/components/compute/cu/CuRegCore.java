@@ -57,11 +57,6 @@ public class CuRegCore implements ControlUnitRegCore {
     }
 
     @Override
-    public void reset(int currentPC, int currentIR) {
-        setPcAndIr(currentPC, currentIR);
-    }
-
-    @Override
     public void updatePcWithExpectedValues() {
         if(useTempRegs){
             setPcAndIr(tempPC.read(), tempIR.read());
@@ -95,5 +90,9 @@ public class CuRegCore implements ControlUnitRegCore {
 
     public boolean hasTempRegs() {
         return useTempRegs;
+    }
+
+    public String getTempPCString(){
+        return tempPC.dataString();
     }
 }

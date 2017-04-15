@@ -27,7 +27,7 @@ public class DataMemoryDialogActivity extends MemoryContentsDialogActivity {
 
         /** Setup main data variables **/
         Bundle dataBundle = getIntent().getExtras();
-        final ComputeCore mainCore = InspectActivity.getComputeCore(dataBundle);
+        final ComputeCore mainCore = InspectActivity.getComputeCore(getResources(), dataBundle);
         final MemFragment.AssemblyMemoryData memoryData = dataBundle.getParcelable(MEM_DATA_KEY);
         final int memoryAddress = dataBundle.getInt(MEM_ADDR_KEY);
         final String memoryType = dataBundle.getString(MEM_TYPE_KEY);

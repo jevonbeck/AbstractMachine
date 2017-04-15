@@ -18,34 +18,48 @@
             android:orientation="horizontal"
             />
     </ScrollView>
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textStyle="bold"
+        android:text="@string/format_label"/>
+    <TextView
+        android:id="@+id/formatTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textStyle="bold"
+        android:text="@string/description_label"/>
+    <TextView
+        android:id="@+id/descriptionTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
     <SearchView
         android:id="@+id/operandOneSearchView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:iconifiedByDefault = "false"
-        android:inputType="textCapCharacters"
-        android:queryHint="@string/arg1_hint"/>
+        android:inputType="textCapCharacters"/>
     <SearchView
         android:id="@+id/operandTwoSearchView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:iconifiedByDefault = "false"
-        android:inputType="textCapCharacters"
-        android:queryHint="@string/arg2_hint"/>
+        android:inputType="textCapCharacters"/>
     <SearchView
         android:id="@+id/operandThreeSearchView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:iconifiedByDefault = "false"
-        android:inputType="textCapCharacters"
-        android:queryHint="@string/arg3_hint"/>
+        android:inputType="textCapCharacters"/>
     <SearchView
         android:id="@+id/operandFourSearchView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:iconifiedByDefault = "false"
-        android:inputType="textCapCharacters"
-        android:queryHint="@string/arg4_hint"/>
+        android:inputType="textCapCharacters"/>
     <EditText
         android:id="@+id/labelEditText"
         android:layout_width="match_parent"

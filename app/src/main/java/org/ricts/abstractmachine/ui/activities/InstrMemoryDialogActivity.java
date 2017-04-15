@@ -4,6 +4,7 @@ import android.app.SearchManager;
 import android.app.SearchableInfo;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -11,6 +12,7 @@ import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.SearchView;
+import android.widget.TextView;
 
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.compute.cores.ComputeCore;
@@ -32,7 +34,7 @@ public class InstrMemoryDialogActivity extends MemoryContentsDialogActivity {
 
         /** Setup main data variables **/
         Bundle dataBundle = getIntent().getExtras();
-        final ComputeCore mainCore = InspectActivity.getComputeCore(dataBundle);
+        final ComputeCore mainCore = InspectActivity.getComputeCore(getResources(), dataBundle);
         final MemFragment.AssemblyMemoryData memoryData = dataBundle.getParcelable(MEM_DATA_KEY);
         final int memoryAddress = dataBundle.getInt(MEM_ADDR_KEY);
         final String memoryType = dataBundle.getString(MEM_TYPE_KEY);
@@ -51,8 +53,8 @@ public class InstrMemoryDialogActivity extends MemoryContentsDialogActivity {
 
         SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
         SearchableInfo searchableInfo = searchManager.getSearchableInfo(getComponentName());
-        for(SearchView anOperandSearchViewArr : operandSearchViewArr) {
-            anOperandSearchViewArr.setSearchableInfo(searchableInfo);
+        for(SearchView searchView : operandSearchViewArr) {
+            searchView.setSearchableInfo(searchableInfo);
         }
 
         final EditText labelEditText = (EditText) findViewById(R.id.labelEditText);
@@ -60,6 +62,11 @@ public class InstrMemoryDialogActivity extends MemoryContentsDialogActivity {
 
         final EditText commentEditText = (EditText) findViewById(R.id.commentEditText);
         commentEditText.setText(memoryData.getComment());
+
+        final TextView formatTextView = (TextView) findViewById(R.id.formatTextView);
+        final TextView descriptionTextView = (TextView) findViewById(R.id.descriptionTextView);
+
+        final Resources resources = getResources();
 
         final RadioGroup instrGroup = (RadioGroup) findViewById(R.id.instrRadioGroup);
         instrGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
@@ -71,6 +78,20 @@ public class InstrMemoryDialogActivity extends MemoryContentsDialogActivity {
                 OperandInfo [] operandInfoArr = mneumonic.equals(DATA_MNEUMONIC) ?
                         new OperandInfo [] {mainCore.getDataOperandInfo()} :
                         mainCore.getOperandInfoArray(mneumonic);
+
+                // update mneumonic usage and meaning details
+                String format = mneumonic.equals(DATA_MNEUMONIC) ?
+                        resources.getString(R.string.compute_core_data_memory_format) :
+                        mainCore.getInstructionFormat(mneumonic);
+                String description = mneumonic.equals(DATA_MNEUMONIC) ?
+                        resources.getString(R.string.compute_core_data_memory_desc) :
+                        mainCore.getDescription(mneumonic);
+                String [] operandHints = mneumonic.equals(DATA_MNEUMONIC) ?
+                        new String [] {resources.getString(R.string.compute_core_data_memory_label)} :
+                        mainCore.getOperandLabels(mneumonic);
+
+                formatTextView.setText(format);
+                descriptionTextView.setText(description);
 
                 // update visibility of SearchViews to only enter appropriate number of operands
                 int operandCount = operandInfoArr.length;
@@ -84,6 +105,11 @@ public class InstrMemoryDialogActivity extends MemoryContentsDialogActivity {
                 for(int x=0; x < operands.length; ++x){
                     String text = operandInfoArr[x].getPrettyValue(operands[x]);
                     operandSearchViewArr[x].setQuery(text, true);
+                }
+
+                // update SearchView query hint
+                for(int x=0; x < operandHints.length; ++x){
+                    operandSearchViewArr[x].setQueryHint(operandHints[x]);
                 }
             }
         });

@@ -10,6 +10,7 @@ import org.ricts.abstractmachine.components.compute.cu.ControlUnitCore;
 import org.ricts.abstractmachine.components.observables.ObservableComputeCore;
 import org.ricts.abstractmachine.components.observables.ObservableCuFSM;
 import org.ricts.abstractmachine.components.observables.ObservableCuRegCore;
+import org.ricts.abstractmachine.components.observables.ObservableDefaultValueSource;
 import org.ricts.abstractmachine.components.observables.ObservableMemoryPort;
 import org.ricts.abstractmachine.components.observables.ObservableMultiMemoryPort;
 import org.ricts.abstractmachine.components.observables.ObservableMultiplexer;
@@ -106,6 +107,7 @@ public class VonNeumannCoreFragment extends VonNeumannActivityFragment {
     protected void bindObservablesToViews(){
         ObservableCuFSM fsm = controlUnit.getMainFSM();
         ObservableCuRegCore regCore = controlUnit.getRegCore();
+        ObservableDefaultValueSource irDefaultValueSource = controlUnit.getIrDefaultValueSource();
 
         /** Initialise Views **/
         MemoryPortView instructionCache = (MemoryPortView) (muxView.getInputs())[INS_MEM_ID];
@@ -115,6 +117,7 @@ public class VonNeumannCoreFragment extends VonNeumannActivityFragment {
         mainCore.addObserver(coreView);
         fsm.addObserver(cuView);
         regCore.addObserver(cuView);
+        irDefaultValueSource.addObserver(cuView);
         muxSelector.addObserver(new Observer() {
             @Override
             public void update(Observable observable, Object o) {

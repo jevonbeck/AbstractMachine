@@ -15,6 +15,7 @@ import org.ricts.abstractmachine.components.interfaces.CuFsmInterface;
 import org.ricts.abstractmachine.components.observables.ObservableComputeCore;
 import org.ricts.abstractmachine.components.observables.ObservableCuFSM;
 import org.ricts.abstractmachine.components.observables.ObservableCuRegCore;
+import org.ricts.abstractmachine.components.observables.ObservableDefaultValueSource;
 import org.ricts.abstractmachine.ui.storage.MemoryPortView;
 import org.ricts.abstractmachine.ui.storage.RamView;
 import org.ricts.abstractmachine.ui.storage.ReadPortView;
@@ -34,7 +35,7 @@ public class CpuCoreView extends RelativeLayout implements Observer {
     private TextView pc, ir;
     private TextView stateView, instructionView;
     private String irText;
-    private boolean updateIrImmediately;
+    private boolean updateIrImmediately, irDefaultValueSourceCalled;
 
 
     /** Standard Constructors **/
@@ -209,9 +210,18 @@ public class CpuCoreView extends RelativeLayout implements Observer {
             pc.setText(regCore.getPCString());
             irText = regCore.getIRString();
 
-            if(updateIrImmediately || (o != null &&  o instanceof Boolean)){
+            boolean isUpdateFromSetRegs = o != null && o instanceof ObservableCuRegCore.SetRegsObject;
+            boolean isUpdateFromReset = irDefaultValueSourceCalled && isUpdateFromSetRegs;
+            if(isUpdateFromReset) {
+                irDefaultValueSourceCalled = false; // clear indication that update was from reset
+            }
+
+            if(updateIrImmediately || isUpdateFromReset){
                 updateIrText();
             }
+        }
+        else if(observable instanceof ObservableDefaultValueSource) {
+            irDefaultValueSourceCalled = true; // indicate to reg core that update is from reset
         }
         else if(observable instanceof ObservableComputeCore){
             if(o instanceof ObservableComputeCore.ExecuteParams) {

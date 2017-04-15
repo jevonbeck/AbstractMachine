@@ -3,6 +3,7 @@ package org.ricts.abstractmachine.components.compute.cu;
 import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
 import org.ricts.abstractmachine.components.interfaces.ControlUnitRegCore;
 import org.ricts.abstractmachine.components.interfaces.CuFsmInterface;
+import org.ricts.abstractmachine.components.interfaces.DefaultValueSource;
 import org.ricts.abstractmachine.components.interfaces.ReadPort;
 import org.ricts.abstractmachine.components.storage.Register;
 
@@ -51,14 +52,6 @@ public class PipelinedControlUnit extends ControlUnitCore {
     }
 
     @Override
-    public void setStartExecFrom(int currentPC) {
-        branched = false;
-
-        regCore.reset(currentPC, mainCore.getNopInstruction());
-        mainFSM.reset();
-    }
-
-    @Override
     public boolean isPipelined() {
         return true;
     }
@@ -100,6 +93,21 @@ public class PipelinedControlUnit extends ControlUnitCore {
     protected CuFsmInterface createMainFSM(ControlUnitRegCore regCore, ComputeCoreInterface core) {
         pipelinedCuFSM = new PipelinedControlUnitFSM(regCore, core);
         return pipelinedCuFSM;
+    }
+
+    @Override
+    protected DefaultValueSource createDefaultValueSource() {
+        return new DefaultValueSource() {
+            @Override
+            public int defaultValue() {
+                return mainCore.getNopInstruction();
+            }
+        };
+    }
+
+    @Override
+    protected void resetInternal() {
+        branched = false;
     }
 
     public ControlUnitFSM getFsm1(){

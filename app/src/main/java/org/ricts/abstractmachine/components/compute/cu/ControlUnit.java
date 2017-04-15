@@ -4,6 +4,7 @@ import org.ricts.abstractmachine.components.compute.cores.UniMemoryCpuCore;
 import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
 import org.ricts.abstractmachine.components.interfaces.ControlUnitRegCore;
 import org.ricts.abstractmachine.components.interfaces.CuFsmInterface;
+import org.ricts.abstractmachine.components.interfaces.DefaultValueSource;
 import org.ricts.abstractmachine.components.interfaces.Multiplexer;
 import org.ricts.abstractmachine.components.interfaces.ReadPort;
 
@@ -47,13 +48,6 @@ public class ControlUnit extends ControlUnitCore {
     }
 
     @Override
-    public void setStartExecFrom(int currentPC) {
-        regCore.reset(currentPC, 0);
-        mainFSM.reset();
-        mux.setSelection(INS_MEM_ID);
-    }
-
-    @Override
     public boolean isPipelined() {
         return false;
     }
@@ -65,7 +59,22 @@ public class ControlUnit extends ControlUnitCore {
     }
 
     @Override
+    protected DefaultValueSource createDefaultValueSource() {
+        return new DefaultValueSource(){
+            @Override
+            public int defaultValue() {
+                return 0;
+            }
+        };
+    }
+
+    @Override
     protected CuRegCore createRegCore(ReadPort instructionCache, int pcWidth, int irWidth) {
         return new CuRegCore(instructionCache, pcWidth, irWidth);
+    }
+
+    @Override
+    protected void resetInternal() {
+        mux.setSelection(INS_MEM_ID);
     }
 }

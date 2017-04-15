@@ -8,6 +8,7 @@ import org.ricts.abstractmachine.components.compute.cu.ControlUnitCore;
 import org.ricts.abstractmachine.components.observables.ObservableComputeCore;
 import org.ricts.abstractmachine.components.observables.ObservableCuFSM;
 import org.ricts.abstractmachine.components.observables.ObservableCuRegCore;
+import org.ricts.abstractmachine.components.observables.ObservableDefaultValueSource;
 import org.ricts.abstractmachine.components.observables.ObservableMemoryPort;
 import org.ricts.abstractmachine.components.storage.RAM;
 import org.ricts.abstractmachine.ui.compute.CpuCoreView;
@@ -48,6 +49,7 @@ public class VonNeumannSystemFragment extends VonNeumannActivityFragment {
     protected void bindObservablesToViews(){
         ObservableCuFSM fsm = controlUnit.getMainFSM();
         ObservableCuRegCore regCore = controlUnit.getRegCore();
+        ObservableDefaultValueSource irDefaultValueSource = controlUnit.getIrDefaultValueSource();
 
         /** Initialise Views **/
         memory.setDataSource((RAM) mainMemory.getType());
@@ -57,6 +59,7 @@ public class VonNeumannSystemFragment extends VonNeumannActivityFragment {
         mainMemory.addObserver(memory);
         fsm.addObserver(cpu);
         regCore.addObserver(cpu);
+        irDefaultValueSource.addObserver(cpu);
         mainCore.addObserver(cpu);
     }
 

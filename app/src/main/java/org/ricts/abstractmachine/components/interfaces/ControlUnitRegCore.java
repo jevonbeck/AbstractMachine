@@ -8,7 +8,6 @@ public interface ControlUnitRegCore {
     void fetchInstruction();
     void setPC(int currentPC);
     void setPcAndIr(int currentPC, int currentIR);
-    void reset(int currentPC, int currentIR);
     void updatePcWithExpectedValues();
     boolean hasTempRegs();
 

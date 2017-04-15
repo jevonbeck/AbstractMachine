@@ -188,7 +188,7 @@ public class AluCore extends Device {
 
     private int subWithBorrow(boolean borrowIn, int A, int B){
         int borrow = (borrowIn)? 1: 0;
-        return ((A - B) + borrow) & dataBitMask;
+        return ((A - B) - borrow) & dataBitMask;
     }
 
     private boolean borrowOut(boolean borrowIn, int A, int B){

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Custom View IDs -->
+    <item name="DeviceView_main_view" type="id"/>
+    <item name="DeviceView_pin_view" type="id"/>
+    <item name="ControlUnitView_pc_label" type="id"/>
+    <item name="ControlUnitView_ir_label" type="id"/>
+    <item name="ControlUnitView_pc_view" type="id"/>
+    <item name="ControlUnitView_ir_view" type="id"/>
+    <item name="ControlUnitView_fsm_view" type="id"/>
+    <item name="ControlUnitView_state_label" type="id"/>
+    <item name="ComputeCoreView_instruction_label" type="id"/>
+    <item name="CpuCoreView_pc_view" type="id"/>
+    <item name="CpuCoreView_ir_view" type="id"/>
+    <item name="CpuCoreView_fsm_view" type="id"/>
+    <item name="PinView_background_layout" type="id"/>
+    <item name="PinView_pin_name" type="id"/>
+    <item name="PinView_signal_text" type="id"/>
+    <item name="ManyToOnePortView_input_pins" type="id"/>
+    <item name="ManyToOnePortView_output_pins" type="id"/>
+    <item name="ManyToOnePortView_mainView" type="id"/>
+    <item name="TrapeziumView_middle" type="id"/>
+    <item name="TrapeziumView_first_triangle" type="id"/>
+    <item name="TrapeziumView_last_triangle" type="id"/>
+    <item name="MultiplexerView_input_pins" type="id"/>
+    <item name="MultiplexerView_output_pins" type="id"/>
+    <item name="MultiplexerView_middle" type="id"/>
+    <item name="MultiplexerView_first_triangle" type="id"/>
+    <item name="MultiplexerView_last_triangle" type="id"/>
+    <item name="WizardActivity_ViewPager" type="id"/>
+    <item name="WizardActivity_PreviousButton" type="id"/>
+    <item name="MappingDialogFragment_dataMappingButton" type="id"/>
+    <item name="MappingDialogFragment_dataRegMappingButton" type="id"/>
+
+    <!-- Custom View Attributes -->
+    <integer name="DeviceView_pin_position_left">0</integer>
+    <integer name="DeviceView_pin_position_right">1</integer>
+    <integer name="DeviceView_pin_position_top">2</integer>
+    <integer name="DeviceView_pin_position_bottom">3</integer>
+    <integer name="RightAngleTriangleView_diagonal_topLeftToBottomRight">0</integer>
+    <integer name="RightAngleTriangleView_diagonal_topRightToBottomLeft">1</integer>
+    <integer name="RightAngleTriangleView_fillPosition_left">0</integer>
+    <integer name="RightAngleTriangleView_fillPosition_right">1</integer>
+    <integer name="RightAngleTriangleView_pinOrientation_none">0</integer>
+    <integer name="RightAngleTriangleView_pinOrientation_horizontal">1</integer>
+    <integer name="RightAngleTriangleView_pinOrientation_vertical">2</integer>
+</resources>
