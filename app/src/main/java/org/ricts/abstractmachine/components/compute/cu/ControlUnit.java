@@ -1,10 +1,10 @@
 package org.ricts.abstractmachine.components.compute.cu;
 
 import org.ricts.abstractmachine.components.compute.core.UniMemoryCpuCore;
+import org.ricts.abstractmachine.components.compute.cu.fsm.ControlUnitFSM;
 import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
 import org.ricts.abstractmachine.components.interfaces.ControlUnitRegCore;
 import org.ricts.abstractmachine.components.interfaces.CuFsmInterface;
-import org.ricts.abstractmachine.components.interfaces.DefaultValueSource;
 import org.ricts.abstractmachine.components.interfaces.Multiplexer;
 import org.ricts.abstractmachine.components.interfaces.ReadPort;
 

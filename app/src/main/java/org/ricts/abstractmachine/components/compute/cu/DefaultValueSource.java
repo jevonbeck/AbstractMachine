@@ -1,4 +1,4 @@
-package org.ricts.abstractmachine.components.interfaces;
+package org.ricts.abstractmachine.components.compute.cu;
 
 /**
  * Created by Jevon on 08/04/2017.

@@ -1,6 +1,6 @@
-package org.ricts.abstractmachine.components.compute.cu;
+package org.ricts.abstractmachine.components.compute.cu.fsm;
 
-import org.ricts.abstractmachine.components.compute.cu.ControlUnitState.GenericCUState;
+import org.ricts.abstractmachine.components.fsm.State;
 import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
 import org.ricts.abstractmachine.components.interfaces.ControlUnitRegCore;
 
@@ -32,7 +32,7 @@ public class ControlUnitFSM extends CuFsmCore {
 
     @Override
     protected State convertToState(String stateName){
-        switch (Enum.valueOf(GenericCUState.class, stateName)){
+        switch (Enum.valueOf(ControlUnitState.GenericCUState.class, stateName)){
             case FETCH:
                 return fetch;
             case EXECUTE:

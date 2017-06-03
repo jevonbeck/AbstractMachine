@@ -1,6 +1,6 @@
-package org.ricts.abstractmachine.components.compute.cu;
+package org.ricts.abstractmachine.components.compute.cu.fsm;
 
-import org.ricts.abstractmachine.components.compute.cu.ControlUnitState.GenericCUState;
+import org.ricts.abstractmachine.components.fsm.State;
 import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
 import org.ricts.abstractmachine.components.interfaces.ControlUnitRegCore;
 
@@ -22,9 +22,9 @@ public class PipelinedControlUnitFSM extends CuFsmCore {
         fsm2 = new ControlUnitFSM(regCore, core);
 
         // setup instruction cycle
-        active = new PipelinedCuState(GenericCUState.ACTIVE, fsm1, fsm2);
-        halt = new PipelinedCuState(GenericCUState.HALT, fsm1, fsm2);
-        sleep = new PipelinedCuState(GenericCUState.SLEEP, fsm1, fsm2);
+        active = new PipelinedCuState(ControlUnitState.GenericCUState.ACTIVE, fsm1, fsm2);
+        halt = new PipelinedCuState(ControlUnitState.GenericCUState.HALT, fsm1, fsm2);
+        sleep = new PipelinedCuState(ControlUnitState.GenericCUState.SLEEP, fsm1, fsm2);
     }
 
     @Override
@@ -71,7 +71,7 @@ public class PipelinedControlUnitFSM extends CuFsmCore {
 
     @Override
     protected State convertToState(String stateName) {
-        switch (Enum.valueOf(GenericCUState.class, stateName)){
+        switch (Enum.valueOf(ControlUnitState.GenericCUState.class, stateName)){
             case ACTIVE:
                 return active;
             case HALT:

@@ -1,11 +1,10 @@
 package org.ricts.abstractmachine.components.compute.cu;
 
-import org.ricts.abstractmachine.components.compute.cu.ControlUnitState.GenericCUState;
+import org.ricts.abstractmachine.components.compute.cu.fsm.ControlUnitState.GenericCUState;
 import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
 import org.ricts.abstractmachine.components.interfaces.ControlUnitInterface;
 import org.ricts.abstractmachine.components.interfaces.ControlUnitRegCore;
 import org.ricts.abstractmachine.components.interfaces.CuFsmInterface;
-import org.ricts.abstractmachine.components.interfaces.DefaultValueSource;
 import org.ricts.abstractmachine.components.interfaces.ReadPort;
 import org.ricts.abstractmachine.components.observable.ObservableCuRegCore;
 import org.ricts.abstractmachine.components.observable.ObservableCuFSM;

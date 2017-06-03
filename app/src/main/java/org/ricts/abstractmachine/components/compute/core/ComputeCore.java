@@ -1,5 +1,7 @@
 package org.ricts.abstractmachine.components.compute.core;
 
+import android.content.res.Resources;
+
 import org.ricts.abstractmachine.components.compute.isa.InstructionGroupDecoder;
 import org.ricts.abstractmachine.components.compute.isa.IsaDecoder;
 import org.ricts.abstractmachine.components.compute.isa.OperandInfo;
@@ -17,9 +19,10 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
 	protected int dataWidth;
 
     protected ControlUnitInterface cu;
+    protected Resources resources;
 
     private boolean pcUpdated = false;
-    private ControlUnitState expectedControlUnitState = ControlUnitState.ACTIVE;
+    private ControlUnitState internalControlUnitState = ControlUnitState.ACTIVE;
 
     protected enum ControlUnitState {
         ACTIVE, SLEEP, HALT
@@ -41,13 +44,16 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
     protected abstract boolean isHaltInstr(String groupName, int groupIndex);
     protected abstract boolean isSleepInstr(String groupName, int groupIndex);
     protected abstract void fetchOpsExecuteInstr(String groupName, int groupIndex, int[] operands);
-	protected abstract void updateInternalControlUnitState(String groupName, int groupIndex, int[] operands);
-    protected abstract void updateProgramCounterOnInterrupt();
+    protected abstract void vectorToInterruptHandler();
     protected abstract int executionTime(String groupName, int groupIndex);
     protected abstract void updateProgramCounterRegs(int programCounter);
     protected abstract String insToString(String groupName, int groupIndex, int[] operands);
     protected abstract String getGroupName(String mneumonic);
     protected abstract String nopMneumonic();
+
+    public ComputeCore(Resources res) {
+        resources = res;
+    }
 
 	@Override
 	public int instrWidth(){
@@ -72,8 +78,6 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
     @Override
     public void executeInstruction(int programCounter, int instruction) {
         updateProgramCounterRegs(programCounter);
-        setExpectedControlUnitState(ControlUnitState.ACTIVE);
-        pcUpdated = false;
 
 		int instruct = instruction & instrBitMask;
 		if(instrDecoder.isValidInstruction(instruct)){
@@ -87,23 +91,19 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
 			for(int x=0; x != operands.length; ++x){
 				operands[x] = decoder.getOperand(x, instruct);
 			}
-						
+
 			// fetch/indirect operands and execute instruction
-			fetchOpsExecuteInstr(groupName, groupIndex, operands);
-
-			// update internal Control Unit state based on execution result
-			updateInternalControlUnitState(groupName, groupIndex, operands);
-
-            // check for interrupts and vector internal Program Counter appropriately
-            int pcValueAfterExecute = getProgramCounterValue();
-            updateProgramCounterOnInterrupt();
-            int finalPC = getProgramCounterValue();
+            getOpsExecuteInstruction(groupName, groupIndex, operands);
 
             // apply changes to Control Unit as appropriate
-            boolean interruptOccurred = pcValueAfterExecute != finalPC;
-
-            switch (getExpectedControlUnitState()){
+            switch (internalControlUnitState){
                 case ACTIVE:
+                    // check for interrupts and vector internal Program Counter appropriately
+                    int pcValueAfterExecute = getProgramCounterValue();
+                    vectorToInterruptHandler();
+                    int finalPC = getProgramCounterValue();
+
+                    boolean interruptOccurred = pcValueAfterExecute != finalPC;
                     if(pcUpdated || interruptOccurred){
                         writeToControlUnit(cu);
                     }
@@ -141,7 +141,7 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
     @Override
     public void checkInterrupts() {
         int before = getProgramCounterValue();
-        updateProgramCounterOnInterrupt();
+        vectorToInterruptHandler();
         int after = getProgramCounterValue();
 
         if(before != after){
@@ -248,12 +248,14 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
         pcUpdated = true;
     }
 
-    protected void setExpectedControlUnitState(ControlUnitState state){
-        expectedControlUnitState = state;
+    protected void setInternalControlUnitState(ControlUnitState state){
+        internalControlUnitState = state;
     }
 
-    private ControlUnitState getExpectedControlUnitState() {
-        return expectedControlUnitState;
+    private void getOpsExecuteInstruction(String groupName, int groupIndex, int[] operands) {
+        pcUpdated = false;
+        setInternalControlUnitState(ControlUnitState.ACTIVE);
+        fetchOpsExecuteInstr(groupName, groupIndex, operands);
     }
 
     private void writeToControlUnit(ControlUnitInterface cu){

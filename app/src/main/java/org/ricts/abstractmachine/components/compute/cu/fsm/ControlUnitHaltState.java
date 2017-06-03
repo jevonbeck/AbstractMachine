@@ -1,9 +1,9 @@
-package org.ricts.abstractmachine.components.compute.cu;
+package org.ricts.abstractmachine.components.compute.cu.fsm;
 
 /**
  * Created by Jevon on 17/12/2015.
  */
-public class ControlUnitHaltState extends ControlUnitState{
+public class ControlUnitHaltState extends ControlUnitState {
     public ControlUnitHaltState() {
         super(GenericCUState.HALT);
     }

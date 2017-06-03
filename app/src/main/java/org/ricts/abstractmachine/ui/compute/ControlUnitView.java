@@ -7,7 +7,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import org.ricts.abstractmachine.R;
-import org.ricts.abstractmachine.components.compute.cu.ControlUnitState;
+import org.ricts.abstractmachine.components.compute.cu.fsm.ControlUnitState;
 import org.ricts.abstractmachine.components.compute.cu.CuRegCore;
 import org.ricts.abstractmachine.components.interfaces.ControlUnitRegCore;
 import org.ricts.abstractmachine.components.interfaces.CuFsmInterface;

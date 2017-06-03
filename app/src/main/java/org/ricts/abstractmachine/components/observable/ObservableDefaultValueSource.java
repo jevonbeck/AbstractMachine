@@ -1,6 +1,6 @@
 package org.ricts.abstractmachine.components.observable;
 
-import org.ricts.abstractmachine.components.interfaces.DefaultValueSource;
+import org.ricts.abstractmachine.components.compute.cu.DefaultValueSource;
 
 /**
  * Created by Jevon on 08/04/2017.

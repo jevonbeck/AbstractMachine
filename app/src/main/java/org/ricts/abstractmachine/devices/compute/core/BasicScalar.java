@@ -190,15 +190,13 @@ public class BasicScalar extends UniMemoryComputeCore {
     private RegisterStack callStack; // presence or absence of on-chip call stack
     private BasicALU alu; // operations allowed by ALU
 
-    private Resources resources;
-
     public BasicScalar(Resources res, int byteMultiplierWidth, int dAdWidth, int iAdWidth, int stkAdWidth,
                        int dRegAdWidth, int dAdrRegAdWidth, int iAdrRegAdWidth) {
+        super(res);
         // byteMultiplierWidth - for making number of bytes in dataWidth a power of 2
         // dRegAdWidth - for accessing data registers.
         // dAdrRegAdWidth - for accessing data address registers.
         // iAdrRegAdWidth - for accessing instruction address registers. iAdrRegAdWidth >= 1 (PC must be one of them)
-        resources = res;
 
 		/* Initialise important widths */
         iAddrWidth = iAdWidth;
@@ -488,19 +486,43 @@ public class BasicScalar extends UniMemoryComputeCore {
         InstructionGrouping grouping = Enum.valueOf(InstructionGrouping.class, groupName);
         Instruction instruction = grouping.decode(groupIndex);
 
-        int regAddr, destRegAddr, sourceRegAddr, byteLiteral;
+        int regAddr, destRegAddr, sourceRegAddr, byteLiteral, dRegAddr, bitIndex;
         switch (grouping){
-            case RegBitManip:
-                // Instructions with 1 data register and 1 bit-index
-                regAddr = operands[0];
-                int bitIndex = operands[1];
-
+            case NoOperands:
+                // Instructions with 0 operands
                 switch (instruction) {
-                    case SETB: // DREG[BITINDEX] <-- true (boolean variable assignment)
-                        dataRegs[regAddr].write(setBitAtIndex(bitIndex, dataRegs[regAddr].read()));
+                    case POP: // cu <-- predefinedStack.pop(); updateUnderflowFlag(); ('return' control-flow construct)
+                        updateProgramCounter(callStack.pop());
+                        intFlagsReg.write(setBitValueAtIndex(InterruptFlags.STACKUFLOW.ordinal(), intFlagsReg.read(), callStack.isEmpty()));
                         break;
-                    case CLRB: // DREG[BITINDEX] <-- false (boolean variable assignment)
-                        dataRegs[regAddr].write(clearBitAtIndex(bitIndex, dataRegs[regAddr].read()));
+                    case NOP: // do nothing
+                        break;
+                    case HALT: // tell Control Unit to stop execution
+                        setInternalControlUnitState(ControlUnitState.HALT);
+                        break;
+                }
+                break;
+            case InstrAddressReg:
+                // Instructions with 1 instruction address register
+                switch (instruction) {
+                    case JUMP: // cu <-- IADREG ('goto'/'break'/'continue' control-flow construct)
+                        updateProgramCounter(instrAddrRegs[operands[0]].read());
+                        break;
+                    case PUSH: // predefStack.push(IADREG); updateOverflowFlag(); (part of 'function-call' control-flow construct)
+                        callStack.push(instrAddrRegs[operands[0]].read());
+
+                        intFlagsReg.write(setBitValueAtIndex(InterruptFlags.STACKOFLOW.ordinal(), intFlagsReg.read(), callStack.isFull()));
+                        break;
+                    case STOREPC: // IADREG <-- cu (part of 'switch' statement / look-up table / 'function-call' control-flow construct)
+                        instrAddrRegs[operands[0]].write(pcReg.read());
+                        break;
+                }
+                break;
+            case InstrAddressLiteral:
+                // Instructions with 1 instruction address literal
+                switch (instruction) {
+                    case JUMPL: // cu <-- INSTRLIT ('goto'/'break'/'continue' control-flow construct)
+                        updateProgramCounter(operands[0]);
                         break;
                 }
                 break;
@@ -512,9 +534,23 @@ public class BasicScalar extends UniMemoryComputeCore {
                         break;
                 }
                 break;
+            case RegBitManip:
+                // Instructions with 1 data register and 1 bit-index
+                regAddr = operands[0];
+                bitIndex = operands[1];
+
+                switch (instruction) {
+                    case SETB: // DREG[BITINDEX] <-- true (boolean variable assignment)
+                        dataRegs[regAddr].write(setBitAtIndex(bitIndex, dataRegs[regAddr].read()));
+                        break;
+                    case CLRB: // DREG[BITINDEX] <-- false (boolean variable assignment)
+                        dataRegs[regAddr].write(clearBitAtIndex(bitIndex, dataRegs[regAddr].read()));
+                        break;
+                }
+                break;
             case DataMemOps:
                 // Instructions with 1 data register and 1 data address register
-                int dRegAddr = operands[0];
+                dRegAddr = operands[0];
                 int dAddrRegAddr = operands[1];
 
                 switch (instruction) {
@@ -532,15 +568,17 @@ public class BasicScalar extends UniMemoryComputeCore {
                         break;
                 }
                 break;
-            case ByteLoad:
-                // Instructions with 1 data register, 1 byte-index and 1 byte literal
-                regAddr = operands[0];
-                int byteIndex = operands[1];
-                byteLiteral = operands[2];
+            case InstrAddrConvert:
+                // Instructions with 1 data register and 1 instruction address register
+                dRegAddr = operands[0];
+                int iAddrRegAddr = operands[1];
 
                 switch (instruction) {
-                    case LOADBYTE: // DREG[BYTEINDEX] <-- BYTE (ASCII/UTF-BYTE_WIDTH character literal assignment)
-                        dataRegs[regAddr].write(setWordIn(dataRegs[regAddr].read(), byteLiteral, BYTE_WIDTH, BYTE_WIDTH * byteIndex));
+                    case LOADI: // DREG <-- (int) IADREG (dereference pointer and assign value to variable)
+                        dataRegs[dRegAddr].write(instrAddrRegs[iAddrRegAddr].read());
+                        break;
+                    case STOREI: // IADREG <-- (instruction address) DREG [OS level operation / load start address of new program]
+                        instrAddrRegs[iAddrRegAddr].write(dataRegs[dRegAddr].read());
                         break;
                 }
                 break;
@@ -572,6 +610,56 @@ public class BasicScalar extends UniMemoryComputeCore {
                 }
                 updateStatusReg();
                 break;
+            case ByteLoad:
+                // Instructions with 1 data register, 1 byte-index and 1 byte literal
+                regAddr = operands[0];
+                int byteIndex = operands[1];
+                byteLiteral = operands[2];
+
+                switch (instruction) {
+                    case LOADBYTE: // DREG[BYTEINDEX] <-- BYTE (ASCII/UTF-BYTE_WIDTH character literal assignment)
+                        dataRegs[regAddr].write(setWordIn(dataRegs[regAddr].read(), byteLiteral, BYTE_WIDTH, BYTE_WIDTH * byteIndex));
+                        break;
+                }
+                break;
+            case ConditionalBranch:
+                // Instructions with 1 data register, 1 bit-index and 1 instruction address register
+                dRegAddr = operands[0];
+                bitIndex = operands[1];
+                int iAddrRegValue = instrAddrRegs[operands[2]].read();
+
+                switch (instruction) {
+                    case JUMPIFBC: // IF (!DREG[BITINDEX]) cu <-- IADREG ('for'/'while'/'if-else' sourceReg[bitIndex])
+                        if (!getBitAtIndex(bitIndex, dataRegs[dRegAddr].read())) {
+                            updateProgramCounter(iAddrRegValue);
+                        }
+                        break;
+                    case JUMPIFBS: // IF (DREG[BITINDEX]) cu <-- IADREG ('do-while' sourceReg[bitIndex])
+                        if (getBitAtIndex(bitIndex, dataRegs[dRegAddr].read())) {
+                            updateProgramCounter(iAddrRegValue);
+                        }
+                        break;
+                }
+                break;
+            case ConditionalBranchLiteral:
+                // Instructions with 1 data register, 1 bit-index and 1 instruction address literal
+                dRegAddr = operands[0];
+                bitIndex = operands[1];
+                int iAddrLiteral = operands[2];
+
+                switch (instruction) {
+                    case JUMPIFBCL: // IF (!DREG[BITINDEX]) cu <-- IADLITERAL ('for'/'while'/'if-else' sourceReg[bitIndex])
+                        if (!getBitAtIndex(bitIndex, dataRegs[dRegAddr].read())) {
+                            updateProgramCounter(iAddrLiteral);
+                        }
+                        break;
+                    case JUMPIFBSL: // IF (DREG[BITINDEX]) cu <-- IADLITERAL ('do-while' sourceReg[bitIndex])
+                        if (getBitAtIndex(bitIndex, dataRegs[dRegAddr].read())) {
+                            updateProgramCounter(iAddrLiteral);
+                        }
+                        break;
+                }
+                break;
             case ShiftReg:
                 // Instructions with 2 data registers (destination, source) and 1 bit-shift amount (source)
                 destRegAddr = operands[0];
@@ -584,21 +672,6 @@ public class BasicScalar extends UniMemoryComputeCore {
                         break;
                     case SHIFTR: // DESTINATION <-- (SOURCE >> SHIFTAMOUNT)
                         dataRegs[destRegAddr].write(alu.result(Mneumonics.SHIFTR, dataRegs[sourceRegAddr].read(), shiftAmount));
-                        break;
-                }
-                break;
-            case RegByteManip:
-                // Instructions with 2 data registers (destination, source) and 2 byte-indices (destination, source)
-                destRegAddr = operands[0];
-                int destByteIndex = operands[1];
-                sourceRegAddr = operands[2];
-                int sourceByteIndex = operands[3];
-
-                byteLiteral = getWordFrom(dataRegs[sourceRegAddr].read(), BYTE_WIDTH, BYTE_WIDTH * sourceByteIndex);
-
-                switch (instruction) {
-                    case MOVEBYTE: // DESTINATION[DBYTEINDEX] <-- SOURCE[SBYTEINDEX] (ASCII/UTF-8 character move)
-                        dataRegs[destRegAddr].write(setWordIn(dataRegs[destRegAddr].read(), byteLiteral, BYTE_WIDTH, BYTE_WIDTH * destByteIndex));
                         break;
                 }
                 break;
@@ -633,6 +706,21 @@ public class BasicScalar extends UniMemoryComputeCore {
                         break;
                 }
                 updateStatusReg();
+                break;
+            case RegByteManip:
+                // Instructions with 2 data registers (destination, source) and 2 byte-indices (destination, source)
+                destRegAddr = operands[0];
+                int destByteIndex = operands[1];
+                sourceRegAddr = operands[2];
+                int sourceByteIndex = operands[3];
+
+                byteLiteral = getWordFrom(dataRegs[sourceRegAddr].read(), BYTE_WIDTH, BYTE_WIDTH * sourceByteIndex);
+
+                switch (instruction) {
+                    case MOVEBYTE: // DESTINATION[DBYTEINDEX] <-- SOURCE[SBYTEINDEX] (ASCII/UTF-8 character move)
+                        dataRegs[destRegAddr].write(setWordIn(dataRegs[destRegAddr].read(), byteLiteral, BYTE_WIDTH, BYTE_WIDTH * destByteIndex));
+                        break;
+                }
                 break;
             case MultiWidthAluOps:
                 // Instructions with 3 data registers (result, A, B) and 1 byte multiplier literal
@@ -678,109 +766,7 @@ public class BasicScalar extends UniMemoryComputeCore {
     }
 
     @Override
-    protected void updateInternalControlUnitState(String groupName, int groupIndex, int[] operands) {
-        InstructionGrouping grouping = Enum.valueOf(InstructionGrouping.class, groupName);
-        Instruction instruction = grouping.decode(groupIndex);
-
-        int dRegAddr, bitIndex;
-        switch (grouping){
-            case NoOperands:
-                // Instructions with 0 operands
-                switch (instruction) {
-                    case POP: // cu <-- predefinedStack.pop(); updateUnderflowFlag(); ('return' control-flow construct)
-                        updateProgramCounter(callStack.pop());
-                        intFlagsReg.write(setBitValueAtIndex(InterruptFlags.STACKUFLOW.ordinal(), intFlagsReg.read(), callStack.isEmpty()));
-                        break;
-                    case NOP: // do nothing
-                        break;
-                    case HALT: // tell Control Unit to stop execution
-                        setExpectedControlUnitState(ControlUnitState.HALT);
-                        break;
-                }
-                break;
-            case InstrAddressLiteral:
-                // Instructions with 1 instruction address literal
-                switch (instruction) {
-                    case JUMPL: // cu <-- INSTRLIT ('goto'/'break'/'continue' control-flow construct)
-                        updateProgramCounter(operands[0]);
-                        break;
-                }
-                break;
-            case InstrAddressReg:
-                // Instructions with 1 instruction address register
-                switch (instruction) {
-                    case JUMP: // cu <-- IADREG ('goto'/'break'/'continue' control-flow construct)
-                        updateProgramCounter(instrAddrRegs[operands[0]].read());
-                        break;
-                    case PUSH: // predefStack.push(IADREG); updateOverflowFlag(); (part of 'function-call' control-flow construct)
-                        callStack.push(instrAddrRegs[operands[0]].read());
-
-                        intFlagsReg.write(setBitValueAtIndex(InterruptFlags.STACKOFLOW.ordinal(), intFlagsReg.read(), callStack.isFull()));
-                        break;
-                    case STOREPC: // IADREG <-- cu (part of 'switch' statement / look-up table / 'function-call' control-flow construct)
-                        instrAddrRegs[operands[0]].write(pcReg.read());
-                        break;
-                }
-                break;
-            case InstrAddrConvert:
-                // Instructions with 1 data register and 1 instruction address register
-                dRegAddr = operands[0];
-                int iAddrRegAddr = operands[1];
-
-                switch (instruction) {
-                    case LOADI: // DREG <-- (int) IADREG (dereference pointer and assign value to variable)
-                        dataRegs[dRegAddr].write(instrAddrRegs[iAddrRegAddr].read());
-                        break;
-                    case STOREI: // IADREG <-- (instruction address) DREG [OS level operation / load start address of new program]
-                        instrAddrRegs[iAddrRegAddr].write(dataRegs[dRegAddr].read());
-                        break;
-                }
-                break;
-            case ConditionalBranchLiteral:
-                // Instructions with 1 data register, 1 bit-index and 1 instruction address literal
-                dRegAddr = operands[0];
-                bitIndex = operands[1];
-                int iAddrLiteral = operands[2];
-
-                switch (instruction) {
-                    case JUMPIFBCL: // IF (!DREG[BITINDEX]) cu <-- IADLITERAL ('for'/'while'/'if-else' sourceReg[bitIndex])
-                        if (!getBitAtIndex(bitIndex, dataRegs[dRegAddr].read())) {
-                            updateProgramCounter(iAddrLiteral);
-                        }
-                        break;
-                    case JUMPIFBSL: // IF (DREG[BITINDEX]) cu <-- IADLITERAL ('do-while' sourceReg[bitIndex])
-                        if (getBitAtIndex(bitIndex, dataRegs[dRegAddr].read())) {
-                            updateProgramCounter(iAddrLiteral);
-                        }
-                        break;
-                }
-                break;
-            case ConditionalBranch:
-                // Instructions with 1 data register, 1 bit-index and 1 instruction address register
-                dRegAddr = operands[0];
-                bitIndex = operands[1];
-                int iAddrRegValue = instrAddrRegs[operands[2]].read();
-
-                switch (instruction) {
-                    case JUMPIFBC: // IF (!DREG[BITINDEX]) cu <-- IADREG ('for'/'while'/'if-else' sourceReg[bitIndex])
-                        if (!getBitAtIndex(bitIndex, dataRegs[dRegAddr].read())) {
-                            updateProgramCounter(iAddrRegValue);
-                        }
-                        break;
-                    case JUMPIFBS: // IF (DREG[BITINDEX]) cu <-- IADREG ('do-while' sourceReg[bitIndex])
-                        if (getBitAtIndex(bitIndex, dataRegs[dRegAddr].read())) {
-                            updateProgramCounter(iAddrRegValue);
-                        }
-                        break;
-                }
-                break;
-            default:
-                break;
-        }
-    }
-
-    @Override
-    protected void updateProgramCounterOnInterrupt() {
+    protected void vectorToInterruptHandler() {
         // TODO: Do nothing for now! Implement appropriate logic when interrupts are implemented
         // TODO: update internal PC to vector location if interrupt
     }

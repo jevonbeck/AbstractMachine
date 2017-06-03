@@ -1,4 +1,4 @@
-package org.ricts.abstractmachine.components.compute.cu;
+package org.ricts.abstractmachine.components.fsm;
 
 public abstract class State {
     private String name;
