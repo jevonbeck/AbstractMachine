@@ -5,7 +5,7 @@ import android.util.AttributeSet;
 import android.view.animation.Animation;
 
 import org.ricts.abstractmachine.R;
-import org.ricts.abstractmachine.components.observables.ObservableReadPort;
+import org.ricts.abstractmachine.components.observable.ObservableReadPort;
 import org.ricts.abstractmachine.ui.device.DevicePin;
 import org.ricts.abstractmachine.ui.device.MultiPinView;
 

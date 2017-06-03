@@ -15,8 +15,8 @@ import org.ricts.abstractmachine.ui.utils.UiUtils;
 public abstract class DeviceView extends RelativeLayout {
     protected View mainView, pinView;
 
-    protected abstract View createPinView(Context context, int pinPosition);
-    protected abstract View createMainView(Context context, int pinPosition);
+    protected abstract View createPinView(Context context, RelativePosition position);
+    protected abstract View createMainView(Context context, RelativePosition position);
     protected abstract LayoutParams createMainViewLayoutParams();
 
     /** Standard Constructors **/
@@ -33,7 +33,7 @@ public abstract class DeviceView extends RelativeLayout {
 
         /*** extract XML attributes ***/
         TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.DeviceView);
-        int pinPosition = a.getInt(R.styleable.DeviceView_pinPosition, 1);
+        int position = a.getInt(R.styleable.DeviceView_pinPosition, RelativePosition.RIGHT.ordinal());
         a.recycle();
 
         /*** create children and determine layouts & positions based on attributes ***/
@@ -42,6 +42,7 @@ public abstract class DeviceView extends RelativeLayout {
         LayoutParams lpPinView = new LayoutParams(
                 LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
 
+        RelativePosition pinPosition = RelativePosition.getPositionFromInt(position);
         pinView = createPinView(context, pinPosition);
         pinView.setId(R.id.DeviceView_pin_view);
 
@@ -49,28 +50,28 @@ public abstract class DeviceView extends RelativeLayout {
         mainView.setId(R.id.DeviceView_main_view);
 
         switch (pinPosition) {
-            case 2: // top
+            case TOP:
                 lpPinView.addRule(RelativeLayout.CENTER_HORIZONTAL);
                 addView(pinView, lpPinView);
 
                 lpMainView.addRule(RelativeLayout.BELOW, pinView.getId());
                 addView(mainView, lpMainView);
                 break;
-            case 3: // bottom
+            case BOTTOM:
                 addView(mainView, lpMainView);
 
                 lpPinView.addRule(RelativeLayout.BELOW, mainView.getId());
                 lpPinView.addRule(RelativeLayout.CENTER_HORIZONTAL);
                 addView(pinView, lpPinView);
                 break;
-            case 0: // left
+            case LEFT:
                 lpPinView.addRule(RelativeLayout.CENTER_VERTICAL);
                 addView(pinView, lpPinView);
 
                 lpMainView.addRule(RelativeLayout.RIGHT_OF, pinView.getId());
                 addView(mainView, lpMainView);
                 break;
-            case 1: // right
+            case RIGHT:
             default:
                 addView(mainView, lpMainView);
 
@@ -79,11 +80,6 @@ public abstract class DeviceView extends RelativeLayout {
                 addView(pinView, lpPinView);
                 break;
         }
-    }
-
-    public static AttributeSet getDefaultAttributeSet(Context context, int pinPosition){
-        return UiUtils.makeAttributeSet(context, getDefaultResourceId(
-                RelativePosition.getPositionFromInt(pinPosition)));
     }
 
     public static AttributeSet getDefaultAttributeSet(Context context, RelativePosition pinPosition){

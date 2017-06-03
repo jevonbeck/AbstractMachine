@@ -5,9 +5,9 @@ import android.util.AttributeSet;
 import android.view.View;
 
 import org.ricts.abstractmachine.components.interfaces.MemoryPort;
-import org.ricts.abstractmachine.components.observables.ObservableMemoryPort;
-import org.ricts.abstractmachine.components.observables.ObservableMultiMemoryPort;
-import org.ricts.abstractmachine.components.observables.ObservableReadPort;
+import org.ricts.abstractmachine.components.observable.ObservableMemoryPort;
+import org.ricts.abstractmachine.components.observable.ObservableMultiMemoryPort;
+import org.ricts.abstractmachine.components.observable.ObservableReadPort;
 import org.ricts.abstractmachine.ui.device.DeviceView;
 import org.ricts.abstractmachine.ui.device.RelativePosition;
 import org.ricts.abstractmachine.ui.storage.MemoryPortView;

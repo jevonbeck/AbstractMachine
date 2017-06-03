@@ -1,8 +1,8 @@
 package org.ricts.abstractmachine.components.system;
 
-import org.ricts.abstractmachine.components.compute.cores.ComputeCore;
+import org.ricts.abstractmachine.components.compute.core.ComputeCore;
 import org.ricts.abstractmachine.components.interfaces.ThreadProcessingUnit;
-import org.ricts.abstractmachine.components.observables.ObservableComputeCore;
+import org.ricts.abstractmachine.components.observable.ObservableComputeCore;
 
 public abstract class SystemArchitecture<T extends ComputeCore> {
     protected abstract ObservableComputeCore<T> createObservableComputeCore(T core);

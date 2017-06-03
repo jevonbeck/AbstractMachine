@@ -8,11 +8,12 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import org.ricts.abstractmachine.R;
-import org.ricts.abstractmachine.components.compute.cores.ComputeCore;
-import org.ricts.abstractmachine.components.observables.ObservableComputeCore;
+import org.ricts.abstractmachine.components.compute.core.ComputeCore;
+import org.ricts.abstractmachine.components.observable.ObservableComputeCore;
 import org.ricts.abstractmachine.ui.device.DevicePin;
 import org.ricts.abstractmachine.ui.device.DeviceView;
 import org.ricts.abstractmachine.ui.device.MultiPinView;
+import org.ricts.abstractmachine.ui.device.RelativePosition;
 
 import java.util.Observable;
 import java.util.Observer;
@@ -69,12 +70,12 @@ public class ComputeCoreView extends DeviceView implements Observer {
     }
 
     @Override
-    protected View createPinView(Context context, int pinPosition) {
+    protected View createPinView(Context context, RelativePosition pinPosition) {
         return new PinsView(context, getDefaultAttributeSet(context, pinPosition));
     }
 
     @Override
-    protected View createMainView(Context context, int pinPosition) {
+    protected View createMainView(Context context, RelativePosition pinPosition) {
         return new MainBodyView(context);
     }
 

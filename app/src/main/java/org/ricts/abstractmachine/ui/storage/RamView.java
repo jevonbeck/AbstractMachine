@@ -3,7 +3,7 @@ package org.ricts.abstractmachine.ui.storage;
 import android.content.Context;
 import android.util.AttributeSet;
 
-import org.ricts.abstractmachine.components.observables.ObservableMemoryPort;
+import org.ricts.abstractmachine.components.observable.ObservableMemoryPort;
 
 import java.util.Observable;
 

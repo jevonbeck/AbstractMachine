@@ -3,7 +3,7 @@ package org.ricts.abstractmachine.devices.compute.core;
 import android.content.res.Resources;
 
 import org.ricts.abstractmachine.R;
-import org.ricts.abstractmachine.components.compute.cores.UniMemoryComputeCore;
+import org.ricts.abstractmachine.components.compute.core.UniMemoryComputeCore;
 import org.ricts.abstractmachine.components.compute.isa.InstructionGroup;
 import org.ricts.abstractmachine.components.compute.isa.IsaDecoder;
 import org.ricts.abstractmachine.components.compute.isa.OperandInfo;

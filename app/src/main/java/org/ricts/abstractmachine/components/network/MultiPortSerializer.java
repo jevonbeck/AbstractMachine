@@ -2,7 +2,7 @@ package org.ricts.abstractmachine.components.network;
 
 
 import org.ricts.abstractmachine.components.devicetype.Device;
-import org.ricts.abstractmachine.components.observables.ObservableType;
+import org.ricts.abstractmachine.components.observable.ObservableType;
 
 /**
  * Created by Jevon on 14/01/2017.

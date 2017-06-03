@@ -6,7 +6,7 @@ import android.view.View;
 
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.interfaces.Multiplexer;
-import org.ricts.abstractmachine.components.observables.ObservableMultiplexer;
+import org.ricts.abstractmachine.components.observable.ObservableMultiplexer;
 import org.ricts.abstractmachine.ui.device.DevicePin;
 import org.ricts.abstractmachine.ui.device.TrapeziumView;
 

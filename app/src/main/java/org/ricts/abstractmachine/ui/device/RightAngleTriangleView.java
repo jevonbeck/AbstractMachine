@@ -30,7 +30,6 @@ public class RightAngleTriangleView extends ViewGroup {
     private PinView pinView;
     private float pinLengthDiff, pinThickness;
     protected DevicePin.PinDirection inDirection, outDirection, actualDirection;
-    private final int positionLeft, positionRight, positionTop, positionBottom;
 
     public RightAngleTriangleView(Context context) {
         this(context, null);
@@ -43,16 +42,6 @@ public class RightAngleTriangleView extends ViewGroup {
     public RightAngleTriangleView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         setWillNotDraw(false); // remove default (non) drawing behaviour for ViewGroup
-
-        /*** Initialise constants ***/
-        positionLeft = getContext().getResources().getInteger(
-                R.integer.DeviceView_pin_position_left);
-        positionRight = getContext().getResources().getInteger(
-                R.integer.DeviceView_pin_position_right);
-        positionTop = getContext().getResources().getInteger(
-                R.integer.DeviceView_pin_position_top);
-        positionBottom = getContext().getResources().getInteger(
-                R.integer.DeviceView_pin_position_bottom);
 
         /*** extract XML attributes ***/
         TypedArray a = getContext().obtainStyledAttributes(attrs, R.styleable.RightAngleTriangleView);
@@ -128,7 +117,8 @@ public class RightAngleTriangleView extends ViewGroup {
     @Override
     protected void onLayout(boolean changed, int left, int top, int right, int bottom){
         if(hasPin()){
-            int l, t, r, b, pinPosition;
+            int l, t, r, b;
+            RelativePosition pinPosition;
 
             int trbl = diagonalIsTopRightBottomLeft ? 1<<2 : 0;
             int rightFilled = isRightFilled ? 1<<1 : 0;
@@ -142,7 +132,7 @@ public class RightAngleTriangleView extends ViewGroup {
                     l = (int) (getWidth() - pinThickness)/2;
                     r = l + pinView.getMeasuredWidth();
 
-                    pinPosition = positionTop;
+                    pinPosition = RelativePosition.TOP;
                     inDirection = DevicePin.PinDirection.DOWN;
                     outDirection = DevicePin.PinDirection.UP;
                     break;
@@ -152,7 +142,7 @@ public class RightAngleTriangleView extends ViewGroup {
                     b = (int) (getHeight() + pinThickness)/ 2;
                     t = b - pinView.getMeasuredHeight();
 
-                    pinPosition = positionRight;
+                    pinPosition = RelativePosition.RIGHT;
                     inDirection = DevicePin.PinDirection.LEFT;
                     outDirection = DevicePin.PinDirection.RIGHT;
                     break;
@@ -162,7 +152,7 @@ public class RightAngleTriangleView extends ViewGroup {
                     r = (int) (getWidth() + pinThickness)/2;
                     l = r - pinView.getMeasuredWidth();
 
-                    pinPosition = positionBottom;
+                    pinPosition = RelativePosition.BOTTOM;
                     inDirection = DevicePin.PinDirection.UP;
                     outDirection = DevicePin.PinDirection.DOWN;
                     break;
@@ -172,7 +162,7 @@ public class RightAngleTriangleView extends ViewGroup {
                     r = l + (int) (getWidth() - pinLengthDiff) / 2;
                     b = t + pinView.getMeasuredHeight();
 
-                    pinPosition = positionLeft;
+                    pinPosition = RelativePosition.LEFT;
                     inDirection = DevicePin.PinDirection.RIGHT;
                     outDirection = DevicePin.PinDirection.LEFT;
                     break;
@@ -182,7 +172,7 @@ public class RightAngleTriangleView extends ViewGroup {
                     l = (int) (getWidth() - pinThickness)/2;
                     r = l + pinView.getMeasuredWidth();
 
-                    pinPosition = positionBottom;
+                    pinPosition = RelativePosition.BOTTOM;
                     inDirection = DevicePin.PinDirection.UP;
                     outDirection = DevicePin.PinDirection.DOWN;
                     break;
@@ -192,7 +182,7 @@ public class RightAngleTriangleView extends ViewGroup {
                     r = right - left;
                     b = t + pinView.getMeasuredHeight();
 
-                    pinPosition = positionRight;
+                    pinPosition = RelativePosition.RIGHT;
                     inDirection = DevicePin.PinDirection.LEFT;
                     outDirection = DevicePin.PinDirection.RIGHT;
                     break;
@@ -202,7 +192,7 @@ public class RightAngleTriangleView extends ViewGroup {
                     r = (int) (getWidth() + pinThickness)/2;
                     l = r - pinView.getMeasuredWidth();
 
-                    pinPosition = positionTop;
+                    pinPosition = RelativePosition.TOP;
                     inDirection = DevicePin.PinDirection.DOWN;
                     outDirection = DevicePin.PinDirection.UP;
                     break;
@@ -212,7 +202,7 @@ public class RightAngleTriangleView extends ViewGroup {
                     b = (int) (getHeight() + pinThickness)/2;
                     t = b - pinView.getMeasuredHeight();
 
-                    pinPosition = positionLeft;
+                    pinPosition = RelativePosition.LEFT;
                     inDirection = DevicePin.PinDirection.RIGHT;
                     outDirection = DevicePin.PinDirection.LEFT;
                     break;
@@ -221,7 +211,7 @@ public class RightAngleTriangleView extends ViewGroup {
                     t = 0;
                     r = right - left;
                     b = bottom - top;
-                    pinPosition = -1;
+                    pinPosition = RelativePosition.RIGHT;
                     inDirection = DevicePin.PinDirection.LEFT;
                     outDirection = DevicePin.PinDirection.RIGHT;
                     break;

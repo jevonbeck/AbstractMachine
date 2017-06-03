@@ -1,7 +1,6 @@
 package org.ricts.abstractmachine.components.compute.cu;
 
 import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
-import org.ricts.abstractmachine.components.interfaces.ControlUnitInterface;
 
 /**
  * Created by Jevon on 08/08/2016.

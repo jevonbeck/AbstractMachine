@@ -1,7 +1,7 @@
 package org.ricts.abstractmachine.devices.compute.alu;
 
 
-import org.ricts.abstractmachine.components.compute.cores.AluCore;
+import org.ricts.abstractmachine.components.compute.core.AluCore;
 
 public class BasicALU extends AluCore {
     public BasicALU(int dWidth){

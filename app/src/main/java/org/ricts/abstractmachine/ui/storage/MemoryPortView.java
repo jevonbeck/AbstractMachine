@@ -5,7 +5,7 @@ import android.util.AttributeSet;
 import android.view.animation.Animation;
 
 import org.ricts.abstractmachine.R;
-import org.ricts.abstractmachine.components.observables.ObservableMemoryPort;
+import org.ricts.abstractmachine.components.observable.ObservableMemoryPort;
 import org.ricts.abstractmachine.ui.device.DevicePin;
 
 import java.util.Observable;

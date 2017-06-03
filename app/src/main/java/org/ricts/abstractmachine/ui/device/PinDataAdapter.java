@@ -15,10 +15,10 @@ import org.ricts.abstractmachine.ui.utils.UiUtils;
 public class PinDataAdapter extends RecyclerView.Adapter<PinDataAdapter.ViewHolder>{
     private static final String TAG = "PinDataAdapter";
 
-    private int pinPosition;
+    private RelativePosition pinPosition;
     private DevicePin [] pinArray;
 
-    public PinDataAdapter(DevicePin[] data, int position) throws Exception{
+    public PinDataAdapter(DevicePin[] data, RelativePosition position) throws Exception{
         super();
         pinArray = data;
         pinPosition = position;
@@ -49,11 +49,11 @@ public class PinDataAdapter extends RecyclerView.Adapter<PinDataAdapter.ViewHold
 
     private int getResource() {
         switch(pinPosition) {
-            case 2: // top
-            case 3: // bottom
+            case TOP:
+            case BOTTOM:
                 return R.xml.pinview_vertical;
-            case 0: // left
-            case 1: // right
+            case LEFT:
+            case RIGHT:
             default:
                 return R.xml.pinview_horizontal;
         }
