@@ -108,10 +108,6 @@
     <string name="compute_core_data_memory_format">DATA</string>
     <string name="compute_core_data_memory_desc">Pure data value</string>
 
-    <string name="title_activity_memory_port_multiplexer_tutorial">
-        MemoryPortMultiplexerTutorialActivity
-    </string>
-
     <string name="title_activity_von_neu_frag">VonNeuFragActivity</string>
 
     <!-- TODO: Remove or change this placeholder text -->

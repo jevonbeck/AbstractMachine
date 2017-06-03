@@ -82,18 +82,23 @@ public abstract class DeviceView extends RelativeLayout {
     }
 
     public static AttributeSet getDefaultAttributeSet(Context context, int pinPosition){
+        return UiUtils.makeAttributeSet(context, getDefaultResourceId(
+                RelativePosition.getPositionFromInt(pinPosition)));
+    }
+
+    public static AttributeSet getDefaultAttributeSet(Context context, RelativePosition pinPosition){
         return UiUtils.makeAttributeSet(context, getDefaultResourceId(pinPosition));
     }
 
-    private static int getDefaultResourceId(int pinPosition){
+    private static int getDefaultResourceId(RelativePosition pinPosition){
         switch (pinPosition){
-            case 2: // top
+            case TOP:
                 return R.xml.deviceview_pins_top;
-            case 3: // bottom
+            case BOTTOM:
                 return R.xml.deviceview_pins_bottom;
-            case 0: // left
+            case LEFT:
                 return R.xml.deviceview_pins_left;
-            case 1: // right
+            case RIGHT:
             default:
                 return R.xml.deviceview_pins_right;
         }

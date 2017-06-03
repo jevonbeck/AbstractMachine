@@ -9,6 +9,7 @@ import org.ricts.abstractmachine.components.observables.ObservableMemoryPort;
 import org.ricts.abstractmachine.components.observables.ObservableMultiMemoryPort;
 import org.ricts.abstractmachine.components.observables.ObservableReadPort;
 import org.ricts.abstractmachine.ui.device.DeviceView;
+import org.ricts.abstractmachine.ui.device.RelativePosition;
 import org.ricts.abstractmachine.ui.storage.MemoryPortView;
 
 import java.util.Observable;
@@ -42,7 +43,7 @@ public class MemoryPortMultiplexerView extends MultiplexerView implements Observ
     }
 
     @Override
-    protected View createPinView(Context context, int pinPosition) {
+    protected View createPinView(Context context, RelativePosition pinPosition) {
         return new MemoryPortView(context, DeviceView.getDefaultAttributeSet(context, pinPosition));
     }
 
@@ -99,15 +100,14 @@ public class MemoryPortMultiplexerView extends MultiplexerView implements Observ
                 animateSelectPin(); // initiate select pin animation
             }
 
+            MemoryPortView activePin = (MemoryPortView) getInputs()[activePort];
             if(activePort == getSelection()) {
-                ((MemoryPortView) outputPins).update(
+                ((MemoryPortView) getOutput()).update(
                         memoryPortObservable, currentParams); // initiate output pin animation
-                ((MemoryPortView) inputPins[activePort]).update(
-                        memoryPortObservable, currentParams); // initiate selected input pin animation
+                activePin.update(memoryPortObservable, currentParams); // initiate selected input pin animation
             }
             else {
                 // initiate active input pin animation (will return immediately with bad value)
-                MemoryPortView activePin = ((MemoryPortView) inputPins[activePort]);
                 activePin.setReadDelayByMultiple(DEFAULT_READ_DELAY_MULTIPLE);
                 activePin.update(memoryPortObservable, currentParams);
                 activePin.setReadDelayByMultiple(INPUT_PIN_DELAY_MULTIPLE);

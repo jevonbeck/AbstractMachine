@@ -30,4 +30,18 @@ public enum RelativePosition {
         }
         return position;
     }
+
+    public static RelativePosition getOppositePosition(RelativePosition position) {
+        switch (position) {
+            case TOP:
+                return BOTTOM;
+            case BOTTOM:
+                return TOP;
+            case LEFT:
+                return RIGHT;
+            case RIGHT:
+                return LEFT;
+        }
+        return null;
+    }
 }

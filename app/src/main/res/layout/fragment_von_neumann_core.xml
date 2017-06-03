@@ -29,7 +29,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/cuExtension"
-        custom:dividerThickness="70dp"
+        custom:dividerThickness="100dp"
         custom:outputPosition = "left"
         custom:selectPosition = "firstEdge"
         />
@@ -47,7 +47,7 @@
         class="org.ricts.abstractmachine.ui.compute.ComputeCoreView"
         android:id="@+id/core"
         android:layout_width="match_parent"
-        android:layout_height="190dp"
+        android:layout_height="210dp"
         android:layout_toRightOf="@+id/mux"
         android:layout_below="@+id/control_unit"
         custom:pinPosition="top"

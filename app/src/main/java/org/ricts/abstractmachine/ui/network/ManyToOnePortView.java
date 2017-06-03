@@ -4,25 +4,23 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.drawable.ShapeDrawable;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
 import org.ricts.abstractmachine.R;
-import org.ricts.abstractmachine.ui.device.DeviceView;
 import org.ricts.abstractmachine.ui.device.RelativePosition;
 
 /**
  * Created by Jevon on 07/06/2015.
  */
 public abstract class ManyToOnePortView extends RelativeLayout {
-    private static final String TAG = "ManyToOnePortView";
-    protected View [] inputPins;
-    protected View outputPins, mainView;
+    protected View mainView;
 
-    protected RelativePosition inputsPosition;
-    protected LinearLayout inputPinsLayout;
+    private View [] inputPins;
+    private View outputPins;
+    private RelativePosition inputsPosition;
+    private LinearLayout inputPinsLayout;
 
     private static final int dividerDefaultThickness = 30;
 
@@ -31,7 +29,6 @@ public abstract class ManyToOnePortView extends RelativeLayout {
     protected abstract void initInputPinView(View pinView);
 
     protected abstract View createMainBodyView(Context context, AttributeSet attrs);
-    protected abstract LayoutParams createMainViewLayoutParams();
 
     /** Standard Constructors **/
     public ManyToOnePortView(Context context) {
@@ -45,14 +42,14 @@ public abstract class ManyToOnePortView extends RelativeLayout {
     public ManyToOnePortView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         /*** extract XML attributes ***/
-        TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.MultiplexerView);
-        int oPosition = a.getInt(R.styleable.MultiplexerView_outputPosition, RelativePosition.RIGHT.ordinal());
-        int dividerThickness = a.getDimensionPixelSize(R.styleable.MultiplexerView_dividerThickness,
+        TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.ManyToOnePortView);
+        int oPosition = a.getInt(R.styleable.ManyToOnePortView_outputPosition, RelativePosition.RIGHT.ordinal());
+        int dividerThickness = a.getDimensionPixelSize(R.styleable.ManyToOnePortView_dividerThickness,
                 dividerDefaultThickness);
         a.recycle();
 
         RelativePosition outputPosition = RelativePosition.getPositionFromInt(oPosition);
-        //inputsPosition = DeviceView.getOppositePinPosition(outputPosition);
+        inputsPosition = RelativePosition.getOppositePosition(outputPosition);
 
         /*** create children ***/
         inputPinsLayout = new LinearLayout(context);
@@ -62,6 +59,7 @@ public abstract class ManyToOnePortView extends RelativeLayout {
 
         outputPins = createPinView(context, inputsPosition);
         outputPins.setId(R.id.ManyToOnePortView_output_pins);
+        initOutputPinView(outputPins);
 
         mainView = createMainBodyView(context, attrs);
         mainView.setId(R.id.ManyToOnePortView_mainView);
@@ -73,7 +71,8 @@ public abstract class ManyToOnePortView extends RelativeLayout {
         LayoutParams lpInputPins = new LayoutParams(
                 LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
 
-        LayoutParams lpMainView = createMainViewLayoutParams();
+        LayoutParams lpMainView = new LayoutParams(
+                LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
 
         switch (outputPosition) {
             case TOP:
@@ -130,57 +129,38 @@ public abstract class ManyToOnePortView extends RelativeLayout {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec){
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-
-        // get dimensions of pins and use to size other components
+        // get dimensions of pins and use to size main view
         measureChild(outputPins, widthMeasureSpec, heightMeasureSpec);
         measureChild(inputPinsLayout, widthMeasureSpec, heightMeasureSpec);
+        measureChild(mainView, widthMeasureSpec, heightMeasureSpec);
 
-        int widthMeasureSpecMode = MeasureSpec.getMode(widthMeasureSpec);
-        int heightMeasureSpecMode = MeasureSpec.getMode(heightMeasureSpec);
-
-        int parentW = MeasureSpec.getSize(widthMeasureSpec);
-        int parentH = MeasureSpec.getSize(heightMeasureSpec);
         int outputPinsW = outputPins.getMeasuredWidth();
         int outputPinsH = outputPins.getMeasuredHeight();
         int inputPinsW = inputPinsLayout.getMeasuredWidth();
         int inputPinsH = inputPinsLayout.getMeasuredHeight();
+        int mainViewW = mainView.getMeasuredWidth();
+        int mainViewH = mainView.getMeasuredHeight();
 
-        Log.d(TAG, "parentW = " + parentW);
-        Log.d(TAG, "parentH = " + parentH);
-        Log.d(TAG, "outputPinsW = " + outputPinsW);
-        Log.d(TAG, "outputPinsH = " + outputPinsH);
-        Log.d(TAG, "inputPinsW = " + inputPinsW);
-        Log.d(TAG, "inputPinsH = " + inputPinsH);
-
-        int mainViewW, mainViewH;
-        switch (inputsPosition){
+        int fullW, fullH;
+        switch (inputsPosition) {
             case TOP:
             case BOTTOM:
-                Log.d(TAG, "inputs position is TOP or BOTTOM");
-                mainViewW = getMainViewLength(widthMeasureSpecMode, inputPinsW, parentW);
-
-                mainViewH = getMainViewThickness(heightMeasureSpecMode, outputPinsH,
-                        parentH - inputPinsH - outputPinsH);
+                fullW = Math.max(mainViewW, inputPinsW);
+                fullH = outputPinsH + mainViewH + inputPinsH;
                 break;
             case LEFT:
             case RIGHT:
             default:
-                Log.d(TAG, "inputs position is LEFT or RIGHT");
-                mainViewW = getMainViewThickness(widthMeasureSpecMode, outputPinsW,
-                        parentW - inputPinsW - outputPinsW);
-
-                mainViewH = getMainViewLength(heightMeasureSpecMode, inputPinsH, parentH);
+                fullW = outputPinsW + mainViewW + inputPinsW;
+                fullH = Math.max(mainViewH, inputPinsH);
                 break;
         }
 
-        int mainViewWidthMeasureSpec = MeasureSpec.makeMeasureSpec(mainViewW,
-                MeasureSpec.getMode(widthMeasureSpecMode));
+        fullW += getPaddingLeft() + getPaddingRight();
+        fullH += getPaddingTop() + getPaddingBottom();
 
-        int mainViewHeightMeasureSpec = MeasureSpec.makeMeasureSpec(mainViewH,
-                MeasureSpec.getMode(heightMeasureSpecMode));
-
-        measureChild(mainView, mainViewWidthMeasureSpec, mainViewHeightMeasureSpec);
+        super.onMeasure(MeasureSpec.makeMeasureSpec(fullW, MeasureSpec.getMode(widthMeasureSpec)),
+                MeasureSpec.makeMeasureSpec(fullH, MeasureSpec.getMode(heightMeasureSpec)));
     }
 
     public View [] getInputs(){
@@ -208,53 +188,17 @@ public abstract class ManyToOnePortView extends RelativeLayout {
         inputPinsLayout.setDividerDrawable(inputsDivider);
     }
 
-    private int getMainViewThickness(int measureSpecMode, int preferredThickness, int maxThickness){
-        Log.d(TAG, "getMainViewThickness()");
-        Log.d(TAG, "measureSpecMode = " + measureSpecMode);
-        Log.d(TAG, "preferredThickness = " + preferredThickness);
-        Log.d(TAG, "maxThickness = " + maxThickness);
+    protected void createInputPins(int inputsCount) {
+        if(inputsCount > 1) {
+            inputPinsLayout.removeAllViewsInLayout();
 
-        int mainViewThickness;
-        switch(measureSpecMode) {
-            case MeasureSpec.AT_MOST:
-            case MeasureSpec.EXACTLY:
-                mainViewThickness = Math.max(preferredThickness/4, maxThickness);
-
-                if(measureSpecMode == MeasureSpec.AT_MOST){
-                    mainViewThickness = Math.min(mainViewThickness, preferredThickness);
-                }
-                break;
-            case MeasureSpec.UNSPECIFIED:
-            default:
-                mainViewThickness = preferredThickness;
-                break;
+            Context c = getContext();
+            inputPins = new View[inputsCount];
+            for(int x=0; x < inputPins.length; ++x){
+                inputPins[x] = createPinView(c, inputsPosition);
+                initInputPinView(inputPins[x]);
+                inputPinsLayout.addView(inputPins[x], x);
+            }
         }
-        Log.d(TAG, "mainViewThickness (result) = " + mainViewThickness);
-        return mainViewThickness;
-    }
-
-    private int getMainViewLength(int measureSpecMode, int preferredLength, int maxLength){
-        Log.d(TAG, "getMainViewLength()");
-        Log.d(TAG, "measureSpecMode = " + measureSpecMode);
-        Log.d(TAG, "preferredLength = " + preferredLength);
-        Log.d(TAG, "maxLength = " + maxLength);
-
-        int mainViewLength;
-        switch(measureSpecMode) {
-            case MeasureSpec.AT_MOST:
-            case MeasureSpec.EXACTLY:
-                mainViewLength = maxLength;
-
-                if(measureSpecMode == MeasureSpec.AT_MOST){
-                    mainViewLength = Math.min(mainViewLength, preferredLength);
-                }
-                break;
-            case MeasureSpec.UNSPECIFIED:
-            default:
-                mainViewLength = preferredLength;
-                break;
-        }
-        Log.d(TAG, "mainViewLength (result) = " + mainViewLength);
-        return mainViewLength;
     }
 }
