@@ -2,8 +2,8 @@ package org.ricts.abstractmachine.components.network;
 
 import org.ricts.abstractmachine.components.interfaces.MemoryPort;
 import org.ricts.abstractmachine.components.interfaces.MultiMemoryPort;
-import org.ricts.abstractmachine.components.observables.ObservableMultiMemoryPort;
-import org.ricts.abstractmachine.components.observables.ObservableType;
+import org.ricts.abstractmachine.components.observable.ObservableMultiMemoryPort;
+import org.ricts.abstractmachine.components.observable.ObservableType;
 
 import java.util.List;
 

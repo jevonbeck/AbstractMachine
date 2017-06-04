@@ -1,12 +1,12 @@
 package org.ricts.abstractmachine.components.system;
 
-import org.ricts.abstractmachine.components.compute.cores.HarvardCore;
-import org.ricts.abstractmachine.components.compute.cores.UniMemoryComputeCore;
+import org.ricts.abstractmachine.components.compute.core.HarvardCore;
+import org.ricts.abstractmachine.components.compute.core.UniMemoryComputeCore;
 import org.ricts.abstractmachine.components.compute.cu.ControlUnitCore;
-import org.ricts.abstractmachine.components.observables.ObservableComputeCore;
-import org.ricts.abstractmachine.components.observables.ObservableMemoryPort;
-import org.ricts.abstractmachine.components.observables.ObservableReadPort;
-import org.ricts.abstractmachine.components.observables.ObservableUniMemoryComputeCore;
+import org.ricts.abstractmachine.components.observable.ObservableComputeCore;
+import org.ricts.abstractmachine.components.observable.ObservableMemoryPort;
+import org.ricts.abstractmachine.components.observable.ObservableReadPort;
+import org.ricts.abstractmachine.components.observable.ObservableUniMemoryComputeCore;
 import org.ricts.abstractmachine.components.storage.RAM;
 import org.ricts.abstractmachine.components.storage.ROM;
 

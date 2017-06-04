@@ -7,13 +7,13 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import org.ricts.abstractmachine.R;
-import org.ricts.abstractmachine.components.compute.cu.ControlUnitState;
+import org.ricts.abstractmachine.components.compute.cu.fsm.ControlUnitState;
 import org.ricts.abstractmachine.components.compute.cu.CuRegCore;
 import org.ricts.abstractmachine.components.interfaces.ControlUnitRegCore;
 import org.ricts.abstractmachine.components.interfaces.CuFsmInterface;
-import org.ricts.abstractmachine.components.observables.ObservableCuFSM;
-import org.ricts.abstractmachine.components.observables.ObservableCuRegCore;
-import org.ricts.abstractmachine.components.observables.ObservableDefaultValueSource;
+import org.ricts.abstractmachine.components.observable.ObservableCuFSM;
+import org.ricts.abstractmachine.components.observable.ObservableCuRegCore;
+import org.ricts.abstractmachine.components.observable.ObservableDefaultValueSource;
 import org.ricts.abstractmachine.ui.storage.ReadPortView;
 
 import java.util.Observable;

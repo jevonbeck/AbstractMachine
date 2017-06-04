@@ -17,7 +17,7 @@ public class MultiPinView extends RelativeLayout {
     protected int startDelay;
 
     private PinDataAdapter pinAdapter;
-    private int pinPosition;
+    private RelativePosition pinPosition;
     private CustomDimenRecyclerView pinView;
 
     public MultiPinView(Context context) {
@@ -33,33 +33,34 @@ public class MultiPinView extends RelativeLayout {
 
         /*** extract XML attributes ***/
         TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.DeviceView);
-        pinPosition = a.getInt(R.styleable.DeviceView_pinPosition, 1);
+        int position = a.getInt(R.styleable.DeviceView_pinPosition, RelativePosition.RIGHT.ordinal());
         a.recycle();
 
         /*** create child and determine View properties based on attributes ***/
         RelativeLayout.LayoutParams lpPinView = new RelativeLayout.LayoutParams(
                 RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
 
+        pinPosition = RelativePosition.getPositionFromInt(position);
         switch (pinPosition) {
-            case 2: // top
+            case TOP:
                 pinView = new HorizontalPinDataView(context);
 
                 inDirection = DevicePin.PinDirection.DOWN;
                 outDirection = DevicePin.PinDirection.UP;
                 break;
-            case 3: // bottom
+            case BOTTOM:
                 pinView = new HorizontalPinDataView(context);
 
                 inDirection = DevicePin.PinDirection.UP;
                 outDirection = DevicePin.PinDirection.DOWN;
                 break;
-            case 0: // left
+            case LEFT:
                 pinView = new VerticalPinDataView(context);
 
                 inDirection = DevicePin.PinDirection.RIGHT;
                 outDirection = DevicePin.PinDirection.LEFT;
                 break;
-            case 1: // right
+            case RIGHT:
             default:
                 pinView = new VerticalPinDataView(context);
 

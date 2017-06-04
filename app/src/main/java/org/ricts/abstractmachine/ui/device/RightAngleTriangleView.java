@@ -16,8 +16,6 @@ import org.ricts.abstractmachine.ui.utils.UiUtils;
  * Created by Jevon on 09/05/2015.
  */
 public class RightAngleTriangleView extends ViewGroup {
-    private static final String TAG = "RightAngleTriangleView";
-
     public enum PinDirection{
         IN, OUT
     }
@@ -32,7 +30,6 @@ public class RightAngleTriangleView extends ViewGroup {
     private PinView pinView;
     private float pinLengthDiff, pinThickness;
     protected DevicePin.PinDirection inDirection, outDirection, actualDirection;
-    private final int positionLeft, positionRight, positionTop, positionBottom;
 
     public RightAngleTriangleView(Context context) {
         this(context, null);
@@ -45,16 +42,6 @@ public class RightAngleTriangleView extends ViewGroup {
     public RightAngleTriangleView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         setWillNotDraw(false); // remove default (non) drawing behaviour for ViewGroup
-
-        /*** Initialise constants ***/
-        positionLeft = getContext().getResources().getInteger(
-                R.integer.DeviceView_pin_position_left);
-        positionRight = getContext().getResources().getInteger(
-                R.integer.DeviceView_pin_position_right);
-        positionTop = getContext().getResources().getInteger(
-                R.integer.DeviceView_pin_position_top);
-        positionBottom = getContext().getResources().getInteger(
-                R.integer.DeviceView_pin_position_bottom);
 
         /*** extract XML attributes ***/
         TypedArray a = getContext().obtainStyledAttributes(attrs, R.styleable.RightAngleTriangleView);
@@ -115,22 +102,130 @@ public class RightAngleTriangleView extends ViewGroup {
         if(hasPin()){
             // measure child to obtain 'wrapped' valid dimension
             measureChild(pinView, widthMeasureSpec, heightMeasureSpec);
+
+            if(pinView.isHorizontal()) {
+                pinThickness = pinView.getMeasuredHeight() / 2;
+                pinLengthDiff = (pinThickness * getMeasuredWidth()) / getMeasuredHeight();
+            }
+            else{
+                pinThickness = pinView.getMeasuredWidth() / 2;
+                pinLengthDiff = (pinThickness * getMeasuredHeight()) / getMeasuredWidth();
+            }
         }
     }
 
     @Override
-    protected void onLayout (boolean changed, int left, int top, int right, int bottom){
+    protected void onLayout(boolean changed, int left, int top, int right, int bottom){
         if(hasPin()){
-            // use 'wrapped' valid dimension as pinThickness
-            if(pinView.isHorizontal()) {
-                pinThickness = pinView.getMeasuredHeight() / 2;
-                pinLengthDiff = (pinThickness * getWidth()) / getHeight();
+            int l, t, r, b;
+            RelativePosition pinPosition;
+
+            int trbl = diagonalIsTopRightBottomLeft ? 1<<2 : 0;
+            int rightFilled = isRightFilled ? 1<<1 : 0;
+            int horizontal = pinView.isHorizontal() ? 1 : 0;
+            int result = trbl + rightFilled + horizontal;
+            // determine pin size and position
+            switch (result){
+                case 0: // diagonal = top-left to bottom-right, left-filled, pin vertical
+                    t = 0;
+                    b = (int) (getHeight() - pinLengthDiff) / 2;
+                    l = (int) (getWidth() - pinThickness)/2;
+                    r = l + pinView.getMeasuredWidth();
+
+                    pinPosition = RelativePosition.TOP;
+                    inDirection = DevicePin.PinDirection.DOWN;
+                    outDirection = DevicePin.PinDirection.UP;
+                    break;
+                case 1: // diagonal = top-left to bottom-right, left-filled, pin horizontal
+                    l = (int) (getWidth() + pinLengthDiff)/2;
+                    r = right - left;
+                    b = (int) (getHeight() + pinThickness)/ 2;
+                    t = b - pinView.getMeasuredHeight();
+
+                    pinPosition = RelativePosition.RIGHT;
+                    inDirection = DevicePin.PinDirection.LEFT;
+                    outDirection = DevicePin.PinDirection.RIGHT;
+                    break;
+                case 2: // diagonal = top-left to bottom-right, right-filled, pin vertical
+                    t = (int) (getHeight() + pinLengthDiff) / 2;
+                    b = bottom - top;
+                    r = (int) (getWidth() + pinThickness)/2;
+                    l = r - pinView.getMeasuredWidth();
+
+                    pinPosition = RelativePosition.BOTTOM;
+                    inDirection = DevicePin.PinDirection.UP;
+                    outDirection = DevicePin.PinDirection.DOWN;
+                    break;
+                case 3: // diagonal = top-left to bottom-right, right-filled, pin horizontal
+                    l = 0;
+                    t = (int) (getHeight() - pinThickness)/ 2;
+                    r = l + (int) (getWidth() - pinLengthDiff) / 2;
+                    b = t + pinView.getMeasuredHeight();
+
+                    pinPosition = RelativePosition.LEFT;
+                    inDirection = DevicePin.PinDirection.RIGHT;
+                    outDirection = DevicePin.PinDirection.LEFT;
+                    break;
+                case 4: // diagonal = top-right to bottom-left, left-filled, pin vertical
+                    t = (int) (getHeight() + pinLengthDiff) / 2;
+                    b = bottom - top;
+                    l = (int) (getWidth() - pinThickness)/2;
+                    r = l + pinView.getMeasuredWidth();
+
+                    pinPosition = RelativePosition.BOTTOM;
+                    inDirection = DevicePin.PinDirection.UP;
+                    outDirection = DevicePin.PinDirection.DOWN;
+                    break;
+                case 5: // diagonal = top-right to bottom-left, left-filled, pin horizontal
+                    l = (int) (getWidth() + pinLengthDiff)/2;
+                    t = (int) (getHeight() - pinThickness)/ 2;
+                    r = right - left;
+                    b = t + pinView.getMeasuredHeight();
+
+                    pinPosition = RelativePosition.RIGHT;
+                    inDirection = DevicePin.PinDirection.LEFT;
+                    outDirection = DevicePin.PinDirection.RIGHT;
+                    break;
+                case 6: // diagonal = top-right to bottom-left, right-filled, pin vertical
+                    t = 0;
+                    b = (int) (getHeight() - pinLengthDiff) / 2;
+                    r = (int) (getWidth() + pinThickness)/2;
+                    l = r - pinView.getMeasuredWidth();
+
+                    pinPosition = RelativePosition.TOP;
+                    inDirection = DevicePin.PinDirection.DOWN;
+                    outDirection = DevicePin.PinDirection.UP;
+                    break;
+                case 7: // diagonal = top-right to bottom-left, right-filled, pin horizontal
+                    l = 0;
+                    r = (int) (getWidth() - pinLengthDiff) / 2;
+                    b = (int) (getHeight() + pinThickness)/2;
+                    t = b - pinView.getMeasuredHeight();
+
+                    pinPosition = RelativePosition.LEFT;
+                    inDirection = DevicePin.PinDirection.RIGHT;
+                    outDirection = DevicePin.PinDirection.LEFT;
+                    break;
+                default:
+                    l = 0;
+                    t = 0;
+                    r = right - left;
+                    b = bottom - top;
+                    pinPosition = RelativePosition.RIGHT;
+                    inDirection = DevicePin.PinDirection.LEFT;
+                    outDirection = DevicePin.PinDirection.RIGHT;
+                    break;
             }
-            else{
-                pinThickness = pinView.getMeasuredWidth() / 2;
-                pinLengthDiff = (pinThickness * getHeight()) / getWidth();
-            }
-            placePinView(left, top, right, bottom);
+
+            // remeasure / resize memoryPins accounting for correct unspecified dimension
+            measureChild(pinView, MeasureSpec.makeMeasureSpec(r - l, MeasureSpec.EXACTLY),
+                    MeasureSpec.makeMeasureSpec(b - t, MeasureSpec.EXACTLY));
+
+            pinView.setPosition(pinPosition); // ensure that pinName is in correct position
+            pinView.layout(l, t, r, b); // position memoryPins
+
+            // set pin initial direction as 'in'
+            setPinDirection(PinDirection.IN);
         }
     }
 
@@ -200,13 +295,12 @@ public class RightAngleTriangleView extends ViewGroup {
         }
     }
 
-    public int getMinPinDimension(){
-        if(hasPin()) {
-            return 2 * pinView.getMinLength() + (int) pinLengthDiff;
-        }
-        else{
-            return 0;
-        }
+    public int getMinBaseLength(){
+        return hasPin() ? 2 * pinView.getMinLength() + (int) pinLengthDiff : 0;
+    }
+
+    public int getMinHeightLength(){
+        return hasPin() ? (int) (3*pinThickness) : 0;
     }
 
     public boolean hasPin(){
@@ -227,117 +321,6 @@ public class RightAngleTriangleView extends ViewGroup {
                 actualDirection = outDirection;
                 break;
         }
-    }
-
-    private void placePinView(int left, int top, int right, int bottom){
-        int l, t, r, b, pinPosition;
-
-        int trbl = diagonalIsTopRightBottomLeft ? 1<<2 : 0;
-        int rightFilled = isRightFilled ? 1<<1 : 0;
-        int horizontal = pinView.isHorizontal() ? 1 : 0;
-        int result = trbl + rightFilled + horizontal;
-        // determine pin size and position
-        switch (result){
-            case 0: // diagonal = top-left to bottom-right, left-filled, pin vertical
-                t = 0;
-                b = (int) (getHeight() - pinLengthDiff) / 2;
-                l = (int) (getWidth() - pinThickness)/2;
-                r = l + pinView.getMeasuredWidth();
-
-                pinPosition = positionTop;
-                inDirection = DevicePin.PinDirection.DOWN;
-                outDirection = DevicePin.PinDirection.UP;
-                break;
-            case 1: // diagonal = top-left to bottom-right, left-filled, pin horizontal
-                l = (int) (getWidth() + pinLengthDiff)/2;
-                r = right - left;
-                b = (int) (getHeight() + pinThickness)/ 2;
-                t = b - pinView.getMeasuredHeight();
-
-                pinPosition = positionRight;
-                inDirection = DevicePin.PinDirection.LEFT;
-                outDirection = DevicePin.PinDirection.RIGHT;
-                break;
-            case 2: // diagonal = top-left to bottom-right, right-filled, pin vertical
-                t = (int) (getHeight() + pinLengthDiff) / 2;
-                b = bottom - top;
-                r = (int) (getWidth() + pinThickness)/2;
-                l = r - pinView.getMeasuredWidth();
-
-                pinPosition = positionBottom;
-                inDirection = DevicePin.PinDirection.UP;
-                outDirection = DevicePin.PinDirection.DOWN;
-                break;
-            case 3: // diagonal = top-left to bottom-right, right-filled, pin horizontal
-                l = 0;
-                t = (int) (getHeight() - pinThickness)/ 2;
-                r = l + (int) (getWidth() - pinLengthDiff) / 2;
-                b = t + pinView.getMeasuredHeight();
-
-                pinPosition = positionLeft;
-                inDirection = DevicePin.PinDirection.RIGHT;
-                outDirection = DevicePin.PinDirection.LEFT;
-                break;
-            case 4: // diagonal = top-right to bottom-left, left-filled, pin vertical
-                t = (int) (getHeight() + pinLengthDiff) / 2;
-                b = bottom - top;
-                l = (int) (getWidth() - pinThickness)/2;
-                r = l + pinView.getMeasuredWidth();
-
-                pinPosition = positionBottom;
-                inDirection = DevicePin.PinDirection.UP;
-                outDirection = DevicePin.PinDirection.DOWN;
-                break;
-            case 5: // diagonal = top-right to bottom-left, left-filled, pin horizontal
-                l = (int) (getWidth() + pinLengthDiff)/2;
-                t = (int) (getHeight() - pinThickness)/ 2;
-                r = right - left;
-                b = t + pinView.getMeasuredHeight();
-
-                pinPosition = positionRight;
-                inDirection = DevicePin.PinDirection.LEFT;
-                outDirection = DevicePin.PinDirection.RIGHT;
-                break;
-            case 6: // diagonal = top-right to bottom-left, right-filled, pin vertical
-                t = 0;
-                b = (int) (getHeight() - pinLengthDiff) / 2;
-                r = (int) (getWidth() + pinThickness)/2;
-                l = r - pinView.getMeasuredWidth();
-
-                pinPosition = positionTop;
-                inDirection = DevicePin.PinDirection.DOWN;
-                outDirection = DevicePin.PinDirection.UP;
-                break;
-            case 7: // diagonal = top-right to bottom-left, right-filled, pin horizontal
-                l = 0;
-                r = (int) (getWidth() - pinLengthDiff) / 2;
-                b = (int) (getHeight() + pinThickness)/2;
-                t = b - pinView.getMeasuredHeight();
-
-                pinPosition = positionLeft;
-                inDirection = DevicePin.PinDirection.RIGHT;
-                outDirection = DevicePin.PinDirection.LEFT;
-                break;
-            default:
-                l = 0;
-                t = 0;
-                r = right - left;
-                b = bottom - top;
-                pinPosition = -1;
-                inDirection = DevicePin.PinDirection.LEFT;
-                outDirection = DevicePin.PinDirection.RIGHT;
-                break;
-        }
-
-        // remeasure / resize memoryPins accounting for correct unspecified dimension
-        measureChild(pinView, MeasureSpec.makeMeasureSpec(r - l, MeasureSpec.EXACTLY),
-                MeasureSpec.makeMeasureSpec(b - t, MeasureSpec.EXACTLY));
-
-        pinView.setPosition(pinPosition); // ensure that pinName is in correct position
-        pinView.layout(l, t, r, b); // position memoryPins
-
-        // set pin initial direction as 'in'
-        setPinDirection(PinDirection.IN);
     }
 
     private int getResourceId(){

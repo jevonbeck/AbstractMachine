@@ -33,10 +33,6 @@
     <item name="MappingDialogFragment_dataRegMappingButton" type="id"/>
 
     <!-- Custom View Attributes -->
-    <integer name="DeviceView_pin_position_left">0</integer>
-    <integer name="DeviceView_pin_position_right">1</integer>
-    <integer name="DeviceView_pin_position_top">2</integer>
-    <integer name="DeviceView_pin_position_bottom">3</integer>
     <integer name="RightAngleTriangleView_diagonal_topLeftToBottomRight">0</integer>
     <integer name="RightAngleTriangleView_diagonal_topRightToBottomLeft">1</integer>
     <integer name="RightAngleTriangleView_fillPosition_left">0</integer>

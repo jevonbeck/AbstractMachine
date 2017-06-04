@@ -40,7 +40,7 @@ public class PinView extends RelativeLayout {
 
         // obtain the correct position attribute!
         a = getContext().obtainStyledAttributes(attrs, R.styleable.DeviceView);
-        int position = a.getInt(R.styleable.DeviceView_pinPosition, -1); // default is -1 on purpose
+        int pinPosition = a.getInt(R.styleable.DeviceView_pinPosition, -1); // default is -1 on purpose
         a.recycle();
 
         /*** create children ***/
@@ -82,6 +82,7 @@ public class PinView extends RelativeLayout {
         LayoutParams lpPinName = new LayoutParams(
                 LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
 
+        RelativePosition position = RelativePosition.getPositionFromInt(pinPosition);
         // place pin getName accordingly
         if(nameBelow){
             addView(backgroundLayout, lpBackgroundLayout);
@@ -109,23 +110,25 @@ public class PinView extends RelativeLayout {
         }
     }
 
-    public void setPosition(int position){
+    public void setPosition(RelativePosition position){
+        if(position == null) {
+            return;
+        }
+
         // align pin getName according to pin position on device
         LayoutParams params = (RelativeLayout.LayoutParams) pinNameView.getLayoutParams();
         switch(position){ // pin's position relative to parent device
-            case 2: // top
+            case TOP:
                 params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
                 break;
-            case 3: // bottom
+            case BOTTOM:
                 params.addRule(RelativeLayout.ALIGN_PARENT_TOP);
                 break;
-            case 0: // left
+            case LEFT:
                 params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
                 break;
-            case 1: // right
+            case RIGHT:
                 params.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
-                break;
-            default:
                 break;
         }
     }
@@ -174,7 +177,8 @@ public class PinView extends RelativeLayout {
     }
 
     public int getMinLength(){
-        return (int) pinNameView.getPaint().measureText((String) pinNameView.getText()) + 6;
+        float scaleFactor = getContext().getResources().getDisplayMetrics().density;
+        return (int) pinNameView.getPaint().measureText((String) pinNameView.getText()) + (int) (3 * scaleFactor);
     }
 
     public boolean isHorizontal(){

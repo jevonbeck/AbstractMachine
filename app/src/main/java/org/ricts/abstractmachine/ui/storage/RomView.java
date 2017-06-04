@@ -10,6 +10,7 @@ import android.view.View;
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.storage.ROM;
 import org.ricts.abstractmachine.ui.device.DeviceView;
+import org.ricts.abstractmachine.ui.device.RelativePosition;
 import org.ricts.abstractmachine.ui.utils.CustomDimenRecyclerView;
 
 public class RomView extends DeviceView implements Observer {
@@ -37,27 +38,27 @@ public class RomView extends DeviceView implements Observer {
     }
 
     @Override
-    protected View createPinView(Context context, int pinPosition) {
+    protected View createPinView(Context context, RelativePosition pinPosition) {
         return new MemoryPortView(context, getDefaultAttributeSet(context, pinPosition));
     }
 
     @Override
-    protected View createMainView(Context context, int pinPosition) {
+    protected View createMainView(Context context, RelativePosition pinPosition) {
         CustomDimenRecyclerView ramView;
         switch (pinPosition) {
-            case 2: // top
+            case TOP:
                 ramItemLayout = R.layout.mem_data_vertical;
                 ramView = new HorizontalRamDataView(context);
                 break;
-            case 3: // bottom
+            case BOTTOM:
                 ramItemLayout = R.layout.mem_data_vertical;
                 ramView = new HorizontalRamDataView(context);
                 break;
-            case 0: // left
+            case LEFT:
                 ramItemLayout = R.layout.mem_data_horizontal;
                 ramView = new VerticalRamDataView(context);
                 break;
-            case 1: // right
+            case RIGHT:
             default:
                 ramItemLayout = R.layout.mem_data_horizontal;
                 ramView = new VerticalRamDataView(context);

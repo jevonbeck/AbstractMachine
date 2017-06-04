@@ -14,8 +14,6 @@ import org.ricts.abstractmachine.ui.utils.UiUtils;
  * Created by Jevon on 07/06/2015.
  */
 public abstract class TrapeziumView extends RelativeLayout {
-    private static final String TAG = "TrapeziumView";
-
     protected RightAngleTriangleView firstTriangle, lastTriangle, pinTriangle;
     protected View middle;
 
@@ -36,14 +34,16 @@ public abstract class TrapeziumView extends RelativeLayout {
     public TrapeziumView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         /*** extract XML attributes ***/
-        TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.MultiplexerView);
-        int oPosition = a.getInt(R.styleable.MultiplexerView_outputPosition, RelativePosition.RIGHT.ordinal());
-        int sPosition = a.getInt(R.styleable.MultiplexerView_selectPosition, TrapeziumEdge.NONE.ordinal());
+        TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.TrapeziumView);
+        TypedArray b = context.obtainStyledAttributes(attrs, R.styleable.ManyToOnePortView);
+        int sPosition = a.getInt(R.styleable.TrapeziumView_selectPosition, TrapeziumEdge.NONE.ordinal());
+        int oPosition = b.getInt(R.styleable.ManyToOnePortView_outputPosition, RelativePosition.RIGHT.ordinal());
         a.recycle();
+        b.recycle();
 
         RelativePosition outputPosition = RelativePosition.getPositionFromInt(oPosition);
         TrapeziumEdge selectPosition = TrapeziumEdge.getEdgeFromInt(sPosition);
-        //inputsPosition = DeviceView.getOppositePinPosition(outputPosition);
+        inputsPosition = RelativePosition.getOppositePosition(outputPosition);
 
         /*** create children ***/
         middle = new View(context);
@@ -221,64 +221,58 @@ public abstract class TrapeziumView extends RelativeLayout {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec){
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-
         int parentW = MeasureSpec.getSize(widthMeasureSpec);
         int parentH = MeasureSpec.getSize(heightMeasureSpec);
+        int parentWMode = MeasureSpec.getMode(widthMeasureSpec);
+        int parentHMode = MeasureSpec.getMode(heightMeasureSpec);
 
-        Log.d(TAG, "parentW = " + parentW);
-        Log.d(TAG, "parentH = " + parentH);
+        int triangleMinBase = Math.max(firstTriangle.getMinBaseLength(),
+                lastTriangle.getMinBaseLength());
+        int triangleMinHeight = Math.max(firstTriangle.getMinHeightLength(),
+                lastTriangle.getMinHeightLength());
 
-        // get dimensions of pins and use to size other components
-        int triangleMinDimension = Math.max(firstTriangle.getMinPinDimension(),
-                lastTriangle.getMinPinDimension());
-
-        int difference, triangleW, triangleH, middleW, middleH;
+        int triangleW, triangleH, middleW, middleH, fullW, fullH;
         switch (inputsPosition){
             case TOP:
             case BOTTOM:
-                middleW = parentH;
-                middleH = parentH;
-                difference = parentW - parentH;
-                triangleW = Math.max(difference / 2, triangleMinDimension);
-                triangleH = parentH;
+                triangleW = getTriangleDimension(triangleMinBase, parentW/3, parentWMode);
+                middleW = getMiddleBase(triangleW, parentW - 2*triangleW);
+                fullW = middleW + 2*triangleW;
+
+                triangleH = getTriangleDimension(triangleMinHeight, parentH, parentHMode);
+                middleH = triangleH;
+                fullH = middleH;
                 break;
             case LEFT:
             case RIGHT:
             default:
-                middleW = parentW;
-                middleH = parentW;
-                difference = parentH - parentW;
-                triangleW = parentW;
-                triangleH = Math.max(difference / 2, triangleMinDimension);
+                triangleH = getTriangleDimension(triangleMinBase, parentH/3, parentHMode);
+                middleH = getMiddleBase(triangleH, parentH - 2*triangleH);
+                fullH = middleH + 2*triangleH;
+
+                triangleW = getTriangleDimension(triangleMinHeight, parentW, parentWMode);
+                middleW = triangleW;
+                fullW = middleW;
                 break;
         }
 
-        int diffW, diffH, diffMax = 10;
-
-        LayoutParams lpMiddle = (LayoutParams) middle.getLayoutParams();
-        diffW = Math.abs(lpMiddle.width - middleW);
-        diffH = Math.abs(lpMiddle.height - middleH);
-        if(diffW > diffMax || diffH > diffMax) {
-            lpMiddle.width = middleW;
-            lpMiddle.height = middleH;
-        }
-
         LayoutParams lpFirstTriangle = (LayoutParams) firstTriangle.getLayoutParams();
-        diffW = Math.abs(lpFirstTriangle.width - triangleW);
-        diffH = Math.abs(lpFirstTriangle.height - triangleH);
-        if(diffW > diffMax || diffH > diffMax) {
-            lpFirstTriangle.width = triangleW;
-            lpFirstTriangle.height = triangleH;
-        }
+        lpFirstTriangle.width = triangleW;
+        lpFirstTriangle.height = triangleH;
 
         LayoutParams lpLastTriangle = (LayoutParams) lastTriangle.getLayoutParams();
-        diffW = Math.abs(lpLastTriangle.width - triangleW);
-        diffH = Math.abs(lpLastTriangle.height - triangleH);
-        if(diffW > diffMax || diffH > diffMax) {
-            lpLastTriangle.width = triangleW;
-            lpLastTriangle.height = triangleH;
-        }
+        lpLastTriangle.width = triangleW;
+        lpLastTriangle.height = triangleH;
+
+        LayoutParams lpMiddle = (LayoutParams) middle.getLayoutParams();
+        lpMiddle.width = middleW;
+        lpMiddle.height = middleH;
+
+        fullW += getPaddingLeft() + getPaddingRight();
+        fullH += getPaddingTop() + getPaddingBottom();
+
+        super.onMeasure(MeasureSpec.makeMeasureSpec(fullW, parentWMode),
+                MeasureSpec.makeMeasureSpec(fullH, parentHMode));
     }
 
     public void animateEdgePin(){
@@ -289,5 +283,20 @@ public abstract class TrapeziumView extends RelativeLayout {
 
     public void setEdgePinText(String text) {
         edgePinData.data = text;
+    }
+
+    private int getTriangleDimension(int minDimension, int parentAllowedDimension, int measureSpecMode) {
+        switch (measureSpecMode) {
+            case MeasureSpec.UNSPECIFIED:
+            case MeasureSpec.AT_MOST:
+                return minDimension > 0 ?
+                        Math.min(minDimension, parentAllowedDimension) : parentAllowedDimension;
+            default:
+                return parentAllowedDimension;
+        }
+    }
+
+    private int getMiddleBase(int preferredDimension, int maxAllowedDimension){
+        return Math.min(preferredDimension, maxAllowedDimension);
     }
 }
