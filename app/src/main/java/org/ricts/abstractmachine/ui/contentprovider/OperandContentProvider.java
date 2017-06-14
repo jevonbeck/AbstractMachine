@@ -36,18 +36,20 @@ public class OperandContentProvider extends ContentProvider {
     @Nullable
     @Override
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
-        String query = uri.getLastPathSegment().toUpperCase();
-
-        int row_count = 0;
         MatrixCursor cursor = new MatrixCursor(COL_NAMES);
-        Set<String> validMneumonics = opInfo.validMneumonics();
-        for(String mneumonic : validMneumonics) {
-            if(query.equals("") || (mneumonic.startsWith(query) && !mneumonic.equals(query))) {
-                Object [] columnData = new Object[COL_NAMES.length];
-                columnData[0] = row_count++;
-                columnData[1] = mneumonic;
-                columnData[2] = mneumonic;
-                cursor.addRow(columnData);
+
+        if(opInfo != null){
+            String query = uri.getLastPathSegment().toUpperCase();
+
+            int row_count = 0;
+            for(String mneumonic : opInfo.validMneumonics()) {
+                if(query.equals("") || (mneumonic.startsWith(query) && !mneumonic.equals(query))) {
+                    Object [] columnData = new Object[COL_NAMES.length];
+                    columnData[0] = row_count++;
+                    columnData[1] = mneumonic;
+                    columnData[2] = mneumonic;
+                    cursor.addRow(columnData);
+                }
             }
         }
 

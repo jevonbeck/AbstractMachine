@@ -106,7 +106,7 @@ public class OperandInfo extends Device {
     }
 
     public boolean hasMneumonic(String mneumonic){
-        return validStringMap.containsKey(mneumonic);
+        return mapped && validStringMap.containsKey(mneumonic);
     }
 
     public Map<String, Integer> getMapping() {
