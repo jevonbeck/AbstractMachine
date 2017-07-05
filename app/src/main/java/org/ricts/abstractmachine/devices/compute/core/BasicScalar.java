@@ -4,6 +4,7 @@ import android.content.res.Resources;
 
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.compute.core.UniMemoryComputeCore;
+import org.ricts.abstractmachine.components.compute.interrupt.InterruptSource;
 import org.ricts.abstractmachine.components.compute.isa.InstructionGroup;
 import org.ricts.abstractmachine.components.compute.isa.IsaDecoder;
 import org.ricts.abstractmachine.components.compute.isa.OperandInfo;
@@ -11,17 +12,23 @@ import org.ricts.abstractmachine.components.storage.Register;
 import org.ricts.abstractmachine.components.storage.RegisterStack;
 import org.ricts.abstractmachine.devices.compute.alu.BasicALU;
 import org.ricts.abstractmachine.devices.compute.alu.BasicALU.Mneumonics;
+import org.ricts.abstractmachine.devices.compute.interrupt.PIC16F877ATimer0;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 public class BasicScalar extends UniMemoryComputeCore {
+    private static final int TMR0_REG_INDEX = PIC16F877ATimer0.Regs.TMR0.ordinal();
+    private static final int OPTIONS_REG_INDEX = PIC16F877ATimer0.Regs.OPTION_REG.ordinal();
+    private static final int INTERRUPT_VECTOR_ADDRESS = 0x1;
+
     /*** Start of Instruction Definitions ***/
     public enum Instruction {
         POP(R.string.basic_scalar_pop_format, R.string.basic_scalar_pop_desc),
         NOP(R.string.basic_scalar_nop_format, R.string.basic_scalar_nop_desc),
         HALT(R.string.basic_scalar_halt_format, R.string.basic_scalar_halt_desc),
+        RETFIE(R.string.basic_scalar_retfie_format, R.string.basic_scalar_retfie_desc),
         JUMP(R.string.basic_scalar_jump_format, R.string.basic_scalar_jump_desc),
         PUSH(R.string.basic_scalar_push_format, R.string.basic_scalar_push_desc),
         STOREPC(R.string.basic_scalar_storepc_format, R.string.basic_scalar_storepc_desc),
@@ -81,7 +88,8 @@ public class BasicScalar extends UniMemoryComputeCore {
     }
 
     public enum InstructionGrouping {
-        NoOperands(new Instruction[]{Instruction.POP, Instruction.NOP, Instruction.HALT}, new int[]{}),
+        NoOperands(new Instruction[]{Instruction.POP, Instruction.NOP, Instruction.HALT, Instruction.RETFIE},
+                new int[]{}),
         InstrAddressReg(new Instruction[]{Instruction.JUMP, Instruction.PUSH, Instruction.STOREPC},
                 new int []{R.string.basic_scalar_iareg_label}),
         InstrAddressLiteral(new Instruction[]{Instruction.JUMPL},
@@ -176,19 +184,27 @@ public class BasicScalar extends UniMemoryComputeCore {
     }
 
     public enum InterruptFlags {
-        STACKOFLOW, STACKUFLOW
+        TMR0, STACKOFLOW, STACKUFLOW
+    }
+
+    public enum ControlRegFlags {
+        INTERRUPTS
     }
 
     private int stackAddrWidth, dataRegAddrWidth, dAddrRegAddrWidth, iAddrRegAddrWidth;
     private Register pcReg;
     private Register statusReg;
+    private Register controlReg;
     private Register intEnableReg; // interrupt enable
     private Register intFlagsReg; // interrupt flags
+    private Register intSourceEnableReg; // interrupt source enable
     private Register[] dataRegs; // (no. of) registers for manipulating data
     private Register[] dataAddrRegs; // (no. of) registers for storing data addresses
     private Register[] instrAddrRegs; // (no. of) registers for storing instruction addresses (temporarily)
     private RegisterStack callStack; // presence or absence of on-chip call stack
     private BasicALU alu; // operations allowed by ALU
+
+    private Register tmr0Reg, optionsReg;
 
     public BasicScalar(Resources res, int byteMultiplierWidth, int dAdWidth, int iAdWidth, int stkAdWidth,
                        int dRegAdWidth, int dAdrRegAdWidth, int iAdrRegAdWidth) {
@@ -205,9 +221,11 @@ public class BasicScalar extends UniMemoryComputeCore {
         int byteCount = 1 << byteMultiplierWidth; // for making data-width (dWidth) a multiple of BYTE_WIDTH bits (1 byte)
         dataWidth = BYTE_WIDTH * byteCount;
 
-        dataRegAddrWidth = dRegAdWidth;
+        int minDataRegAddrWidth = 4;
+        int minInstrRegAddrWidth = 1;
+        dataRegAddrWidth = dRegAdWidth >= minDataRegAddrWidth ? dRegAdWidth : minDataRegAddrWidth;
         dAddrRegAddrWidth = dAdrRegAdWidth;
-        iAddrRegAddrWidth = iAdrRegAdWidth;
+        iAddrRegAddrWidth = iAdrRegAdWidth >= minInstrRegAddrWidth ? iAdrRegAdWidth : minInstrRegAddrWidth;
         stackAddrWidth = stkAdWidth;
 
         /* Initialise OperandInfo */
@@ -226,6 +244,10 @@ public class BasicScalar extends UniMemoryComputeCore {
         dataRegAddrInfo.addMappingWithoutReplacement(resources.getString(R.string.basic_scalar_status_reg), dataRegAddrCount++);
         dataRegAddrInfo.addMappingWithoutReplacement(resources.getString(R.string.basic_scalar_intenable_reg), dataRegAddrCount++);
         dataRegAddrInfo.addMappingWithoutReplacement(resources.getString(R.string.basic_scalar_intflags_reg), dataRegAddrCount++);
+        dataRegAddrInfo.addMappingWithoutReplacement(resources.getString(R.string.basic_scalar_intsrcenable_reg), dataRegAddrCount++);
+        dataRegAddrInfo.addMappingWithoutReplacement(resources.getString(R.string.basic_scalar_control_reg), dataRegAddrCount++);
+        dataRegAddrInfo.addMappingWithoutReplacement(resources.getString(R.string.basic_scalar_options_reg), dataRegAddrCount++);
+        dataRegAddrInfo.addMappingWithoutReplacement(resources.getString(R.string.basic_scalar_tmr0_reg), dataRegAddrCount++);
         int maxAddress = (1 << dataRegAddrWidth) - dataRegAddrCount;
         for(int x=0; x < maxAddress; ++x) {
             dataRegAddrInfo.addMappingWithoutReplacement("R" + x, dataRegAddrCount + x);
@@ -236,11 +258,13 @@ public class BasicScalar extends UniMemoryComputeCore {
         for(int x=0; x < maxAddress; ++x) {
             dAddrRegAddrInfo.addMappingWithoutReplacement("A" + x, x);
         }
-        
+
+        int instrRegAddrCount = 0;
         iAddrRegAddrInfo = new OperandInfo(iAddrRegAddrWidth, true, true);
-        maxAddress = 1 << iAddrRegAddrWidth;
+        iAddrRegAddrInfo.addMappingWithoutReplacement(resources.getString(R.string.basic_scalar_pc_reg), instrRegAddrCount++);
+        maxAddress = (1 << iAddrRegAddrWidth) - instrRegAddrCount;
         for(int x=0; x < maxAddress; ++x) {
-            iAddrRegAddrInfo.addMappingWithoutReplacement("I" + x, x);
+            iAddrRegAddrInfo.addMappingWithoutReplacement("I" + x, instrRegAddrCount + x);
         }
 
 		/* Initialise ISA. N.B: BasicCore has a register machine ISA */
@@ -420,7 +444,7 @@ public class BasicScalar extends UniMemoryComputeCore {
     public void reset() {
         /* Initialise core units */
         alu = new BasicALU(dataWidth);
-        callStack = new RegisterStack(dataWidth, 1 << stackAddrWidth); // stack with size 2^stackAddrWidth
+        callStack = new RegisterStack(iAddrWidth, 1 << stackAddrWidth); // stack with size 2^stackAddrWidth
 
 	    /* Initialise registers */
         dataRegs = new Register[1 << dataRegAddrWidth]; // for data (2^dataRegAddrWidth regs)
@@ -428,11 +452,19 @@ public class BasicScalar extends UniMemoryComputeCore {
         statusReg = new Register(StatusFlags.values().length);
         intEnableReg = new Register(InterruptFlags.values().length);
         intFlagsReg = new Register(InterruptFlags.values().length);
+        intSourceEnableReg = new Register(InterruptFlags.values().length);
+        controlReg = new Register(dataWidth);
+        optionsReg = new Register(dataWidth);
+        tmr0Reg = new Register(dataWidth);
 
         int dataRegAddrCount = 0;
         dataRegs[dataRegAddrCount++] = statusReg;
         dataRegs[dataRegAddrCount++] = intEnableReg;
         dataRegs[dataRegAddrCount++] = intFlagsReg;
+        dataRegs[dataRegAddrCount++] = intSourceEnableReg;
+        dataRegs[dataRegAddrCount++] = controlReg;
+        dataRegs[dataRegAddrCount++] = optionsReg;
+        dataRegs[dataRegAddrCount++] = tmr0Reg;
         for (int x = dataRegAddrCount; x < dataRegs.length; ++x) {
             dataRegs[x] = new Register(dataWidth);
         }
@@ -470,6 +502,46 @@ public class BasicScalar extends UniMemoryComputeCore {
     }
 
     @Override
+    public boolean isEnabled(String sourceName) {
+        InterruptFlags interrupt = Enum.valueOf(InterruptFlags.class, sourceName);
+        return getBitAtIndex(interrupt.ordinal(), intSourceEnableReg.read());
+    }
+
+    @Override
+    public void raiseInterrupt(String sourceName) {
+        InterruptFlags interrupt = Enum.valueOf(InterruptFlags.class, sourceName);
+        intFlagsReg.write(setBitAtIndex(interrupt.ordinal(), intFlagsReg.read()));
+    }
+
+    @Override
+    public int[] getRegData(String sourceName) {
+        int [] result;
+
+        InterruptFlags interrupt = Enum.valueOf(InterruptFlags.class, sourceName);
+        switch(interrupt) {
+            case TMR0:
+                result = new int[PIC16F877ATimer0.Regs.values().length];
+                result[TMR0_REG_INDEX] = tmr0Reg.read();
+                result[OPTIONS_REG_INDEX] = optionsReg.read();
+                break;
+            default:
+                result = new int[0];
+        }
+
+        return result;
+    }
+
+    @Override
+    public void setRegData(String sourceName, int[] data) {
+        InterruptFlags interrupt = Enum.valueOf(InterruptFlags.class, sourceName);
+        switch(interrupt) {
+            case TMR0:
+                tmr0Reg.write(data[TMR0_REG_INDEX]);
+                break;
+        }
+    }
+
+    @Override
     protected boolean isHaltInstr(String groupName, int groupIndex) {
         InstructionGrouping grouping = Enum.valueOf(InstructionGrouping.class, groupName);
         return grouping == InstructionGrouping.NoOperands && grouping.decode(groupIndex) == Instruction.HALT;
@@ -492,13 +564,16 @@ public class BasicScalar extends UniMemoryComputeCore {
                 // Instructions with 0 operands
                 switch (instruction) {
                     case POP: // cu <-- predefinedStack.pop(); updateUnderflowFlag(); ('return' control-flow construct)
-                        updateProgramCounter(callStack.pop());
-                        intFlagsReg.write(setBitValueAtIndex(InterruptFlags.STACKUFLOW.ordinal(), intFlagsReg.read(), callStack.isEmpty()));
+                        popCallStack();
                         break;
                     case NOP: // do nothing
                         break;
                     case HALT: // tell Control Unit to stop execution
                         setInternalControlUnitState(ControlUnitState.HALT);
+                        break;
+                    case RETFIE:
+                        controlReg.write(setBitAtIndex(ControlRegFlags.INTERRUPTS.ordinal(), controlReg.read())); // re-enable interrupts
+                        popCallStack();
                         break;
                 }
                 break;
@@ -509,9 +584,7 @@ public class BasicScalar extends UniMemoryComputeCore {
                         updateProgramCounter(instrAddrRegs[operands[0]].read());
                         break;
                     case PUSH: // predefStack.push(IADREG); updateOverflowFlag(); (part of 'function-call' control-flow construct)
-                        callStack.push(instrAddrRegs[operands[0]].read());
-
-                        intFlagsReg.write(setBitValueAtIndex(InterruptFlags.STACKOFLOW.ordinal(), intFlagsReg.read(), callStack.isFull()));
+                        pushCallStack(instrAddrRegs[operands[0]].read());
                         break;
                     case STOREPC: // IADREG <-- cu (part of 'switch' statement / look-up table / 'function-call' control-flow construct)
                         instrAddrRegs[operands[0]].write(pcReg.read());
@@ -767,8 +840,21 @@ public class BasicScalar extends UniMemoryComputeCore {
 
     @Override
     protected void vectorToInterruptHandler() {
-        // TODO: Do nothing for now! Implement appropriate logic when interrupts are implemented
-        // TODO: update internal PC to vector location if interrupt
+        if(getBitAtIndex(ControlRegFlags.INTERRUPTS.ordinal(), controlReg.read())){ // interrupts enabled globally
+            // Interrupt enable bits and flags are aligned in respective registers.
+            // Logical AND comparison determines whether interrupts are enabled and flags raised.
+            int compareResult = intEnableReg.read() & intFlagsReg.read();
+
+            // As this device has only 1 interrupt vector, any non-zero result for logical AND comparison
+            // results in vectoring to that location.
+            if(compareResult != 0) {
+                // temporarily disable interrupts to avoid further interrupts
+                controlReg.write(clearBitAtIndex(ControlRegFlags.INTERRUPTS.ordinal(), controlReg.read()));
+
+                pushCallStack(pcReg.read()); // store current program location
+                updateProgramCounter(INTERRUPT_VECTOR_ADDRESS); // go to interrupt vector
+            }
+        }
     }
 
     @Override
@@ -794,6 +880,13 @@ public class BasicScalar extends UniMemoryComputeCore {
     @Override
     protected void updateProgramCounterRegs(int programCounter) {
         pcReg.write(programCounter);
+    }
+
+    @Override
+    protected InterruptSource[] createInterruptSources() {
+        return new InterruptSource[]{
+                new PIC16F877ATimer0(InterruptFlags.TMR0.name(), this)
+        };
     }
 
     @Override
@@ -932,5 +1025,17 @@ public class BasicScalar extends UniMemoryComputeCore {
         statusReg.write(setBitValueAtIndex(StatusFlags.OVERFLOW.ordinal(), statusReg.read(), alu.overflowFlag()));
         statusReg.write(setBitValueAtIndex(StatusFlags.SIGN.ordinal(), statusReg.read(), alu.signFlag()));
         statusReg.write(setBitValueAtIndex(StatusFlags.ZERO.ordinal(), statusReg.read(), alu.zeroFlag()));
+    }
+
+    private void pushCallStack(int value) {
+        callStack.push(value);
+        intFlagsReg.write(setBitValueAtIndex(InterruptFlags.STACKOFLOW.ordinal(),
+                intFlagsReg.read(), callStack.isFull()));
+    }
+
+    private void popCallStack() {
+        updateProgramCounter(callStack.pop());
+        intFlagsReg.write(setBitValueAtIndex(InterruptFlags.STACKUFLOW.ordinal(),
+                intFlagsReg.read(), callStack.isEmpty()));
     }
 }

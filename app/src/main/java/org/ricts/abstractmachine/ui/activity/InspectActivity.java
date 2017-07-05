@@ -222,7 +222,7 @@ public abstract class InspectActivity<T extends ComputeCore> extends AppCompatAc
                 }
 
                 int stkAdWidth = 3;
-                int dRegAdWidth = 3;
+                int dRegAdWidth = 4;
                 int dAdrRegAdWidth = 1;
                 int iAdrRegAdWidth = 1;
 

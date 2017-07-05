@@ -40,11 +40,11 @@ public class Device {
     }
 
     protected static boolean getBitAtIndex(int bitIndex, int number){
-        return ((number & (1<<bitIndex)) != 0);
+        return (number & (1<<bitIndex)) != 0;
     }
 
     protected static int setBitAtIndex(int bitIndex, int number){
-        int bitMask = (1<<bitIndex);
+        int bitMask = 1<<bitIndex;
         return number | bitMask;
     }
 

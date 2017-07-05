@@ -2,6 +2,8 @@ package org.ricts.abstractmachine.components.compute.core;
 
 import android.content.res.Resources;
 
+import org.ricts.abstractmachine.components.compute.interrupt.InterruptSource;
+import org.ricts.abstractmachine.components.compute.interrupt.InterruptTarget;
 import org.ricts.abstractmachine.components.compute.isa.InstructionGroupDecoder;
 import org.ricts.abstractmachine.components.compute.isa.IsaDecoder;
 import org.ricts.abstractmachine.components.compute.isa.OperandInfo;
@@ -9,7 +11,7 @@ import org.ricts.abstractmachine.components.devicetype.Device;
 import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
 import org.ricts.abstractmachine.components.interfaces.ControlUnitInterface;
 
-public abstract class ComputeCore extends Device implements ComputeCoreInterface {
+public abstract class ComputeCore extends Device implements ComputeCoreInterface, InterruptTarget {
 	protected IsaDecoder instrDecoder;
 
 	protected int instrWidth;  
@@ -23,6 +25,8 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
 
     private boolean pcUpdated = false;
     private ControlUnitState internalControlUnitState = ControlUnitState.ACTIVE;
+
+    private InterruptSource [] interruptSources;
 
     protected enum ControlUnitState {
         ACTIVE, SLEEP, HALT
@@ -47,12 +51,14 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
     protected abstract void vectorToInterruptHandler();
     protected abstract int executionTime(String groupName, int groupIndex);
     protected abstract void updateProgramCounterRegs(int programCounter);
+    protected abstract InterruptSource [] createInterruptSources();
     protected abstract String insToString(String groupName, int groupIndex, int[] operands);
     protected abstract String getGroupName(String mneumonic);
     protected abstract String nopMneumonic();
 
     public ComputeCore(Resources res) {
         resources = res;
+        interruptSources = createInterruptSources();
     }
 
 	@Override
@@ -78,6 +84,7 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
     @Override
     public void executeInstruction(int programCounter, int instruction) {
         updateProgramCounterRegs(programCounter);
+        latchInterruptSources();
 
 		int instruct = instruction & instrBitMask;
 		if(instrDecoder.isValidInstruction(instruct)){
@@ -140,6 +147,7 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
 
     @Override
     public void checkInterrupts() {
+        latchInterruptSources();
         int before = getProgramCounterValue();
         vectorToInterruptHandler();
         int after = getProgramCounterValue();
@@ -256,6 +264,12 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
         pcUpdated = false;
         setInternalControlUnitState(ControlUnitState.ACTIVE);
         fetchOpsExecuteInstr(groupName, groupIndex, operands);
+    }
+
+    private void latchInterruptSources() {
+        for(InterruptSource source : interruptSources) {
+            source.updateTarget();
+        }
     }
 
     private void writeToControlUnit(ControlUnitInterface cu){
