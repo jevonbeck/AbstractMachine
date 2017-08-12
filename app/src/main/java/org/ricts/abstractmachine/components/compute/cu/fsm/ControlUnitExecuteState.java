@@ -1,16 +1,16 @@
 package org.ricts.abstractmachine.components.compute.cu.fsm;
 
 import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
-import org.ricts.abstractmachine.components.interfaces.ControlUnitRegCore;
+import org.ricts.abstractmachine.components.interfaces.FetchCore;
 
 public class ControlUnitExecuteState extends ControlUnitState {
-    private ControlUnitRegCore cuRegCore;
+    private FetchCore cuRegCore;
     private ComputeCoreInterface core;
 
-    public ControlUnitExecuteState(ComputeCoreInterface proc, ControlUnitRegCore regCore){
+    public ControlUnitExecuteState(ComputeCoreInterface proc, FetchCore fetchCore){
         super(GenericCUState.EXECUTE);
         core = proc;
-        cuRegCore = regCore;
+        cuRegCore = fetchCore;
     }
 
     @Override

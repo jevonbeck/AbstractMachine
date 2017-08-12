@@ -3,10 +3,10 @@ package org.ricts.abstractmachine.components.compute.cu;
 import org.ricts.abstractmachine.components.compute.cu.fsm.ControlUnitState.GenericCUState;
 import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
 import org.ricts.abstractmachine.components.interfaces.ControlUnitInterface;
-import org.ricts.abstractmachine.components.interfaces.ControlUnitRegCore;
+import org.ricts.abstractmachine.components.interfaces.FetchCore;
 import org.ricts.abstractmachine.components.interfaces.CuFsmInterface;
 import org.ricts.abstractmachine.components.interfaces.ReadPort;
-import org.ricts.abstractmachine.components.observable.ObservableCuRegCore;
+import org.ricts.abstractmachine.components.observable.ObservableFetchCore;
 import org.ricts.abstractmachine.components.observable.ObservableCuFSM;
 import org.ricts.abstractmachine.components.observable.ObservableDefaultValueSource;
 
@@ -20,17 +20,17 @@ public abstract class ControlUnitCore implements ControlUnitInterface {
     private static final String HALT_STATE = GenericCUState.HALT.name();
     private static final String SLEEP_STATE = GenericCUState.SLEEP.name();
 
-    protected abstract CuRegCore createRegCore(ReadPort instructionCache, int pcWidth, int irWidth);
-    protected abstract CuFsmInterface createMainFSM(ControlUnitRegCore regCore, ComputeCoreInterface core);
+    protected abstract FetchUnit createRegCore(ReadPort instructionCache, int pcWidth, int irWidth);
+    protected abstract CuFsmInterface createMainFSM(FetchCore regCore, ComputeCoreInterface core);
     protected abstract DefaultValueSource createDefaultValueSource();
     protected abstract void resetInternal();
 
-    protected ObservableCuRegCore regCore;
+    protected ObservableFetchCore regCore;
     protected ObservableCuFSM mainFSM;
     private ObservableDefaultValueSource irDefaultValueSource;
 
     public ControlUnitCore(ComputeCoreInterface core, ReadPort instructionCache) {
-        regCore = new ObservableCuRegCore(createRegCore(instructionCache, core.iAddrWidth(), core.instrWidth()));
+        regCore = new ObservableFetchCore(createRegCore(instructionCache, core.iAddrWidth(), core.instrWidth()));
         mainFSM = new ObservableCuFSM(createMainFSM(regCore, core));
         irDefaultValueSource = new ObservableDefaultValueSource(createDefaultValueSource());
     }
@@ -57,7 +57,7 @@ public abstract class ControlUnitCore implements ControlUnitInterface {
         mainFSM.setNextState(SLEEP_STATE);
     }
 
-    public ObservableCuRegCore getRegCore() {
+    public ObservableFetchCore getRegCore() {
         return regCore;
     }
 

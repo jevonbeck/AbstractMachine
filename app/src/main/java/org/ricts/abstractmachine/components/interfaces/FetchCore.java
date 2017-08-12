@@ -4,12 +4,11 @@ package org.ricts.abstractmachine.components.interfaces;
  * Created by Jevon on 11/03/2017.
  */
 
-public interface ControlUnitRegCore {
+public interface FetchCore {
     void fetchInstruction();
     void setPC(int currentPC);
     void setPcAndIr(int currentPC, int currentIR);
     void updatePcWithExpectedValues();
-    boolean hasTempRegs();
 
     int fetchTime();
 

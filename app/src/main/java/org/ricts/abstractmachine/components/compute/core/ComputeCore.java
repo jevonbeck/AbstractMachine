@@ -14,7 +14,7 @@ import org.ricts.abstractmachine.components.interfaces.ControlUnitInterface;
 public abstract class ComputeCore extends Device implements ComputeCoreInterface, InterruptTarget {
 	protected IsaDecoder instrDecoder;
 
-	protected int instrWidth;  
+	protected int instrWidth;
 	protected int instrBitMask;
 	protected int iAddrWidth;
 	protected int dAddrWidth;

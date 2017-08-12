@@ -24,6 +24,7 @@
     <string name="instruction_register_label">IR:</string>
     <string name="decoded_instruction_label">Ins:</string>
     <string name="control_unit_fetch_state">fetch</string>
+    <string name="control_unit_decode_state">decode</string>
     <string name="control_unit_execute_state">execute</string>
     <string name="control_unit_sleep_state">sleep</string>
     <string name="control_unit_halt_state">halt</string>

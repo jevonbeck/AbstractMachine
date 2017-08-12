@@ -2,7 +2,7 @@ package org.ricts.abstractmachine.components.compute.cu.fsm;
 
 import org.ricts.abstractmachine.components.fsm.State;
 import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
-import org.ricts.abstractmachine.components.interfaces.ControlUnitRegCore;
+import org.ricts.abstractmachine.components.interfaces.FetchCore;
 
 /**
  * Created by Jevon on 26/08/2016.
@@ -10,7 +10,7 @@ import org.ricts.abstractmachine.components.interfaces.ControlUnitRegCore;
 public class ControlUnitFSM extends CuFsmCore {
     private ControlUnitState fetch, execute;
 
-    public ControlUnitFSM(ControlUnitRegCore regCore, ComputeCoreInterface core){
+    public ControlUnitFSM(FetchCore regCore, ComputeCoreInterface core){
         // setup instruction cycle
         fetch = new ControlUnitFetchState(regCore);
         execute = new ControlUnitExecuteState(core, regCore);

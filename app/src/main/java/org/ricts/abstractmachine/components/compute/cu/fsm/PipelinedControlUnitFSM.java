@@ -2,7 +2,7 @@ package org.ricts.abstractmachine.components.compute.cu.fsm;
 
 import org.ricts.abstractmachine.components.fsm.State;
 import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
-import org.ricts.abstractmachine.components.interfaces.ControlUnitRegCore;
+import org.ricts.abstractmachine.components.interfaces.FetchCore;
 
 /**
  * Created by Jevon on 25/03/2017.
@@ -17,7 +17,7 @@ public class PipelinedControlUnitFSM extends CuFsmCore {
     private ControlUnitFSM fsm1, fsm2;
     private ControlUnitState active;
 
-    public PipelinedControlUnitFSM(ControlUnitRegCore regCore, ComputeCoreInterface core){
+    public PipelinedControlUnitFSM(FetchCore regCore, ComputeCoreInterface core){
         fsm1 = new ControlUnitFSM(regCore, core);
         fsm2 = new ControlUnitFSM(regCore, core);
 

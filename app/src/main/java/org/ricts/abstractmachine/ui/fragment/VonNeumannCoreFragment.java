@@ -9,7 +9,7 @@ import org.ricts.abstractmachine.components.compute.core.UniMemoryCpuCore;
 import org.ricts.abstractmachine.components.compute.cu.ControlUnitCore;
 import org.ricts.abstractmachine.components.observable.ObservableComputeCore;
 import org.ricts.abstractmachine.components.observable.ObservableCuFSM;
-import org.ricts.abstractmachine.components.observable.ObservableCuRegCore;
+import org.ricts.abstractmachine.components.observable.ObservableFetchCore;
 import org.ricts.abstractmachine.components.observable.ObservableDefaultValueSource;
 import org.ricts.abstractmachine.components.observable.ObservableMemoryPort;
 import org.ricts.abstractmachine.components.observable.ObservableMultiMemoryPort;
@@ -106,7 +106,7 @@ public class VonNeumannCoreFragment extends VonNeumannActivityFragment {
     @Override
     protected void bindObservablesToViews(){
         ObservableCuFSM fsm = controlUnit.getMainFSM();
-        ObservableCuRegCore regCore = controlUnit.getRegCore();
+        ObservableFetchCore regCore = controlUnit.getRegCore();
         ObservableDefaultValueSource irDefaultValueSource = controlUnit.getIrDefaultValueSource();
 
         /** Initialise Views **/

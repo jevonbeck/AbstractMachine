@@ -1,6 +1,6 @@
 package org.ricts.abstractmachine.components.compute.cu;
 
-import org.ricts.abstractmachine.components.interfaces.ControlUnitRegCore;
+import org.ricts.abstractmachine.components.interfaces.FetchCore;
 import org.ricts.abstractmachine.components.interfaces.ReadPort;
 import org.ricts.abstractmachine.components.storage.Register;
 
@@ -8,17 +8,17 @@ import org.ricts.abstractmachine.components.storage.Register;
  * Created by Jevon on 11/03/2017.
  */
 
-public class CuRegCore implements ControlUnitRegCore {
+public class FetchUnit implements FetchCore {
     private Register pc, tempPC; // Program Counter
     private Register ir, tempIR; // Instruction Register
     private ReadPort instructionCache;
     private boolean useTempRegs;
 
-    public CuRegCore(ReadPort iCache, int pcWidth, int irWidth) {
+    public FetchUnit(ReadPort iCache, int pcWidth, int irWidth) {
         this(iCache, pcWidth, irWidth, false);
     }
 
-    public CuRegCore(ReadPort iCache, int pcWidth, int irWidth, boolean stageStorage) {
+    public FetchUnit(ReadPort iCache, int pcWidth, int irWidth, boolean stageStorage) {
         instructionCache = iCache;
         pc = new Register(pcWidth);
         ir = new Register(irWidth);

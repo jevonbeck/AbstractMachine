@@ -1,14 +1,14 @@
 package org.ricts.abstractmachine.components.observable;
 
-import org.ricts.abstractmachine.components.compute.cu.CuRegCore;
-import org.ricts.abstractmachine.components.interfaces.ControlUnitRegCore;
+import org.ricts.abstractmachine.components.compute.cu.FetchUnit;
+import org.ricts.abstractmachine.components.interfaces.FetchCore;
 
 /**
  * Created by Jevon on 11/03/2017.
  */
 
-public class ObservableCuRegCore extends ObservableType<CuRegCore> implements ControlUnitRegCore {
-    public ObservableCuRegCore(CuRegCore type) {
+public class ObservableFetchCore extends ObservableType<FetchUnit> implements FetchCore {
+    public ObservableFetchCore(FetchUnit type) {
         super(type);
     }
 
@@ -56,11 +56,6 @@ public class ObservableCuRegCore extends ObservableType<CuRegCore> implements Co
         observable_data.updatePcWithExpectedValues();
         setChanged();
         notifyObservers(new ExpectedPcObject());
-    }
-
-    @Override
-    public boolean hasTempRegs() {
-        return observable_data.hasTempRegs();
     }
 
     @Override

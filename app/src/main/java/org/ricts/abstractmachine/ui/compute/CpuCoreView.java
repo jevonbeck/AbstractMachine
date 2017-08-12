@@ -9,12 +9,12 @@ import android.widget.TextView;
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.compute.core.ComputeCore;
 import org.ricts.abstractmachine.components.compute.cu.fsm.ControlUnitState;
-import org.ricts.abstractmachine.components.compute.cu.CuRegCore;
-import org.ricts.abstractmachine.components.interfaces.ControlUnitRegCore;
+import org.ricts.abstractmachine.components.compute.cu.FetchUnit;
+import org.ricts.abstractmachine.components.interfaces.FetchCore;
 import org.ricts.abstractmachine.components.interfaces.CuFsmInterface;
 import org.ricts.abstractmachine.components.observable.ObservableComputeCore;
 import org.ricts.abstractmachine.components.observable.ObservableCuFSM;
-import org.ricts.abstractmachine.components.observable.ObservableCuRegCore;
+import org.ricts.abstractmachine.components.observable.ObservableFetchCore;
 import org.ricts.abstractmachine.components.observable.ObservableDefaultValueSource;
 import org.ricts.abstractmachine.ui.storage.MemoryPortView;
 import org.ricts.abstractmachine.ui.storage.RamView;
@@ -152,7 +152,7 @@ public class CpuCoreView extends RelativeLayout implements Observer {
         updateIrImmediately = false;
     }
 
-    public void initCpu(CuFsmInterface fsm, ControlUnitRegCore regCore, RomView instructionCache, RamView dataMemory){
+    public void initCpu(CuFsmInterface fsm, FetchCore regCore, RomView instructionCache, RamView dataMemory){
         /** initialise variables **/
         updateState(fsm.currentState());
         pc.setText(regCore.getPCString());
@@ -205,12 +205,12 @@ public class CpuCoreView extends RelativeLayout implements Observer {
             CuFsmInterface fsm = ((ObservableCuFSM) observable).getType();
             updateState(fsm.currentState());
         }
-        else if(observable instanceof ObservableCuRegCore) {
-            CuRegCore regCore = ((ObservableCuRegCore) observable).getType();
-            pc.setText(regCore.getPCString());
-            irText = regCore.getIRString();
+        else if(observable instanceof ObservableFetchCore) {
+            FetchUnit fetchUnit = ((ObservableFetchCore) observable).getType();
+            pc.setText(fetchUnit.getPCString());
+            irText = fetchUnit.getIRString();
 
-            boolean isUpdateFromSetRegs = o != null && o instanceof ObservableCuRegCore.SetRegsObject;
+            boolean isUpdateFromSetRegs = o != null && o instanceof ObservableFetchCore.SetRegsObject;
             boolean isUpdateFromReset = irDefaultValueSourceCalled && isUpdateFromSetRegs;
             if(isUpdateFromReset) {
                 irDefaultValueSourceCalled = false; // clear indication that update was from reset
@@ -269,6 +269,9 @@ public class CpuCoreView extends RelativeLayout implements Observer {
         switch(Enum.valueOf(ControlUnitState.GenericCUState.class, text)) {
             case FETCH:
                 resId = R.string.control_unit_fetch_state;
+                break;
+            case DECODE:
+                resId = R.string.control_unit_decode_state;
                 break;
             case EXECUTE:
                 resId = R.string.control_unit_execute_state;

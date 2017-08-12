@@ -3,7 +3,7 @@ package org.ricts.abstractmachine.components.compute.cu;
 import org.ricts.abstractmachine.components.compute.core.UniMemoryCpuCore;
 import org.ricts.abstractmachine.components.compute.cu.fsm.ControlUnitFSM;
 import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
-import org.ricts.abstractmachine.components.interfaces.ControlUnitRegCore;
+import org.ricts.abstractmachine.components.interfaces.FetchCore;
 import org.ricts.abstractmachine.components.interfaces.CuFsmInterface;
 import org.ricts.abstractmachine.components.interfaces.Multiplexer;
 import org.ricts.abstractmachine.components.interfaces.ReadPort;
@@ -53,7 +53,7 @@ public class ControlUnit extends ControlUnitCore {
     }
 
     @Override
-    protected CuFsmInterface createMainFSM(ControlUnitRegCore regCore, ComputeCoreInterface core) {
+    protected CuFsmInterface createMainFSM(FetchCore regCore, ComputeCoreInterface core) {
         fsm = new ControlUnitFSM(regCore, core);
         return fsm;
     }
@@ -69,8 +69,8 @@ public class ControlUnit extends ControlUnitCore {
     }
 
     @Override
-    protected CuRegCore createRegCore(ReadPort instructionCache, int pcWidth, int irWidth) {
-        return new CuRegCore(instructionCache, pcWidth, irWidth);
+    protected FetchUnit createRegCore(ReadPort instructionCache, int pcWidth, int irWidth) {
+        return new FetchUnit(instructionCache, pcWidth, irWidth);
     }
 
     @Override

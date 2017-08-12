@@ -8,11 +8,11 @@ import android.widget.TextView;
 
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.compute.cu.fsm.ControlUnitState;
-import org.ricts.abstractmachine.components.compute.cu.CuRegCore;
-import org.ricts.abstractmachine.components.interfaces.ControlUnitRegCore;
+import org.ricts.abstractmachine.components.compute.cu.FetchUnit;
+import org.ricts.abstractmachine.components.interfaces.FetchCore;
 import org.ricts.abstractmachine.components.interfaces.CuFsmInterface;
 import org.ricts.abstractmachine.components.observable.ObservableCuFSM;
-import org.ricts.abstractmachine.components.observable.ObservableCuRegCore;
+import org.ricts.abstractmachine.components.observable.ObservableFetchCore;
 import org.ricts.abstractmachine.components.observable.ObservableDefaultValueSource;
 import org.ricts.abstractmachine.ui.storage.ReadPortView;
 
@@ -132,21 +132,21 @@ public class ControlUnitView extends RelativeLayout implements Observer{
                 updateState();
             }
         }
-        else if(observable instanceof ObservableCuRegCore) {
-            boolean isUpdateFromFetch = o != null && o instanceof ObservableCuRegCore.FetchObject;
-            boolean isUpdateFromExpectedPC = o != null && o instanceof ObservableCuRegCore.ExpectedPcObject;
-            boolean isUpdateFromSetRegs = o != null && o instanceof ObservableCuRegCore.SetRegsObject;
+        else if(observable instanceof ObservableFetchCore) {
+            boolean isUpdateFromFetch = o != null && o instanceof ObservableFetchCore.FetchObject;
+            boolean isUpdateFromExpectedPC = o != null && o instanceof ObservableFetchCore.ExpectedPcObject;
+            boolean isUpdateFromSetRegs = o != null && o instanceof ObservableFetchCore.SetRegsObject;
 
             boolean isUpdateFromReset = irDefaultValueSourceCalled && isUpdateFromSetRegs;
             if(isUpdateFromReset) {
                 irDefaultValueSourceCalled = false; // clear indication that update was from reset
             }
 
-            CuRegCore regCore = ((ObservableCuRegCore) observable).getType();
-            pcText = regCore.getPCString();
-            irText = regCore.getIRString();
+            FetchUnit fetchUnit = ((ObservableFetchCore) observable).getType();
+            pcText = fetchUnit.getPCString();
+            irText = fetchUnit.getIRString();
 
-            boolean isControlUnitReset = isUpdateFromReset && !regCore.hasTempRegs();
+            boolean isControlUnitReset = isUpdateFromReset && !fetchUnit.hasTempRegs();
             if(updateImmediately || isControlUnitReset){
                 updateIR();
                 if(isControlUnitReset){
@@ -156,7 +156,7 @@ public class ControlUnitView extends RelativeLayout implements Observer{
 
             if(updateImmediately || isUpdateFromReset || isUpdateFromFetch || isUpdateFromExpectedPC){
                 if(isUpdateFromFetch){
-                    ObservableCuRegCore.FetchObject fetchObject = (ObservableCuRegCore.FetchObject) o;
+                    ObservableFetchCore.FetchObject fetchObject = (ObservableFetchCore.FetchObject) o;
                     pcText = fetchObject.getPC();
                 }
                 updatePC();
@@ -167,13 +167,13 @@ public class ControlUnitView extends RelativeLayout implements Observer{
         }
     }
 
-    public void initCU(CuFsmInterface fsm, ControlUnitRegCore regCore, ComputeCoreView coreView,
+    public void initCU(CuFsmInterface fsm, FetchCore fetchCore, ComputeCoreView coreView,
                        ReadPortView instructionCache){
         /** initialise variables **/
         updateStateText(fsm.currentState());
         updateState();
-        pc.setText(regCore.getPCString());
-        ir.setText(regCore.getIRString());
+        pc.setText(fetchCore.getPCString());
+        ir.setText(fetchCore.getIRString());
 
         /** setup callback behaviour **/
         instructionCache.setReadResponder(new ReadPortView.ReadResponder() {
@@ -225,6 +225,9 @@ public class ControlUnitView extends RelativeLayout implements Observer{
         switch(Enum.valueOf(ControlUnitState.GenericCUState.class, text)) {
             case FETCH:
                 resId = R.string.control_unit_fetch_state;
+                break;
+            case DECODE:
+                resId = R.string.control_unit_decode_state;
                 break;
             case EXECUTE:
                 resId = R.string.control_unit_execute_state;

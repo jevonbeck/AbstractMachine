@@ -374,7 +374,7 @@ public class BasicScalar extends UniMemoryComputeCore {
         }
 
         instrDecoder = new IsaDecoder(instructionSet);
-        instrWidth = instrDecoder.instructionWidth();
+        instrWidth = instrDecoder.instrWidth();
         instrBitMask = bitMaskOfWidth(instrWidth);
 
         reset();
