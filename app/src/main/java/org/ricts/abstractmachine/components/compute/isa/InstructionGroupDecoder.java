@@ -39,7 +39,12 @@ public class InstructionGroupDecoder extends Device {
 	public int decode(int instruction){
 		return opcodeIndex(opcodeDecoder.getOpFrom(instruction));
 	}
-	
+
+	public String getMneumonicAtIndex(int groupIndex) {
+		return groupIndex < instructionFormat.instructionCount() ?
+                instructionFormat.mneumonicAt(groupIndex) : null;
+	}
+
 	public int encode(String mneumonic, int[] operands){
 		Log.d(TAG, "groupName = " + instructionFormat.groupName());
 		Log.d(TAG, "mneumonic = " + mneumonic);

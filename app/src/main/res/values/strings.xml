@@ -23,6 +23,7 @@
     <string name="program_counter_label">PC:</string>
     <string name="instruction_register_label">IR:</string>
     <string name="decoded_instruction_label">Ins:</string>
+    <string name="status_reg_label">Status:</string>
     <string name="control_unit_fetch_state">fetch</string>
     <string name="control_unit_decode_state">decode</string>
     <string name="control_unit_execute_state">execute</string>
@@ -92,6 +93,9 @@
     <string name="pin_name_pc_val">PC data</string>
     <string name="pin_name_ir_val">IR data</string>
     <string name="pin_name_select">select</string>
+    <string name="pin_name_mneumonic">mneumonic</string>
+    <string name="pin_name_operands">operands</string>
+    <string name="pin_data_decode">decode</string>
     <string name="pin_data_execute">execute</string>
     <string name="pin_data_set_next">Set Next</string>
     <string name="pin_data_get_nop">Get NOP</string>

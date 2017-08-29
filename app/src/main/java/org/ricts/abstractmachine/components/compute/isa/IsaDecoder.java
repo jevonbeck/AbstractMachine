@@ -1,6 +1,7 @@
 package org.ricts.abstractmachine.components.compute.isa;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.ricts.abstractmachine.components.devicetype.Device;
 import org.ricts.abstractmachine.components.devicetype.InstructionDevice;
@@ -10,7 +11,7 @@ public class IsaDecoder extends Device implements InstructionDevice {
     private int instructionWidth;
     private int instructionBitMask;
 
-    public IsaDecoder(ArrayList<InstructionGroup> formats) {
+    public IsaDecoder(List<InstructionGroup> formats) {
         instructionDecoders = new ArrayList<>();
         for (int x = 0; x != formats.size(); ++x) {
             instructionDecoders.add(new InstructionGroupDecoder(formats.get(x)));

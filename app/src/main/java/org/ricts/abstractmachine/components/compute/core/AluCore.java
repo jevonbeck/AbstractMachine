@@ -1,9 +1,11 @@
 package org.ricts.abstractmachine.components.compute.core;
 
 
+import org.ricts.abstractmachine.components.devicetype.DataDevice;
 import org.ricts.abstractmachine.components.devicetype.Device;
+import org.ricts.abstractmachine.components.interfaces.ALU;
 
-public class AluCore extends Device {
+public class AluCore extends Device implements DataDevice, ALU {
     public enum Flag{
         CARRY, // CarryIn/BorrowIn
         OVERFLOW, // CarryOut/ActiveLowBorrowOut
@@ -16,7 +18,6 @@ public class AluCore extends Device {
     private boolean[] statusBits; // internal array to update status bits appropriately
 
     public AluCore(int dWidth){
-        super();
         statusBits = new boolean[Flag.values().length];
 
         updateDataWidth(dWidth);
@@ -28,8 +29,17 @@ public class AluCore extends Device {
     }
 
     /* DataDevice interface implementation */
+    @Override
     public int dataWidth(){
         return dataWidth;
+    }
+
+    @Override
+    public String statusString() {
+        return  "Ci = " + booleanValueString(carryFlag()) + ", " +
+                "Co = " + booleanValueString(overflowFlag()) + ", " +
+                "S = "  + booleanValueString(signFlag()) + ", " +
+                "Z = "  + booleanValueString(zeroFlag());
     }
 
     /* ALU Flags */
@@ -210,5 +220,9 @@ public class AluCore extends Device {
 
     private boolean shiftRightOut(int A){
         return getBitAtIndex(0, A);
+    }
+
+    private String booleanValueString(boolean value) {
+        return value ? "1" : "0";
     }
 }
