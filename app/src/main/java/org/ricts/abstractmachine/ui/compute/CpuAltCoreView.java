@@ -9,13 +9,14 @@ import android.widget.TextView;
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.compute.cu.FetchUnit;
 import org.ricts.abstractmachine.components.compute.cu.fsm.ControlUnitState;
+import org.ricts.abstractmachine.components.interfaces.ALU;
 import org.ricts.abstractmachine.components.interfaces.CompCore;
 import org.ricts.abstractmachine.components.interfaces.CuFsmInterface;
 import org.ricts.abstractmachine.components.interfaces.DecoderUnit;
 import org.ricts.abstractmachine.components.interfaces.FetchCore;
 import org.ricts.abstractmachine.components.observable.ObservableComputeAltCore;
-import org.ricts.abstractmachine.components.observable.ObservableComputeCore;
 import org.ricts.abstractmachine.components.observable.ObservableCuFSM;
+import org.ricts.abstractmachine.components.observable.ObservableDecoderUnit;
 import org.ricts.abstractmachine.components.observable.ObservableDefaultValueSource;
 import org.ricts.abstractmachine.components.observable.ObservableFetchCore;
 import org.ricts.abstractmachine.ui.storage.MemoryPortView;
@@ -30,12 +31,12 @@ import java.util.Observer;
  * Created by Jevon on 18/01/15.
  */
 public class CpuAltCoreView extends RelativeLayout implements Observer {
-    private static final String TAG = "CpuCoreView";
+    private static final String TAG = "CpuAltCoreView";
 
     private InspectActionResponder responder;
 
     private TextView pc, ir;
-    private TextView stateView, instructionView;
+    private TextView stateView, instructionView, aluStateView;
     private String irText;
     private boolean updateIrImmediately, irDefaultValueSourceCalled;
 
@@ -100,6 +101,14 @@ public class CpuAltCoreView extends RelativeLayout implements Observer {
         instructionView.setTextColor(context.getResources().getColor(android.R.color.white));
         instructionView.setBackgroundColor(context.getResources().getColor(R.color.test_color2));
 
+        TextView aluStateLabel = new TextView(context);
+        aluStateLabel.setId(R.id.ComputeCoreView_alu_state_label);
+        aluStateLabel.setTextColor(context.getResources().getColor(android.R.color.white));
+        aluStateLabel.setText(context.getResources().getText(R.string.alu_state_label));
+
+        aluStateView = new TextView(context);
+        aluStateView.setTextColor(context.getResources().getColor(android.R.color.white));
+        aluStateView.setBackgroundColor(context.getResources().getColor(R.color.test_color2));
 
         /*** determine children layouts and positions ***/
         int viewWidth = (int) (110 * scaleFactor);
@@ -150,15 +159,29 @@ public class CpuAltCoreView extends RelativeLayout implements Observer {
         lpInstructionView.addRule(RelativeLayout.ALIGN_RIGHT, ir.getId());
         addView(instructionView, lpInstructionView);
 
+        LayoutParams lpAluStateLabel = new LayoutParams(
+                LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+        lpAluStateLabel.addRule(RelativeLayout.BELOW, instructionLabel.getId());
+        addView(aluStateLabel, lpAluStateLabel);
+
+        LayoutParams lpAluStateView = new LayoutParams(
+                LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
+        lpAluStateView.addRule(RelativeLayout.RIGHT_OF, aluStateLabel.getId());
+        lpAluStateView.addRule(RelativeLayout.ALIGN_TOP, aluStateLabel.getId());
+        lpAluStateView.addRule(RelativeLayout.ALIGN_RIGHT, ir.getId());
+        addView(aluStateView, lpAluStateView);
+
         /*** Initialise other vars ***/
         updateIrImmediately = false;
     }
 
-    public void initCpu(CuFsmInterface fsm, FetchCore regCore, RomView instructionCache, RamView dataMemory){
+    public void initCpu(CuFsmInterface fsm, FetchCore regCore, ALU alu,
+                        RomView instructionCache, RamView dataMemory){
         /** initialise variables **/
         updateState(fsm.currentState());
         pc.setText(regCore.getPCString());
         ir.setText(regCore.getIRString());
+        aluStateView.setText(alu.statusString());
 
         /** setup callback behaviour **/
         dataMemory.setReadResponder(new ReadPortView.ReadResponder() {
@@ -225,11 +248,9 @@ public class CpuAltCoreView extends RelativeLayout implements Observer {
         else if(observable instanceof ObservableDefaultValueSource) {
             irDefaultValueSourceCalled = true; // indicate to reg core that update is from reset
         }
-        else if(observable instanceof ObservableComputeAltCore){
-            if(o instanceof ObservableComputeCore.ExecuteParams) {
-                CompCore core = (CompCore) ((ObservableComputeAltCore) observable).getType();
-                DecoderUnit decoderUnit = core.getDecoderUnit();
-
+        else if(observable instanceof ObservableDecoderUnit){
+            if(o instanceof ObservableDecoderUnit.DecodeParams) {
+                DecoderUnit decoderUnit = ((ObservableDecoderUnit) observable).getType();
                 instructionView.setText(decoderUnit.instrString());
 
                 if(!updateIrImmediately && !decoderUnit.isDataMemoryInstruction()) {
@@ -254,6 +275,10 @@ public class CpuAltCoreView extends RelativeLayout implements Observer {
                     responder.onResetAnimationEnd();
                 }
             }
+        }
+        else if(observable instanceof ObservableComputeAltCore){
+            ALU alu = ((ObservableComputeAltCore) observable).getALU();
+            aluStateView.setText(alu.statusString());
         }
     }
 

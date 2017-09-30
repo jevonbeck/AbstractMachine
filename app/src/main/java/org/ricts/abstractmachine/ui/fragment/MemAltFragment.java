@@ -63,11 +63,11 @@ public abstract class MemAltFragment extends WizardFragment {
     private static final String INS_SEPERATOR = ",";
     private static final String INS_DATA_SEPERATOR = ";";
 
-    private CompCore mainCore;
+    private String mainCoreName;
     private DecoderUnit decoderUnit;
     private ArrayList<AssemblyMemoryData> adapterData;
     private ListView memoryContentsListView;
-    private Button mappingButton, saveButton, loadButton, newButton;
+    private Button saveButton, loadButton, newButton;
     private String currentFile;
 
     private BroadcastReceiver receiver;
@@ -111,7 +111,6 @@ public abstract class MemAltFragment extends WizardFragment {
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_memory, container, false);
         memoryContentsListView = (ListView) rootView.findViewById(R.id.listView);
-        mappingButton = (Button) rootView.findViewById(R.id.mappingButton);
         saveButton = (Button) rootView.findViewById(R.id.saveButton);
         loadButton = (Button) rootView.findViewById(R.id.loadButton);
         newButton = (Button) rootView.findViewById(R.id.newButton);
@@ -170,9 +169,9 @@ public abstract class MemAltFragment extends WizardFragment {
     private void initialiseViews(final Bundle dataBundle, boolean initFromFile){
         final Context context = getContext();
 
-        // Create appropriate ComputeCore
-        mainCore = InspectAltActivity.getComputeCore(getResources(), dataBundle);
-        decoderUnit = mainCore.getDecoderUnit();
+        // Create appropriate DecoderUnit
+        mainCoreName = dataBundle.getString(InspectAltActivity.CORE_NAME);
+        decoderUnit = InspectAltActivity.getDecoderUnit(getResources(), dataBundle);
 
         /** Configure ListView **/
         if(initFromFile){
@@ -328,7 +327,7 @@ public abstract class MemAltFragment extends WizardFragment {
                 Intent intent = getDialogActivityIntent();
                 populateActivityIntent(intent, position,
                         (AssemblyMemoryData) adapterView.getItemAtPosition(position),
-                        mainCore);
+                        decoderUnit, mainCoreName);
                 startActivity(intent);
             }
         });
@@ -336,14 +335,13 @@ public abstract class MemAltFragment extends WizardFragment {
     }
 
     protected void populateActivityIntent(Intent intent, int position,
-                                          AssemblyMemoryData data, CompCore core){
+                                          AssemblyMemoryData data, DecoderUnit decoderUnit, String coreName){
         intent.putExtra(MemoryContentsDialogActivity.MEM_TYPE_KEY, memoryType().name());
         intent.putExtra(MemoryContentsDialogActivity.MEM_ADDR_KEY, position);
         intent.putExtra(MemoryContentsDialogActivity.MEM_DATA_KEY, data);
 
-        intent.putExtra(InspectActivity.CORE_NAME, core.getClass().getSimpleName());
+        intent.putExtra(InspectActivity.CORE_NAME, coreName);
 
-        DecoderUnit decoderUnit = core.getDecoderUnit();
         intent.putExtra(InspectActivity.CORE_DATA_WIDTH, decoderUnit.dataWidth());
         intent.putExtra(InspectActivity.INSTR_ADDR_WIDTH, decoderUnit.iAddrWidth());
         intent.putExtra(InspectActivity.DATA_ADDR_WIDTH, decoderUnit.dAddrWidth());

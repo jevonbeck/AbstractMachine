@@ -16,7 +16,7 @@ import org.ricts.abstractmachine.ui.fragment.InstrMemFragment;
 import org.ricts.abstractmachine.ui.utils.wizard.WizardActivity;
 import org.ricts.abstractmachine.ui.utils.wizard.WizardFragment;
 
-public class CpuConfigureActivity extends WizardActivity implements WizardFragment.DataSource,
+public class CpuAltConfigureActivity extends WizardActivity implements WizardFragment.DataSource,
         CpuBasicsFragment.PagerAdapterUpdater {
     private static final String TAG = "CpuConfigureActivity";
 
@@ -29,15 +29,13 @@ public class CpuConfigureActivity extends WizardActivity implements WizardFragme
 
     @Override
     protected Intent nextActivityIntent() {
-        String archType = dataBundle.getString(InspectActivity.ARCH_TYPE);
+        String archType = dataBundle.getString(InspectAltActivity.ARCH_TYPE);
 
         if(archType != null) {
             if (archType.equals(getString(R.string.architecture_type_von_neumann))) {
-                //return new Intent(this, VonNeumannActivity.class);
                 return new Intent(this, VonNeumannAltActivity.class);
             } else if (archType.equals(getString(R.string.architecture_type_harvard))) {
-                //return new Intent(this, HarvardActivity.class);
-                return new Intent(this, HarvardAltActivity.class);
+                return new Intent(this, HarvardActivity.class);
             }
         }
 
@@ -69,10 +67,8 @@ public class CpuConfigureActivity extends WizardActivity implements WizardFragme
                 case 0:
                     return new CpuBasicsFragment();
                 case 1:
-                    //return new InstrMemFragment();
                     return new InstrMemAltFragment();
                 case 2:
-                    //return new DataMemFragment();
                     return new DataMemAltFragment();
                     default:
                         return null;

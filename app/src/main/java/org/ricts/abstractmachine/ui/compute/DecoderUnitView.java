@@ -50,7 +50,7 @@ public class DecoderUnitView extends DeviceView implements Observer {
 
     @Override
     protected View createPinView(Context context, RelativePosition pinPosition) {
-        return new ControlUnitInterfaceView(context, getDefaultAttributeSet(context, pinPosition));
+        return new PinsView(context, getDefaultAttributeSet(context, pinPosition));
     }
 
     @Override

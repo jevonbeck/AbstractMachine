@@ -9,6 +9,7 @@ import org.ricts.abstractmachine.components.compute.cu.ControlUnitCore;
 import org.ricts.abstractmachine.components.observable.ObservableComputeAltCore;
 import org.ricts.abstractmachine.components.observable.ObservableComputeCore;
 import org.ricts.abstractmachine.components.observable.ObservableCuFSM;
+import org.ricts.abstractmachine.components.observable.ObservableDecoderUnit;
 import org.ricts.abstractmachine.components.observable.ObservableDefaultValueSource;
 import org.ricts.abstractmachine.components.observable.ObservableFetchCore;
 import org.ricts.abstractmachine.components.observable.ObservableMemoryPort;
@@ -56,7 +57,7 @@ public class VonNeumannAltSystemFragment extends VonNeumannAltActivityFragment {
 
         /** Initialise Views **/
         memory.setDataSource((RAM) mainMemory.getType());
-        cpu.initCpu(fsm, regCore, memory, memory);
+        cpu.initCpu(fsm, regCore, mainCore.getALU(), memory, memory);
 
         /** Add observers to observables **/
         mainMemory.addObserver(memory);
@@ -64,6 +65,7 @@ public class VonNeumannAltSystemFragment extends VonNeumannAltActivityFragment {
         regCore.addObserver(cpu);
         irDefaultValueSource.addObserver(cpu);
         mainCore.addObserver(cpu);
+        decoderUnit.addObserver(cpu);
     }
 
     @Override
@@ -90,10 +92,10 @@ public class VonNeumannAltSystemFragment extends VonNeumannAltActivityFragment {
      * @param cu Control Unit
      * @return A new instance of fragment VonNeumannSystemFragment.
      */
-    public static VonNeumannAltSystemFragment newInstance(ObservableComputeAltCore core, ObservableMemoryPort memData,
-                                                          ControlUnitAltCore cu) {
+    public static VonNeumannAltSystemFragment newInstance(ObservableComputeAltCore core, ObservableDecoderUnit decoderUnit,
+                                                          ObservableMemoryPort memData, ControlUnitAltCore cu) {
         VonNeumannAltSystemFragment fragment = new VonNeumannAltSystemFragment();
-        fragment.setObservables(core, memData, cu);
+        fragment.setObservables(core, decoderUnit, memData, cu);
         return fragment;
     }
 }

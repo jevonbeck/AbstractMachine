@@ -195,6 +195,11 @@ public abstract class DecoderCore extends Device implements DecoderUnit, Instruc
         return isaDecoder.encode(getGroupName(iMneumonic), iMneumonic, operands);
     }
 
+    @Override
+    public void setMneumonic(String mneum) {
+        mneumonic = mneum;
+    }
+
     public String instrValueString(int instruction) {
         return formatNumberInHex(instruction, instrWidth);
     }

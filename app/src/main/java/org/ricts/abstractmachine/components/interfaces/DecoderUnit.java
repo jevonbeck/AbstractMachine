@@ -42,4 +42,6 @@ public interface DecoderUnit extends ComputeDevice {
     String[] getOperandLabels();
     String getDescription();
     String getInstructionFormat();
+
+    void setMneumonic(String mneumonic);
 }

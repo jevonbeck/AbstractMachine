@@ -50,15 +50,15 @@ public class ObservableDecoderUnit extends ObservableType<DecoderUnit> implement
     @Override
     public void updateValues() {
         observable_data.updateValues();
-        setChanged();
-        notifyObservers();
+        //setChanged();
+        //notifyObservers();
     }
 
     @Override
     public void invalidateValues() {
         observable_data.invalidateValues();
-        setChanged();
-        notifyObservers();
+        //setChanged();
+        //notifyObservers();
     }
 
     @Override
@@ -175,6 +175,11 @@ public class ObservableDecoderUnit extends ObservableType<DecoderUnit> implement
     }
 
     @Override
+    public void setMneumonic(String mneumonic) {
+        observable_data.setMneumonic(mneumonic);
+    }
+
+    @Override
     public String instrValueString(int instruction) {
         return observable_data.instrValueString(instruction);
     }
@@ -192,6 +197,11 @@ public class ObservableDecoderUnit extends ObservableType<DecoderUnit> implement
     @Override
     public String dataValueString(int data) {
         return observable_data.dataValueString(data);
+    }
+
+    @Override
+    public int encodeInstruction(String iMneumonic, int[] operands) {
+        return observable_data.encodeInstruction(iMneumonic, operands);
     }
 
     @Override

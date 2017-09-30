@@ -9,6 +9,7 @@ import org.ricts.abstractmachine.components.compute.core.UniMemoryCpuCore;
 import org.ricts.abstractmachine.components.compute.cu.ControlUnitAltCore;
 import org.ricts.abstractmachine.components.observable.ObservableComputeAltCore;
 import org.ricts.abstractmachine.components.observable.ObservableCuFSM;
+import org.ricts.abstractmachine.components.observable.ObservableDecoderUnit;
 import org.ricts.abstractmachine.components.observable.ObservableDefaultValueSource;
 import org.ricts.abstractmachine.components.observable.ObservableFetchCore;
 import org.ricts.abstractmachine.components.observable.ObservableMemoryPort;
@@ -76,6 +77,18 @@ public class VonNeumannAltCoreFragment extends VonNeumannAltActivityFragment {
         });
 
         cuInterfaceView = (ControlUnitInterfaceView) mainView.findViewById(R.id.cuInterface);
+        cuInterfaceView.setUpdateResponder(new ControlUnitInterfaceView.UpdateResponder() {
+            @Override
+            public void onUpdateFetchUnitCompleted() {
+                mListener.onStepActionCompleted();
+            }
+        });
+        cuInterfaceView.setCommandResponder(new ControlUnitInterfaceView.CommandOnlyResponder() {
+            @Override
+            public void onCommandCompleted() {
+                mListener.onStepActionCompleted();
+            }
+        });
 
         coreView = (ComputeAltCoreView) mainView.findViewById(R.id.core);
         coreView.setControlUnitCommandInterface(cuInterfaceView);
@@ -124,6 +137,7 @@ public class VonNeumannAltCoreFragment extends VonNeumannAltActivityFragment {
 
         /** Add observers to observables **/
         mainCore.addObserver(coreView);
+        decoderUnit.addObserver(decoderView);
         fsm.addObserver(cuView);
         regCore.addObserver(cuView);
         irDefaultValueSource.addObserver(cuView);
@@ -167,11 +181,11 @@ public class VonNeumannAltCoreFragment extends VonNeumannAltActivityFragment {
      * @param memData System memory
      * @return A new instance of fragment VonNeumannCoreFragment.
      */
-    public static VonNeumannAltCoreFragment newInstance(ObservableComputeAltCore core, ObservableMemoryPort memData,
-                                                        ControlUnitAltCore controlUnit, ObservableMultiplexer muxSelect,
-                                                        ObservableMultiMemoryPort muxPorts) {
+    public static VonNeumannAltCoreFragment newInstance(ObservableComputeAltCore core, ObservableDecoderUnit decoderUnit,
+                                                        ObservableMemoryPort memData, ControlUnitAltCore controlUnit,
+                                                        ObservableMultiplexer muxSelect, ObservableMultiMemoryPort muxPorts) {
         VonNeumannAltCoreFragment fragment = new VonNeumannAltCoreFragment();
-        fragment.setObservables(core, memData, controlUnit, muxSelect, muxPorts);
+        fragment.setObservables(core, decoderUnit, memData, controlUnit, muxSelect, muxPorts);
         return fragment;
     }
 }

@@ -13,53 +13,55 @@ import org.ricts.abstractmachine.components.compute.cu.ControlUnitAltCore;
 import org.ricts.abstractmachine.components.observable.ObservableComputeAltCore;
 import org.ricts.abstractmachine.components.observable.ObservableDecoderUnit;
 import org.ricts.abstractmachine.components.observable.ObservableMemoryPort;
-import org.ricts.abstractmachine.components.observable.ObservableMultiMemoryPort;
-import org.ricts.abstractmachine.components.observable.ObservableMultiplexer;
+import org.ricts.abstractmachine.components.observable.ObservableReadPort;
+import org.ricts.abstractmachine.components.storage.ROM;
+import org.ricts.abstractmachine.components.system.HarvardAltArchitecture;
 import org.ricts.abstractmachine.components.system.SystemAltArchitecture;
-import org.ricts.abstractmachine.components.system.VonNeumannAltArchitecture;
-import org.ricts.abstractmachine.ui.fragment.VonNeumannAltCoreFragment;
-import org.ricts.abstractmachine.ui.fragment.VonNeumannAltSystemFragment;
+import org.ricts.abstractmachine.ui.fragment.HarvardAltCoreFragment;
+import org.ricts.abstractmachine.ui.fragment.HarvardAltSystemFragment;
+import org.ricts.abstractmachine.ui.fragment.HarvardCoreFragment;
 
-public class VonNeumannAltActivity extends InspectAltActivity<UniMemoryComputeAltCore> {
-
+/**
+ * Created by Jevon on 13/08/2016.
+ */
+public class HarvardAltActivity extends InspectAltActivity<UniMemoryComputeAltCore> {
     @Override
     protected SystemAltArchitecture createSystemArchitecture(UniMemoryComputeAltCore core, Bundle options) {
-        return new VonNeumannAltArchitecture(core, 10); // TODO: change me
+        return new HarvardAltArchitecture(core, 10, 5); // TODO: change me
     }
 
     @Override
     protected void initSystemArchitecture(SystemAltArchitecture architecture, Bundle options) {
-        VonNeumannAltArchitecture vonNeumannArchitecture = (VonNeumannAltArchitecture) architecture;
-        vonNeumannArchitecture.reset();
-        vonNeumannArchitecture.initMemory(options.getIntegerArrayList(PROGRAM_MEMORY));
+        HarvardAltArchitecture harvardArchitecture = (HarvardAltArchitecture) architecture;
+        harvardArchitecture.reset();
+        harvardArchitecture.initInstructionCache(options.getIntegerArrayList(PROGRAM_MEMORY));
+        harvardArchitecture.initDataMemory(options.getIntegerArrayList(DATA_MEMORY));
     }
 
     @Override
     protected PagerAdapter createAdapter(SystemAltArchitecture architecture, ObservableDecoderUnit observableDecoderUnit) {
         return new SystemViewAdapter(getSupportFragmentManager(), this,
-                (VonNeumannAltArchitecture) architecture, observableDecoderUnit);
+                (HarvardAltArchitecture) architecture, observableDecoderUnit);
     }
 
     private static class SystemViewAdapter extends FragmentPagerAdapter {
         private static final String TAG = "SystemViewAdapter";
 
         private ObservableComputeAltCore mainCore;
-        private ObservableMemoryPort mainMemory;
-        private ControlUnitAltCore cu;
-        private ObservableMultiplexer muxSelect;
-        private ObservableMultiMemoryPort muxPorts;
+        private ObservableReadPort<ROM> instructionCache;
+        private ObservableMemoryPort dataMemory;
         private ObservableDecoderUnit decoderUnit;
+        private ControlUnitAltCore cu;
 
         private String systemString, coreString;
 
         public SystemViewAdapter(FragmentManager fm, Context context,
-                                 VonNeumannAltArchitecture architecture, ObservableDecoderUnit observableDecoderUnit) {
+                                 HarvardAltArchitecture architecture, ObservableDecoderUnit observableDecoderUnit) {
             super(fm);
             mainCore = architecture.getComputeCore();
-            mainMemory = architecture.getMainMemory();
+            instructionCache = architecture.getInstructionCache();
+            dataMemory = architecture.getDataMemory();
             cu = architecture.getControlUnit();
-            muxSelect = architecture.getMultiplexer();
-            muxPorts = architecture.getMultiplexerPorts();
             decoderUnit = observableDecoderUnit;
 
             systemString = context.getString(R.string.architecture_activity_system_label);
@@ -70,10 +72,9 @@ public class VonNeumannAltActivity extends InspectAltActivity<UniMemoryComputeAl
         public Fragment getItem(int position) {
             switch (position){
                 case 0:
-                    return VonNeumannAltSystemFragment.newInstance(mainCore, decoderUnit, mainMemory, cu);
+                    return HarvardAltSystemFragment.newInstance(mainCore, instructionCache, dataMemory, cu);
                 case 1:
-                    return VonNeumannAltCoreFragment.newInstance(mainCore, decoderUnit, mainMemory, cu,
-                            muxSelect, muxPorts);
+                    return HarvardAltCoreFragment.newInstance(mainCore, instructionCache, dataMemory, cu);
                 default:
                     return null;
             }

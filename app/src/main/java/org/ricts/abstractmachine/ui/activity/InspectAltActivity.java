@@ -15,6 +15,7 @@ import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.compute.core.ComputeCore;
 import org.ricts.abstractmachine.components.interfaces.CompCore;
 import org.ricts.abstractmachine.components.interfaces.DecoderUnit;
+import org.ricts.abstractmachine.components.observable.ObservableDecoderUnit;
 import org.ricts.abstractmachine.components.system.SystemAltArchitecture;
 import org.ricts.abstractmachine.components.system.SystemArchitecture;
 import org.ricts.abstractmachine.devices.compute.core.BasicScalar;
@@ -55,7 +56,7 @@ public abstract class InspectAltActivity<T extends CompCore> extends AppCompatAc
 
     protected abstract SystemAltArchitecture createSystemArchitecture(T core, Bundle options);
     protected abstract void initSystemArchitecture(SystemAltArchitecture architecture, Bundle options);
-    protected abstract PagerAdapter createAdapter(SystemAltArchitecture architecture);
+    protected abstract PagerAdapter createAdapter(SystemAltArchitecture architecture, ObservableDecoderUnit observableDecoderUnit);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,9 +65,11 @@ public abstract class InspectAltActivity<T extends CompCore> extends AppCompatAc
 
         /** Initialise main data **/
         final Bundle options = getIntent().getExtras();
-        architecture = createSystemArchitecture((T) getComputeCore(getResources(), options), options);
+        ObservableDecoderUnit observableDecoderUnit =
+                new ObservableDecoderUnit(getDecoderUnit(getResources(), options));
+        architecture = createSystemArchitecture((T) getComputeCore(observableDecoderUnit, options), options);
         initSystemArchitecture(architecture, options);
-        pagerAdapter = createAdapter(architecture);
+        pagerAdapter = createAdapter(architecture, observableDecoderUnit);
 
         /** Setup UI **/
         isRunning = false;
@@ -203,14 +206,30 @@ public abstract class InspectAltActivity<T extends CompCore> extends AppCompatAc
         resetButton.setEnabled(true);
     }
 
-    public static CompCore getComputeCore(Resources resources, Bundle options){
+    public static CompCore getComputeCore(ObservableDecoderUnit decoderUnit, Bundle options){
+        String coreName = options.getString(CORE_NAME);
+
+        // Create appropriate ComputeCore
+        CoreNames coreType = Enum.valueOf(CoreNames.class, coreName);
+        switch (coreType){
+            case TestName:
+            case AnotherTest:
+                // TODO: implement above cores
+            case BasicScalar:
+                return new BasicScalarCore(decoderUnit);
+            default:
+                return null;
+        }
+    }
+
+    public static DecoderUnit getDecoderUnit(Resources resources, Bundle options){
         String coreName = options.getString(CORE_NAME);
         int coreDataWidth = options.getInt(CORE_DATA_WIDTH);
         int instrAddrWidth = options.getInt(INSTR_ADDR_WIDTH);
         int dataAddrWidth = options.getInt(DATA_ADDR_WIDTH);
         boolean isPipelined = options.getBoolean(IS_PIPELINED);
 
-        // Create appropriate ComputeCore
+        // Create appropriate DecoderUnit
         CoreNames coreType = Enum.valueOf(CoreNames.class, coreName);
         switch (coreType){
             case TestName:
@@ -233,9 +252,9 @@ public abstract class InspectAltActivity<T extends CompCore> extends AppCompatAc
                 int dAdrRegAdWidth = 1;
                 int iAdrRegAdWidth = 1;
 
-                return new BasicScalarCore(new BasicScalarDecoder(resources, isPipelined,
+                return new BasicScalarDecoder(resources, isPipelined,
                         instrAddrWidth, dataAddrWidth, byteMultiplierWidth,
-                        dRegAdWidth, iAdrRegAdWidth, dAdrRegAdWidth, stkAdWidth));
+                        dRegAdWidth, iAdrRegAdWidth, dAdrRegAdWidth, stkAdWidth);
             default:
                 return null;
         }

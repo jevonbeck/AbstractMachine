@@ -3,6 +3,8 @@ package org.ricts.abstractmachine.devices.compute.core;
 import org.ricts.abstractmachine.components.compute.core.AluCore;
 import org.ricts.abstractmachine.components.compute.core.UniMemoryComputeAltCore;
 import org.ricts.abstractmachine.components.compute.interrupt.InterruptSource;
+import org.ricts.abstractmachine.components.interfaces.DecoderUnit;
+import org.ricts.abstractmachine.components.observable.ObservableDecoderUnit;
 import org.ricts.abstractmachine.components.storage.Register;
 import org.ricts.abstractmachine.components.storage.RegisterStack;
 import org.ricts.abstractmachine.devices.compute.alu.BasicALU;
@@ -49,9 +51,9 @@ public class BasicScalarCore extends UniMemoryComputeAltCore {
     private Register tmr0Reg, optionsReg;
     private int iAddrWidth, dAddrWidth, dataWidth;
 
-    public BasicScalarCore(BasicScalarDecoder decoder) {
+    public BasicScalarCore(ObservableDecoderUnit decoder) {
         super(decoder);
-        decoderCore = decoder;
+        decoderCore = (BasicScalarDecoder) decoder.getType();
         alu = (BasicALU) aluCore;
 
         iAddrWidth = decoderCore.iAddrWidth();

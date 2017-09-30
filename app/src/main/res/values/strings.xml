@@ -23,6 +23,7 @@
     <string name="program_counter_label">PC:</string>
     <string name="instruction_register_label">IR:</string>
     <string name="decoded_instruction_label">Ins:</string>
+    <string name="alu_state_label">ALU:</string>
     <string name="status_reg_label">Status:</string>
     <string name="control_unit_fetch_state">fetch</string>
     <string name="control_unit_decode_state">decode</string>

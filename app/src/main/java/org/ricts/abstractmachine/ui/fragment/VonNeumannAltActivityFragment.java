@@ -1,15 +1,15 @@
 package org.ricts.abstractmachine.ui.fragment;
 
 import org.ricts.abstractmachine.components.compute.cu.ControlUnitAltCore;
-import org.ricts.abstractmachine.components.compute.cu.ControlUnitCore;
 import org.ricts.abstractmachine.components.observable.ObservableComputeAltCore;
-import org.ricts.abstractmachine.components.observable.ObservableComputeCore;
+import org.ricts.abstractmachine.components.observable.ObservableDecoderUnit;
 import org.ricts.abstractmachine.components.observable.ObservableMemoryPort;
 import org.ricts.abstractmachine.components.observable.ObservableMultiMemoryPort;
 import org.ricts.abstractmachine.components.observable.ObservableMultiplexer;
 
 public abstract class VonNeumannAltActivityFragment extends InspectFragment {
     protected ObservableComputeAltCore mainCore;
+    protected ObservableDecoderUnit decoderUnit;
     protected ObservableMemoryPort mainMemory;
     protected ControlUnitAltCore controlUnit;
 
@@ -20,9 +20,11 @@ public abstract class VonNeumannAltActivityFragment extends InspectFragment {
         // Required empty public constructor
     }
 
-    public void setObservables(ObservableComputeAltCore core, ObservableMemoryPort memData,
+    public void setObservables(ObservableComputeAltCore core, ObservableDecoderUnit decoder,
+                               ObservableMemoryPort memData,
                                ControlUnitAltCore controlUnitData){
         mainCore = core;
+        decoderUnit = decoder;
         mainMemory = memData;
         controlUnit = controlUnitData;
 
@@ -30,11 +32,11 @@ public abstract class VonNeumannAltActivityFragment extends InspectFragment {
         attemptInit();
     }
 
-    public void setObservables(ObservableComputeAltCore core, ObservableMemoryPort memData,
-                               ControlUnitAltCore controlUnitData, ObservableMultiplexer muxSelect,
-                               ObservableMultiMemoryPort muxPorts){
+    public void setObservables(ObservableComputeAltCore core, ObservableDecoderUnit decoder,
+                               ObservableMemoryPort memData, ControlUnitAltCore controlUnitData,
+                               ObservableMultiplexer muxSelect, ObservableMultiMemoryPort muxPorts){
         muxSelector = muxSelect;
         muxInputPorts = muxPorts;
-        setObservables(core, memData, controlUnitData);
+        setObservables(core, decoder, memData, controlUnitData);
     }
 }
