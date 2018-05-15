@@ -8,4 +8,5 @@ public interface CuFsmInterface extends FsmInterface {
     boolean isInHaltState();
     boolean isInSleepState();
     int nextActionDuration();
+    int parallelStageCount();
 }

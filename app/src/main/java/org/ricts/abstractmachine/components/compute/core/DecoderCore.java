@@ -20,24 +20,23 @@ import java.util.List;
 public abstract class DecoderCore extends Device implements DecoderUnit, InstructionDevice, InstructionAddressDevice {
     protected Resources resources;
     protected int iAddrWidth, dAddrWidth, dataWidth;
-    protected String groupName, mneumonic;
-    protected int groupIndex;
+    protected String mneumonic;
     protected int[] operands;
 
     private int instrWidth, instrBitMask, iAddrBitMask;
-    private String tempGroupName, tempMneumonic;
-    private int tempGroupIndex;
+    private String tempMneumonic;
     private int[] tempOperands;
 
     private IsaDecoder isaDecoder;
     private int storedPC, tempPC;
-    private boolean useTempStorage, currentInstructionValid;
+    private boolean currentInstructionValid, tempInstructionValid;
+    private boolean useTempStorage, isEnabled;
 
     public abstract OperandInfo getDataRegOperandInfo();
 
-    protected abstract String instructionString();
+    protected abstract String instructionString(String mneumonic, int [] operands);
     protected abstract int deriveDataWidth(int configValue);
-    protected abstract String getGroupName(String mneumonic);
+    protected abstract String haltMneumonic();
     protected abstract List<InstructionGroup> createInstructionSet(Integer... widthConfig);
 
     public DecoderCore(Resources resources, Integer... widthConfig) {
@@ -58,33 +57,46 @@ public abstract class DecoderCore extends Device implements DecoderUnit, Instruc
         instrBitMask = bitMaskOfWidth(instrWidth);
 
         useTempStorage = stageStorage;
+        reset();
     }
 
     @Override
     public void decode(int programCounter, int instruction) {
-        int instruct = instruction & instrBitMask;
-        currentInstructionValid = isaDecoder.isValidInstruction(instruct);
-        if(currentInstructionValid) {
+        if(isEnabled) {
+            int instruct = instruction & instrBitMask;
+            boolean instructionValid = isaDecoder.isValidInstruction(instruct);
+
+            if(!instructionValid) {
+                instruct = encodeInstruction(haltMneumonic(), new int[0]);
+                isEnabled = false;
+            }
+
             InstructionGroupDecoder decoder = isaDecoder.getDecoderForInstruction(instruct);
             if(useTempStorage){
+                tempInstructionValid = true;
                 tempPC = programCounter & iAddrBitMask;
-                tempGroupName = decoder.groupName();
-                tempGroupIndex = decoder.decode(instruct);
-                tempMneumonic = decoder.getMneumonicAtIndex(tempGroupIndex);
+                tempMneumonic = decoder.decode(instruct);
                 tempOperands = new int [decoder.operandCount()];
                 for(int x=0; x != tempOperands.length; ++x){
                     tempOperands[x] = decoder.getOperand(x, instruct);
                 }
             }
             else {
+                currentInstructionValid = true;
                 storedPC = programCounter & iAddrBitMask;
-                groupName = decoder.groupName();
-                groupIndex = decoder.decode(instruct);
-                mneumonic = decoder.getMneumonicAtIndex(groupIndex);
+                mneumonic = decoder.decode(instruct);
                 operands = new int [decoder.operandCount()];
                 for(int x=0; x != operands.length; ++x){
                     operands[x] = decoder.getOperand(x, instruct);
                 }
+            }
+        }
+        else {
+            if(useTempStorage){
+                tempInstructionValid = false;
+            }
+            else {
+                currentInstructionValid = false;
             }
         }
     }
@@ -98,16 +110,18 @@ public abstract class DecoderCore extends Device implements DecoderUnit, Instruc
     public void updateValues() {
         if(useTempStorage) {
             storedPC = tempPC;
-            groupName = tempGroupName;
-            groupIndex = tempGroupIndex;
             mneumonic = tempMneumonic;
             operands = tempOperands;
+            currentInstructionValid = tempInstructionValid;
         }
     }
 
     @Override
     public void invalidateValues() {
         currentInstructionValid = false;
+        tempInstructionValid = false;
+
+        isEnabled = true;
     }
 
     @Override
@@ -118,16 +132,6 @@ public abstract class DecoderCore extends Device implements DecoderUnit, Instruc
     @Override
     public boolean isValidInstruction() {
         return currentInstructionValid;
-    }
-
-    @Override
-    public String getInstructionGroupName() {
-        return groupName;
-    }
-
-    @Override
-    public int getInstructionGroupIndex() {
-        return groupIndex;
     }
 
     @Override
@@ -142,17 +146,17 @@ public abstract class DecoderCore extends Device implements DecoderUnit, Instruc
 
     @Override
     public String getOperandsString() {
-        String result = "";
+        StringBuilder result = new StringBuilder();
 
         OperandInfo[] opInfoArr = getOperandInfoArray();
         for(int x=0; x < opInfoArr.length; ++x) {
             if(x > 0) {
-                result += ", ";
+                result.append(", ");
             }
-            result += opInfoArr[x].getPrettyValue(operands[x]);
+            result.append(opInfoArr[x].getPrettyValue(operands[x]));
         }
 
-        return result;
+        return result.toString();
     }
 
     @Override
@@ -162,7 +166,7 @@ public abstract class DecoderCore extends Device implements DecoderUnit, Instruc
 
     @Override
     public String instrString() {
-        return currentInstructionValid ? instructionString() : null;
+        return currentInstructionValid ? instructionString(mneumonic, operands) : null;
     }
 
     @Override
@@ -192,7 +196,7 @@ public abstract class DecoderCore extends Device implements DecoderUnit, Instruc
 
     @Override
     public int encodeInstruction(String iMneumonic, int [] operands) {
-        return isaDecoder.encode(getGroupName(iMneumonic), iMneumonic, operands);
+        return isaDecoder.encode(iMneumonic, operands);
     }
 
     @Override
@@ -214,5 +218,9 @@ public abstract class DecoderCore extends Device implements DecoderUnit, Instruc
 
     public String dataValueString(int data) {
         return formatNumberInHex(data, dataWidth);
+    }
+
+    public String tempInstrString() {
+        return instructionString(tempMneumonic, tempOperands);
     }
 }

@@ -28,5 +28,9 @@ public class InstructionGroup {
 	
 	public OperandInfo[] operandInfoArray() {
 		return operandInfos;
-	}			
+	}
+
+	public String[] getMneumonics() {
+		return mneumonics;
+	}
 }

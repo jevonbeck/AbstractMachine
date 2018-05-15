@@ -159,254 +159,283 @@ public class BasicScalarCore extends UniMemoryComputeAltCore {
     }
 
     @Override
-    public int instrExecTime(String instructionGroupName, int instructionGroupIndex) {
-        BasicScalarDecoder.InstructionGrouping grouping = Enum.valueOf(BasicScalarDecoder.InstructionGrouping.class, instructionGroupName);
-        BasicScalarDecoder.Instruction instruction = grouping.decode(instructionGroupIndex);
-
-        switch (grouping){
-            case DataMemOps:
-                // Instructions with 1 data register and 1 data address register
-                switch (instruction) {
-                    case LOADM: // DREG <-- MEMORY[DADREG] (dereference pointer and assign value to variable)
-                    case STOREM: // MEMORY[DADREG] <-- DREG (assign variable to dereferenced pointer)
-                        return dataMemory.accessTime();
-                    default:
-                        return 1;
-                }
+    public int instrExecTime(String mneumonic) {
+        BasicScalarDecoder.Instruction instruction = Enum.valueOf(BasicScalarDecoder.Instruction.class, mneumonic);
+        switch (instruction) {
+            case LOADM: // DREG <-- MEMORY[DADREG] (dereference pointer and assign value to variable)
+            case STOREM: // MEMORY[DADREG] <-- DREG (assign variable to dereferenced pointer)
+                return dataMemory.accessTime();
             default:
                 return 1;
         }
     }
 
     @Override
-    protected void fetchOpsExecuteInstr(String groupName, int groupIndex, int[] operands) {
-        BasicScalarDecoder.InstructionGrouping grouping = Enum.valueOf(BasicScalarDecoder.InstructionGrouping.class, groupName);
-        BasicScalarDecoder.Instruction instruction = grouping.decode(groupIndex);
+    protected void fetchOpsExecuteInstr(String mneumonic, int[] operands) {
+        BasicScalarDecoder.Instruction instruction = Enum.valueOf(BasicScalarDecoder.Instruction.class, mneumonic);
 
-        int regAddr, destRegAddr, sourceRegAddr, byteLiteral, dRegAddr, bitIndex;
-        switch (grouping){
-            case NoOperands:
-                // Instructions with 0 operands
-                switch (instruction) {
-                    case POP: // cu <-- predefinedStack.pop(); updateUnderflowFlag(); ('return' control-flow construct)
-                        popCallStack();
-                        break;
-                    case NOP: // do nothing
-                        break;
-                    case HALT: // tell Control Unit to stop execution
-                        setInternalControlUnitState(ControlUnitState.HALT);
-                        break;
-                    case RETFIE:
-                        controlReg.write(setBitAtIndex(ControlRegFlags.INTERRUPTS.ordinal(), controlReg.read())); // re-enable interrupts
-                        popCallStack();
-                        break;
-                }
+        int regAddr, destRegAddr, resultRegAddr, sourceRegAddr, shiftAmount,
+                aRegAddr, bRegAddr,  A, B,
+                byteLiteral, byteMultiplier, byteMask, bitWidth, bitIndex,
+                dRegAddr, dAddrRegAddr, iAddrRegAddr, iAddrRegValue, iAddrLiteral;
+
+        switch (instruction) {
+            // Instructions with 0 operands
+            case POP: // cu <-- predefinedStack.pop(); updateUnderflowFlag(); ('return' control-flow construct)
+                popCallStack();
                 break;
-            case InstrAddressReg:
-                // Instructions with 1 instruction address register
-                switch (instruction) {
-                    case JUMP: // cu <-- IADREG ('goto'/'break'/'continue' control-flow construct)
-                        updateProgramCounter(instrAddrRegs[operands[0]].read());
-                        break;
-                    case PUSH: // predefStack.push(IADREG); updateOverflowFlag(); (part of 'function-call' control-flow construct)
-                        pushCallStack(instrAddrRegs[operands[0]].read());
-                        break;
-                    case STOREPC: // IADREG <-- cu (part of 'switch' statement / look-up table / 'function-call' control-flow construct)
-                        instrAddrRegs[operands[0]].write(pcReg.read());
-                        break;
-                }
+            case NOP: // do nothing
                 break;
-            case InstrAddressLiteral:
-                // Instructions with 1 instruction address literal
-                switch (instruction) {
-                    case JUMPL: // cu <-- INSTRLIT ('goto'/'break'/'continue' control-flow construct)
-                        updateProgramCounter(operands[0]);
-                        break;
-                }
+            case HALT: // tell Control Unit to stop execution
+                setInternalControlUnitState(ControlUnitState.HALT);
                 break;
-            case DataAssignLit:
-                // Instructions with 1 data register and 1 data literal
-                switch (instruction) {
-                    case LOAD: // DREG <-- DATA (variable assignment)
-                        dataRegs[operands[0]].write(operands[1]);
-                        break;
-                }
+            case RETFIE:
+                controlReg.write(setBitAtIndex(ControlRegFlags.INTERRUPTS.ordinal(), controlReg.read())); // re-enable interrupts
+                popCallStack();
                 break;
-            case RegBitManip:
-                // Instructions with 1 data register and 1 bit-index
+
+            // Instructions with 1 instruction address register
+            case JUMP: // cu <-- IADREG ('goto'/'break'/'continue' control-flow construct)
+                updateProgramCounter(instrAddrRegs[operands[0]].read());
+                break;
+            case PUSH: // predefStack.push(IADREG); updateOverflowFlag(); (part of 'function-call' control-flow construct)
+                pushCallStack(instrAddrRegs[operands[0]].read());
+                break;
+            case STOREPC: // IADREG <-- cu (part of 'switch' statement / look-up table / 'function-call' control-flow construct)
+                instrAddrRegs[operands[0]].write(pcReg.read());
+                break;
+
+            // Instructions with 1 instruction address literal
+            case JUMPL: // cu <-- INSTRLIT ('goto'/'break'/'continue' control-flow construct)
+                updateProgramCounter(operands[0]);
+                break;
+
+            // Instructions with 1 data register and 1 data literal
+            case LOAD: // DREG <-- DATA (variable assignment)
+                dataRegs[operands[0]].write(operands[1]);
+                break;
+
+            // Instructions with 1 data register and 1 bit-index
+            case SETB: // DREG[BITINDEX] <-- true (boolean variable assignment)
                 regAddr = operands[0];
                 bitIndex = operands[1];
-
-                switch (instruction) {
-                    case SETB: // DREG[BITINDEX] <-- true (boolean variable assignment)
-                        dataRegs[regAddr].write(setBitAtIndex(bitIndex, dataRegs[regAddr].read()));
-                        break;
-                    case CLRB: // DREG[BITINDEX] <-- false (boolean variable assignment)
-                        dataRegs[regAddr].write(clearBitAtIndex(bitIndex, dataRegs[regAddr].read()));
-                        break;
-                }
+                dataRegs[regAddr].write(setBitAtIndex(bitIndex, dataRegs[regAddr].read()));
                 break;
-            case DataMemOps:
-                // Instructions with 1 data register and 1 data address register
+            case CLRB: // DREG[BITINDEX] <-- false (boolean variable assignment)
+                regAddr = operands[0];
+                bitIndex = operands[1];
+                dataRegs[regAddr].write(clearBitAtIndex(bitIndex, dataRegs[regAddr].read()));
+                break;
+
+            // Instructions with 1 data register and 1 data address register
+            case LOADM: // DREG <-- MEMORY[DADREG] (dereference pointer and assign value to variable)
                 dRegAddr = operands[0];
-                int dAddrRegAddr = operands[1];
-
-                switch (instruction) {
-                    case LOADM: // DREG <-- MEMORY[DADREG] (dereference pointer and assign value to variable)
-                        dataRegs[dRegAddr].write(dataMemory.read(dataAddrRegs[dAddrRegAddr].read()));
-                        break;
-                    case STOREM: // MEMORY[DADREG] <-- DREG (assign variable to dereferenced pointer)
-                        dataMemory.write(dataAddrRegs[dAddrRegAddr].read(), dataRegs[dRegAddr].read());
-                        break;
-                    case LOADA: // DREG <-- (int) DADREG (put pointer address value in variable - for pointer arithmetic)
-                        dataRegs[dRegAddr].write(dataAddrRegs[dAddrRegAddr].read());
-                        break;
-                    case STOREA: // DADREG <-- (data address) DREG (pointer assignment) [OS level operation / result of call to 'new']
-                        dataAddrRegs[dAddrRegAddr].write(dataRegs[dRegAddr].read());
-                        break;
-                }
+                dAddrRegAddr = operands[1];
+                dataRegs[dRegAddr].write(dataMemory.read(dataAddrRegs[dAddrRegAddr].read()));
                 break;
-            case InstrAddrConvert:
-                // Instructions with 1 data register and 1 instruction address register
+            case STOREM: // MEMORY[DADREG] <-- DREG (assign variable to dereferenced pointer)
                 dRegAddr = operands[0];
-                int iAddrRegAddr = operands[1];
-
-                switch (instruction) {
-                    case LOADI: // DREG <-- (int) IADREG (dereference pointer and assign value to variable)
-                        dataRegs[dRegAddr].write(instrAddrRegs[iAddrRegAddr].read());
-                        break;
-                    case STOREI: // IADREG <-- (instruction address) DREG [OS level operation / load start address of new program]
-                        instrAddrRegs[iAddrRegAddr].write(dataRegs[dRegAddr].read());
-                        break;
-                }
+                dAddrRegAddr = operands[1];
+                dataMemory.write(dataAddrRegs[dAddrRegAddr].read(), dataRegs[dRegAddr].read());
                 break;
-            case TwoRegOps:
-                // Instructions with 2 data registers (destination, source)
+            case LOADA: // DREG <-- (int) DADREG (put pointer address value in variable - for pointer arithmetic)
+                dRegAddr = operands[0];
+                dAddrRegAddr = operands[1];
+                dataRegs[dRegAddr].write(dataAddrRegs[dAddrRegAddr].read());
+                break;
+            case STOREA: // DADREG <-- (data address) DREG (pointer assignment) [OS level operation / result of call to 'new']
+                dRegAddr = operands[0];
+                dAddrRegAddr = operands[1];
+                dataAddrRegs[dAddrRegAddr].write(dataRegs[dRegAddr].read());
+                break;
+
+            // Instructions with 1 data register and 1 instruction address register
+            case LOADI: // DREG <-- (int) IADREG (dereference pointer and assign value to variable)
+                dRegAddr = operands[0];
+                iAddrRegAddr = operands[1];
+                dataRegs[dRegAddr].write(instrAddrRegs[iAddrRegAddr].read());
+                break;
+            case STOREI: // IADREG <-- (instruction address) DREG [OS level operation / load start address of new program]
+                dRegAddr = operands[0];
+                iAddrRegAddr = operands[1];
+                instrAddrRegs[iAddrRegAddr].write(dataRegs[dRegAddr].read());
+                break;
+
+            // Instructions with 2 data registers (destination, source)
+            case MOVE: // DESTINATION <-- SOURCE (variable assignment)
                 destRegAddr = operands[0];
                 sourceRegAddr = operands[1];
 
                 updateAluCarry();
-                switch (instruction) {
-                    case MOVE: // DESTINATION <-- SOURCE (variable assignment)
-                        dataRegs[destRegAddr].write(dataRegs[sourceRegAddr].read());
-                        break;
-                    case NOT: // DESTINATION <-- 1's_COMPLEMENT(SOURCE)
-                        dataRegs[destRegAddr].write(alu.result(BasicALU.Mneumonics.COMP, dataRegs[sourceRegAddr].read()));
-                        break;
-                    case RLC: // DESTINATION <-- ROTATE_LEFT_WITH_CARRY(SOURCE)
-                        dataRegs[destRegAddr].write(alu.result(BasicALU.Mneumonics.RLC, dataRegs[sourceRegAddr].read()));
-                        break;
-                    case RRC: // DESTINATION <-- ROTATE_RIGHT_WITH_CARRY(SOURCE)
-                        dataRegs[destRegAddr].write(alu.result(BasicALU.Mneumonics.RRC, dataRegs[sourceRegAddr].read()));
-                        break;
-                    case INC: // DESTINATION <-- SOURCE + 1
-                        dataRegs[destRegAddr].write(alu.result(BasicALU.Mneumonics.INC, dataRegs[sourceRegAddr].read()));
-                        break;
-                    case DEC: // DESTINATION <-- SOURCE - 1 (useful for end of array indexing with DESTINATION)
-                        dataRegs[destRegAddr].write(alu.result(BasicALU.Mneumonics.DEC, dataRegs[sourceRegAddr].read()));
-                        break;
-                }
+                dataRegs[destRegAddr].write(dataRegs[sourceRegAddr].read());
                 updateStatusReg();
                 break;
-            case ByteLoad:
-                // Instructions with 1 data register, 1 byte-index and 1 byte literal
+            case NOT: // DESTINATION <-- 1's_COMPLEMENT(SOURCE)
+                destRegAddr = operands[0];
+                sourceRegAddr = operands[1];
+
+                updateAluCarry();
+                dataRegs[destRegAddr].write(alu.result(BasicALU.Mneumonics.COMP, dataRegs[sourceRegAddr].read()));
+                updateStatusReg();
+                break;
+            case RLC: // DESTINATION <-- ROTATE_LEFT_WITH_CARRY(SOURCE)
+                destRegAddr = operands[0];
+                sourceRegAddr = operands[1];
+
+                updateAluCarry();
+                dataRegs[destRegAddr].write(alu.result(BasicALU.Mneumonics.RLC, dataRegs[sourceRegAddr].read()));
+                updateStatusReg();
+                break;
+            case RRC: // DESTINATION <-- ROTATE_RIGHT_WITH_CARRY(SOURCE)
+                destRegAddr = operands[0];
+                sourceRegAddr = operands[1];
+
+                updateAluCarry();
+                dataRegs[destRegAddr].write(alu.result(BasicALU.Mneumonics.RRC, dataRegs[sourceRegAddr].read()));
+                updateStatusReg();
+                break;
+            case INC: // DESTINATION <-- SOURCE + 1
+                destRegAddr = operands[0];
+                sourceRegAddr = operands[1];
+
+                updateAluCarry();
+                dataRegs[destRegAddr].write(alu.result(BasicALU.Mneumonics.INC, dataRegs[sourceRegAddr].read()));
+                updateStatusReg();
+                break;
+            case DEC: // DESTINATION <-- SOURCE - 1 (useful for end of array indexing with DESTINATION)
+                destRegAddr = operands[0];
+                sourceRegAddr = operands[1];
+
+                updateAluCarry();
+                dataRegs[destRegAddr].write(alu.result(BasicALU.Mneumonics.DEC, dataRegs[sourceRegAddr].read()));
+                updateStatusReg();
+                break;
+
+            // Instructions with 1 data register, 1 byte-index and 1 byte literal
+            case LOADBYTE: // DREG[BYTEINDEX] <-- BYTE (ASCII/UTF-BYTE_WIDTH character literal assignment)
                 regAddr = operands[0];
                 int byteIndex = operands[1];
                 byteLiteral = operands[2];
-
-                switch (instruction) {
-                    case LOADBYTE: // DREG[BYTEINDEX] <-- BYTE (ASCII/UTF-BYTE_WIDTH character literal assignment)
-                        dataRegs[regAddr].write(setWordIn(dataRegs[regAddr].read(), byteLiteral, BYTE_WIDTH, BYTE_WIDTH * byteIndex));
-                        break;
-                }
+                dataRegs[regAddr].write(setWordIn(dataRegs[regAddr].read(), byteLiteral, BYTE_WIDTH, BYTE_WIDTH * byteIndex));
                 break;
-            case ConditionalBranch:
-                // Instructions with 1 data register, 1 bit-index and 1 instruction address register
+
+            // Instructions with 1 data register, 1 bit-index and 1 instruction address register
+            case JUMPIFBC: // IF (!DREG[BITINDEX]) cu <-- IADREG ('for'/'while'/'if-else' sourceReg[bitIndex])
                 dRegAddr = operands[0];
                 bitIndex = operands[1];
-                int iAddrRegValue = instrAddrRegs[operands[2]].read();
-
-                switch (instruction) {
-                    case JUMPIFBC: // IF (!DREG[BITINDEX]) cu <-- IADREG ('for'/'while'/'if-else' sourceReg[bitIndex])
-                        if (!getBitAtIndex(bitIndex, dataRegs[dRegAddr].read())) {
-                            updateProgramCounter(iAddrRegValue);
-                        }
-                        break;
-                    case JUMPIFBS: // IF (DREG[BITINDEX]) cu <-- IADREG ('do-while' sourceReg[bitIndex])
-                        if (getBitAtIndex(bitIndex, dataRegs[dRegAddr].read())) {
-                            updateProgramCounter(iAddrRegValue);
-                        }
-                        break;
+                iAddrRegValue = instrAddrRegs[operands[2]].read();
+                if (!getBitAtIndex(bitIndex, dataRegs[dRegAddr].read())) {
+                    updateProgramCounter(iAddrRegValue);
                 }
                 break;
-            case ConditionalBranchLiteral:
-                // Instructions with 1 data register, 1 bit-index and 1 instruction address literal
+            case JUMPIFBS: // IF (DREG[BITINDEX]) cu <-- IADREG ('do-while' sourceReg[bitIndex])
                 dRegAddr = operands[0];
                 bitIndex = operands[1];
-                int iAddrLiteral = operands[2];
-
-                switch (instruction) {
-                    case JUMPIFBCL: // IF (!DREG[BITINDEX]) cu <-- IADLITERAL ('for'/'while'/'if-else' sourceReg[bitIndex])
-                        if (!getBitAtIndex(bitIndex, dataRegs[dRegAddr].read())) {
-                            updateProgramCounter(iAddrLiteral);
-                        }
-                        break;
-                    case JUMPIFBSL: // IF (DREG[BITINDEX]) cu <-- IADLITERAL ('do-while' sourceReg[bitIndex])
-                        if (getBitAtIndex(bitIndex, dataRegs[dRegAddr].read())) {
-                            updateProgramCounter(iAddrLiteral);
-                        }
-                        break;
+                iAddrRegValue = instrAddrRegs[operands[2]].read();
+                if (getBitAtIndex(bitIndex, dataRegs[dRegAddr].read())) {
+                    updateProgramCounter(iAddrRegValue);
                 }
                 break;
-            case ShiftReg:
-                // Instructions with 2 data registers (destination, source) and 1 bit-shift amount (source)
+
+            // Instructions with 1 data register, 1 bit-index and 1 instruction address literal
+            case JUMPIFBCL: // IF (!DREG[BITINDEX]) cu <-- IADLITERAL ('for'/'while'/'if-else' sourceReg[bitIndex])
+                dRegAddr = operands[0];
+                bitIndex = operands[1];
+                iAddrLiteral = operands[2];
+                if (!getBitAtIndex(bitIndex, dataRegs[dRegAddr].read())) {
+                    updateProgramCounter(iAddrLiteral);
+                }
+                break;
+            case JUMPIFBSL: // IF (DREG[BITINDEX]) cu <-- IADLITERAL ('do-while' sourceReg[bitIndex])
+                dRegAddr = operands[0];
+                bitIndex = operands[1];
+                iAddrLiteral = operands[2];
+                if (getBitAtIndex(bitIndex, dataRegs[dRegAddr].read())) {
+                    updateProgramCounter(iAddrLiteral);
+                }
+                break;
+
+            // Instructions with 2 data registers (destination, source) and 1 bit-shift amount (source)
+            case SHIFTL: // DESTINATION <-- (SOURCE << SHIFTAMOUNT)
                 destRegAddr = operands[0];
                 sourceRegAddr = operands[1];
-                int shiftAmount = operands[2];
-
-                switch (instruction) {
-                    case SHIFTL: // DESTINATION <-- (SOURCE << SHIFTAMOUNT)
-                        dataRegs[destRegAddr].write(alu.result(BasicALU.Mneumonics.SHIFTL, dataRegs[sourceRegAddr].read(), shiftAmount));
-                        break;
-                    case SHIFTR: // DESTINATION <-- (SOURCE >> SHIFTAMOUNT)
-                        dataRegs[destRegAddr].write(alu.result(BasicALU.Mneumonics.SHIFTR, dataRegs[sourceRegAddr].read(), shiftAmount));
-                        break;
-                }
+                shiftAmount = operands[2];
+                dataRegs[destRegAddr].write(alu.result(BasicALU.Mneumonics.SHIFTL, dataRegs[sourceRegAddr].read(), shiftAmount));
                 break;
-            case AluOps:
-                // Instructions with 3 data registers (result, A, B)
+            case SHIFTR: // DESTINATION <-- (SOURCE >> SHIFTAMOUNT)
                 destRegAddr = operands[0];
-                int aRegAddr = operands[1];
-                int bRegAddr = operands[2];
+                sourceRegAddr = operands[1];
+                shiftAmount = operands[2];
+                dataRegs[destRegAddr].write(alu.result(BasicALU.Mneumonics.SHIFTR, dataRegs[sourceRegAddr].read(), shiftAmount));
+                break;
+
+            // Instructions with 3 data registers (result, A, B)
+            case ADD: // RESULT <-- A + B
+                destRegAddr = operands[0];
+                aRegAddr = operands[1];
+                bRegAddr = operands[2];
 
                 updateAluCarry();
-                switch (instruction) {
-                    case ADD: // RESULT <-- A + B
-                        dataRegs[destRegAddr].write(alu.result(BasicALU.Mneumonics.ADD, dataRegs[aRegAddr].read(), dataRegs[bRegAddr].read()));
-                        break;
-                    case ADDWC: // RESULT <-- A + B + CARRY
-                        dataRegs[destRegAddr].write(alu.result(BasicALU.Mneumonics.ADDWC, dataRegs[aRegAddr].read(), dataRegs[bRegAddr].read()));
-                        break;
-                    case SUB: // RESULT <-- A - B
-                        dataRegs[destRegAddr].write(alu.result(BasicALU.Mneumonics.SUB, dataRegs[aRegAddr].read(), dataRegs[bRegAddr].read()));
-                        break;
-                    case SUBWB: // RESULT <-- A - B + BORROW
-                        dataRegs[destRegAddr].write(alu.result(BasicALU.Mneumonics.SUBWB, dataRegs[aRegAddr].read(), dataRegs[bRegAddr].read()));
-                        break;
-                    case AND: // RESULT <-- A & B
-                        dataRegs[destRegAddr].write(alu.result(BasicALU.Mneumonics.AND, dataRegs[aRegAddr].read(), dataRegs[bRegAddr].read()));
-                        break;
-                    case OR: // RESULT <-- A | B
-                        dataRegs[destRegAddr].write(alu.result(BasicALU.Mneumonics.OR, dataRegs[aRegAddr].read(), dataRegs[bRegAddr].read()));
-                        break;
-                    case XOR: // RESULT <-- A ^ B
-                        dataRegs[destRegAddr].write(alu.result(BasicALU.Mneumonics.XOR, dataRegs[aRegAddr].read(), dataRegs[bRegAddr].read()));
-                        break;
-                }
+                dataRegs[destRegAddr].write(alu.result(BasicALU.Mneumonics.ADD, dataRegs[aRegAddr].read(), dataRegs[bRegAddr].read()));
                 updateStatusReg();
                 break;
-            case RegByteManip:
-                // Instructions with 2 data registers (destination, source) and 2 byte-indices (destination, source)
+            case ADDWC: // RESULT <-- A + B + CARRY
+                destRegAddr = operands[0];
+                aRegAddr = operands[1];
+                bRegAddr = operands[2];
+
+                updateAluCarry();
+                dataRegs[destRegAddr].write(alu.result(BasicALU.Mneumonics.ADDWC, dataRegs[aRegAddr].read(), dataRegs[bRegAddr].read()));
+                updateStatusReg();
+                break;
+            case SUB: // RESULT <-- A - B
+                destRegAddr = operands[0];
+                aRegAddr = operands[1];
+                bRegAddr = operands[2];
+
+                updateAluCarry();
+                dataRegs[destRegAddr].write(alu.result(BasicALU.Mneumonics.SUB, dataRegs[aRegAddr].read(), dataRegs[bRegAddr].read()));
+                updateStatusReg();
+                break;
+            case SUBWB: // RESULT <-- A - B + BORROW
+                destRegAddr = operands[0];
+                aRegAddr = operands[1];
+                bRegAddr = operands[2];
+
+                updateAluCarry();
+                dataRegs[destRegAddr].write(alu.result(BasicALU.Mneumonics.SUBWB, dataRegs[aRegAddr].read(), dataRegs[bRegAddr].read()));
+                updateStatusReg();
+                break;
+            case AND: // RESULT <-- A & B
+                destRegAddr = operands[0];
+                aRegAddr = operands[1];
+                bRegAddr = operands[2];
+
+                updateAluCarry();
+                dataRegs[destRegAddr].write(alu.result(BasicALU.Mneumonics.AND, dataRegs[aRegAddr].read(), dataRegs[bRegAddr].read()));
+                updateStatusReg();
+                break;
+            case OR: // RESULT <-- A | B
+                destRegAddr = operands[0];
+                aRegAddr = operands[1];
+                bRegAddr = operands[2];
+
+                updateAluCarry();
+                dataRegs[destRegAddr].write(alu.result(BasicALU.Mneumonics.OR, dataRegs[aRegAddr].read(), dataRegs[bRegAddr].read()));
+                updateStatusReg();
+                break;
+            case XOR: // RESULT <-- A ^ B
+                destRegAddr = operands[0];
+                aRegAddr = operands[1];
+                bRegAddr = operands[2];
+
+                updateAluCarry();
+                dataRegs[destRegAddr].write(alu.result(BasicALU.Mneumonics.XOR, dataRegs[aRegAddr].read(), dataRegs[bRegAddr].read()));
+                updateStatusReg();
+                break;
+
+            // Instructions with 2 data registers (destination, source) and 2 byte-indices (destination, source)
+            case MOVEBYTE: // DESTINATION[DBYTEINDEX] <-- SOURCE[SBYTEINDEX] (ASCII/UTF-8 character move)
                 destRegAddr = operands[0];
                 int destByteIndex = operands[1];
                 sourceRegAddr = operands[2];
@@ -414,51 +443,107 @@ public class BasicScalarCore extends UniMemoryComputeAltCore {
 
                 byteLiteral = getWordFrom(dataRegs[sourceRegAddr].read(), BYTE_WIDTH, BYTE_WIDTH * sourceByteIndex);
 
-                switch (instruction) {
-                    case MOVEBYTE: // DESTINATION[DBYTEINDEX] <-- SOURCE[SBYTEINDEX] (ASCII/UTF-8 character move)
-                        dataRegs[destRegAddr].write(setWordIn(dataRegs[destRegAddr].read(), byteLiteral, BYTE_WIDTH, BYTE_WIDTH * destByteIndex));
-                        break;
-                }
+                dataRegs[destRegAddr].write(setWordIn(dataRegs[destRegAddr].read(), byteLiteral, BYTE_WIDTH, BYTE_WIDTH * destByteIndex));
                 break;
-            case MultiWidthAluOps:
-                // Instructions with 3 data registers (result, A, B) and 1 byte multiplier literal
-                int byteMultiplier = operands[3];
-                int bitWidth = (byteMultiplier != 0) ? BYTE_WIDTH * byteMultiplier : 4;
-                int byteMask = bitMaskOfWidth(bitWidth);
 
-                int resultRegAddr = operands[0];
-                int A = dataRegs[operands[1]].read() & byteMask;
-                int B = dataRegs[operands[2]].read() & byteMask;
+            // Instructions with 3 data registers (result, A, B) and 1 byte multiplier literal
+            case ADDWIDTH: // RESULT <-- A[((BYTEMULT*8)-1):0] + B[((BYTEMULT*8)-1):0]
+                byteMultiplier = operands[3];
+                bitWidth = (byteMultiplier != 0) ? BYTE_WIDTH * byteMultiplier : 4;
+                byteMask = bitMaskOfWidth(bitWidth);
+                resultRegAddr = operands[0];
+                A = dataRegs[operands[1]].read() & byteMask;
+                B = dataRegs[operands[2]].read() & byteMask;
 
                 updateAluCarry();
                 alu.result(BasicALU.Mneumonics.UPDATEWIDTH, bitWidth); // temporarily modify ALU dataWidth to set appropriately set ALU flags
-                switch (instruction) {
-                    case ADDWIDTH: // RESULT <-- A[((BYTEMULT*8)-1):0] + B[((BYTEMULT*8)-1):0]
-                        dataRegs[resultRegAddr].write(alu.result(BasicALU.Mneumonics.ADD, A, B) & byteMask);
-                        break;
-                    case ADDCWIDTH: // RESULT <-- A[((BYTEMULT*8)-1):0] + B[((BYTEMULT*8)-1):0] + CARRY
-                        dataRegs[resultRegAddr].write(alu.result(BasicALU.Mneumonics.ADDWC, A, B) & byteMask);
-                        break;
-                    case SUBWIDTH: // RESULT <-- A[((BYTEMULT*8)-1):0] - B[((BYTEMULT*8)-1):0]
-                        dataRegs[resultRegAddr].write(alu.result(BasicALU.Mneumonics.SUB, A, B) & byteMask);
-                        break;
-                    case SUBCWIDTH: // RESULT <-- A[((BYTEMULT*8)-1):0] - B[((BYTEMULT*8)-1):0] + BORROW
-                        dataRegs[resultRegAddr].write(alu.result(BasicALU.Mneumonics.SUBWB, A, B) & byteMask);
-                        break;
-                    case ANDWIDTH: // RESULT <-- A[((BYTEMULT*8)-1):0] & B[((BYTEMULT*8)-1):0]
-                        dataRegs[resultRegAddr].write(alu.result(BasicALU.Mneumonics.AND, A, B) & byteMask);
-                        break;
-                    case ORWIDTH: // RESULT <-- A[((BYTEMULT*8)-1):0] | B[((BYTEMULT*8)-1):0]
-                        dataRegs[resultRegAddr].write(alu.result(BasicALU.Mneumonics.OR, A, B) & byteMask);
-                        break;
-                    case XORWIDTH: // RESULT <-- A[((BYTEMULT*8)-1):0] ^ B[((BYTEMULT*8)-1):0]
-                        dataRegs[resultRegAddr].write(alu.result(BasicALU.Mneumonics.XOR, A, B) & byteMask);
-                        break;
-                }
+                dataRegs[resultRegAddr].write(alu.result(BasicALU.Mneumonics.ADD, A, B) & byteMask);
                 alu.result(BasicALU.Mneumonics.UPDATEWIDTH, dataWidth); // restore ALU dataWidth
                 updateStatusReg(); // flags are in accordance with previously set dataWidth
                 break;
-            default:
+            case ADDCWIDTH: // RESULT <-- A[((BYTEMULT*8)-1):0] + B[((BYTEMULT*8)-1):0] + CARRY
+                byteMultiplier = operands[3];
+                bitWidth = (byteMultiplier != 0) ? BYTE_WIDTH * byteMultiplier : 4;
+                byteMask = bitMaskOfWidth(bitWidth);
+                resultRegAddr = operands[0];
+                A = dataRegs[operands[1]].read() & byteMask;
+                B = dataRegs[operands[2]].read() & byteMask;
+
+                updateAluCarry();
+                alu.result(BasicALU.Mneumonics.UPDATEWIDTH, bitWidth); // temporarily modify ALU dataWidth to set appropriately set ALU flags
+                dataRegs[resultRegAddr].write(alu.result(BasicALU.Mneumonics.ADDWC, A, B) & byteMask);
+                alu.result(BasicALU.Mneumonics.UPDATEWIDTH, dataWidth); // restore ALU dataWidth
+                updateStatusReg(); // flags are in accordance with previously set dataWidth
+                break;
+            case SUBWIDTH: // RESULT <-- A[((BYTEMULT*8)-1):0] - B[((BYTEMULT*8)-1):0]
+                byteMultiplier = operands[3];
+                bitWidth = (byteMultiplier != 0) ? BYTE_WIDTH * byteMultiplier : 4;
+                byteMask = bitMaskOfWidth(bitWidth);
+                resultRegAddr = operands[0];
+                A = dataRegs[operands[1]].read() & byteMask;
+                B = dataRegs[operands[2]].read() & byteMask;
+
+                updateAluCarry();
+                alu.result(BasicALU.Mneumonics.UPDATEWIDTH, bitWidth); // temporarily modify ALU dataWidth to set appropriately set ALU flags
+                dataRegs[resultRegAddr].write(alu.result(BasicALU.Mneumonics.SUB, A, B) & byteMask);
+                alu.result(BasicALU.Mneumonics.UPDATEWIDTH, dataWidth); // restore ALU dataWidth
+                updateStatusReg(); // flags are in accordance with previously set dataWidth
+                break;
+            case SUBCWIDTH: // RESULT <-- A[((BYTEMULT*8)-1):0] - B[((BYTEMULT*8)-1):0] + BORROW
+                byteMultiplier = operands[3];
+                bitWidth = (byteMultiplier != 0) ? BYTE_WIDTH * byteMultiplier : 4;
+                byteMask = bitMaskOfWidth(bitWidth);
+                resultRegAddr = operands[0];
+                A = dataRegs[operands[1]].read() & byteMask;
+                B = dataRegs[operands[2]].read() & byteMask;
+
+                updateAluCarry();
+                alu.result(BasicALU.Mneumonics.UPDATEWIDTH, bitWidth); // temporarily modify ALU dataWidth to set appropriately set ALU flags
+                dataRegs[resultRegAddr].write(alu.result(BasicALU.Mneumonics.SUBWB, A, B) & byteMask);
+                alu.result(BasicALU.Mneumonics.UPDATEWIDTH, dataWidth); // restore ALU dataWidth
+                updateStatusReg(); // flags are in accordance with previously set dataWidth
+                break;
+            case ANDWIDTH: // RESULT <-- A[((BYTEMULT*8)-1):0] & B[((BYTEMULT*8)-1):0]
+                byteMultiplier = operands[3];
+                bitWidth = (byteMultiplier != 0) ? BYTE_WIDTH * byteMultiplier : 4;
+                byteMask = bitMaskOfWidth(bitWidth);
+                resultRegAddr = operands[0];
+                A = dataRegs[operands[1]].read() & byteMask;
+                B = dataRegs[operands[2]].read() & byteMask;
+
+                updateAluCarry();
+                alu.result(BasicALU.Mneumonics.UPDATEWIDTH, bitWidth); // temporarily modify ALU dataWidth to set appropriately set ALU flags
+                dataRegs[resultRegAddr].write(alu.result(BasicALU.Mneumonics.AND, A, B) & byteMask);
+                alu.result(BasicALU.Mneumonics.UPDATEWIDTH, dataWidth); // restore ALU dataWidth
+                updateStatusReg(); // flags are in accordance with previously set dataWidth
+                break;
+            case ORWIDTH: // RESULT <-- A[((BYTEMULT*8)-1):0] | B[((BYTEMULT*8)-1):0]
+                byteMultiplier = operands[3];
+                bitWidth = (byteMultiplier != 0) ? BYTE_WIDTH * byteMultiplier : 4;
+                byteMask = bitMaskOfWidth(bitWidth);
+                resultRegAddr = operands[0];
+                A = dataRegs[operands[1]].read() & byteMask;
+                B = dataRegs[operands[2]].read() & byteMask;
+
+                updateAluCarry();
+                alu.result(BasicALU.Mneumonics.UPDATEWIDTH, bitWidth); // temporarily modify ALU dataWidth to set appropriately set ALU flags
+                dataRegs[resultRegAddr].write(alu.result(BasicALU.Mneumonics.OR, A, B) & byteMask);
+                alu.result(BasicALU.Mneumonics.UPDATEWIDTH, dataWidth); // restore ALU dataWidth
+                updateStatusReg(); // flags are in accordance with previously set dataWidth
+                break;
+            case XORWIDTH: // RESULT <-- A[((BYTEMULT*8)-1):0] ^ B[((BYTEMULT*8)-1):0]
+                byteMultiplier = operands[3];
+                bitWidth = (byteMultiplier != 0) ? BYTE_WIDTH * byteMultiplier : 4;
+                byteMask = bitMaskOfWidth(bitWidth);
+                resultRegAddr = operands[0];
+                A = dataRegs[operands[1]].read() & byteMask;
+                B = dataRegs[operands[2]].read() & byteMask;
+
+                updateAluCarry();
+                alu.result(BasicALU.Mneumonics.UPDATEWIDTH, bitWidth); // temporarily modify ALU dataWidth to set appropriately set ALU flags
+                dataRegs[resultRegAddr].write(alu.result(BasicALU.Mneumonics.XOR, A, B) & byteMask);
+                alu.result(BasicALU.Mneumonics.UPDATEWIDTH, dataWidth); // restore ALU dataWidth
+                updateStatusReg(); // flags are in accordance with previously set dataWidth
                 break;
         }
     }

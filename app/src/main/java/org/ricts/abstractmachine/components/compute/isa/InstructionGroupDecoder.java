@@ -36,13 +36,8 @@ public class InstructionGroupDecoder extends Device {
 		opcodeDecoder = new OpDecoder(bitWidth(opcodeRange[opcodeRange.length-1]),operandsCombinedWidth);
 	}
 	
-	public int decode(int instruction){
-		return opcodeIndex(opcodeDecoder.getOpFrom(instruction));
-	}
-
-	public String getMneumonicAtIndex(int groupIndex) {
-		return groupIndex < instructionFormat.instructionCount() ?
-                instructionFormat.mneumonicAt(groupIndex) : null;
+	public String decode(int instruction){
+		return  getMneumonicAtIndex(opcodeIndex(opcodeDecoder.getOpFrom(instruction)));
 	}
 
 	public int encode(String mneumonic, int[] operands){
@@ -83,7 +78,11 @@ public class InstructionGroupDecoder extends Device {
 	
 	public int operandCount(){
 		return operandDecoders.length;
-	}	
+	}
+
+	public String[] getMneumonics() {
+		return instructionFormat.getMneumonics();
+	}
 	
 	private boolean operandsAreValid(int[] operands){
 		return operands.length == operandDecoders.length;
@@ -118,7 +117,12 @@ public class InstructionGroupDecoder extends Device {
 			}
 		}
 		return -1;
-	}			
+	}
+
+    private String getMneumonicAtIndex(int groupIndex) {
+        return groupIndex < instructionFormat.instructionCount() ?
+                instructionFormat.mneumonicAt(groupIndex) : null;
+    }
 	
 	public String groupName(){
 		return instructionFormat.groupName();

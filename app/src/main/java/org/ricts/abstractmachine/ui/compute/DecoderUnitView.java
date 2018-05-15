@@ -68,8 +68,9 @@ public class DecoderUnitView extends DeviceView implements Observer {
     public void update(Observable observable, Object o) {
         if(o instanceof ObservableDecoderUnit.DecodeParams) {
             DecoderUnit decoderUnit = ((ObservableDecoderUnit) observable).getType();
+            ObservableDecoderUnit.DecodeParams decodeParams = (ObservableDecoderUnit.DecodeParams) o;
 
-            mainBody.setInstructionText(decoderUnit.instrString());
+            mainBody.setInstructionText(decodeParams.getInstructionString());
 
             if(updateImmediately){
                 mainBody.updateInstructionView();
@@ -90,9 +91,13 @@ public class DecoderUnitView extends DeviceView implements Observer {
                 pins.fetchNop(decoderUnit.instrValueString(decoderUnit.getNopInstruction()));
             }
         }
+        else if(o instanceof ObservableDecoderUnit.InvalidateParams) {
+            if(updateImmediately) {
+                clearMainBodyText();
+            }
+        }
         else if(o instanceof Boolean) { // update is from a reset
-            mainBody.setInstructionText(null);
-            mainBody.updateInstructionView();
+            clearMainBodyText();
         }
     }
 
@@ -114,13 +119,36 @@ public class DecoderUnitView extends DeviceView implements Observer {
                 stepResponder.onAnimationEnd();
             }
         });
+
+        pins.setInvalidateResponder(new PinsView.InvalidateResponder() {
+            @Override
+            public void onInvalidateCompleted() {
+                clearMainBodyText();
+                stepResponder.onAnimationEnd();
+            }
+        });
+    }
+
+    public void sendInvalidateCommand() {
+        if(!updateImmediately) {
+            pins.animateInvalidate();
+        }
+        else {
+            stepResponder.onAnimationEnd();
+        }
+    }
+
+    private void clearMainBodyText() {
+        mainBody.setInstructionText(null);
+        mainBody.updateInstructionView();
     }
 
     public static class PinsView extends MultiPinView {
         private NopResponder nopResponder;
         private DecodeResponder decodeResponder;
+        private InvalidateResponder invalidateResponder;
 
-        private String decodeString, getNopString;
+        private String decodeString, getNopString, invalidateString;
 
         public interface DecodeResponder {
             void onDecodeCompleted();
@@ -128,6 +156,10 @@ public class DecoderUnitView extends DeviceView implements Observer {
 
         public interface NopResponder {
             void onFetchNopCompleted();
+        }
+
+        public interface InvalidateResponder {
+            void onInvalidateCompleted();
         }
 
         protected enum PinNames{
@@ -167,6 +199,7 @@ public class DecoderUnitView extends DeviceView implements Observer {
             setStartDelay(500);
             decodeString = context.getResources().getString(R.string.pin_data_decode);
             getNopString = context.getResources().getString(R.string.pin_data_get_nop);
+            invalidateString = context.getResources().getString(R.string.pin_data_invalidate);
         }
 
         public void setDecodeResponder(DecodeResponder decResponder) {
@@ -260,6 +293,47 @@ public class DecoderUnitView extends DeviceView implements Observer {
 
             updateView(); // Animate pin UI
         }
+
+        public void setInvalidateResponder(InvalidateResponder responder) {
+            invalidateResponder = responder;
+        }
+
+        public void animateInvalidate(){
+            // Setup correct data in pin UI
+            DevicePin pin = pinArray[PinNames.COMMAND.ordinal()];
+            pin.data = invalidateString;
+            pin.direction = inDirection;
+            pin.action = DevicePin.PinAction.MOVING;
+            pin.startBehaviour = DevicePin.AnimStartBehaviour.IMMEDIATE;
+            pin.animListener = new Animation.AnimationListener(){
+                @Override
+                public void onAnimationEnd(Animation animation) {
+                    if(invalidateResponder != null){
+                        invalidateResponder.onInvalidateCompleted();
+                    }
+                }
+
+                @Override
+                public void onAnimationStart(Animation animation) {
+
+                }
+
+                @Override
+                public void onAnimationRepeat(Animation animation) {
+
+                }
+            };
+
+            pin = pinArray[PinNames.INSTRUCTION.ordinal()];
+            pin.action = DevicePin.PinAction.STATIONARY;
+            pin.animListener = null;
+
+            pin = pinArray[PinNames.PROG_COUNT.ordinal()];
+            pin.action = DevicePin.PinAction.STATIONARY;
+            pin.animListener = null;
+
+            updateView(); // Animate pin UI
+        }
     }
 
     private static class MainBodyView extends RelativeLayout {
@@ -280,7 +354,7 @@ public class DecoderUnitView extends DeviceView implements Observer {
             float scaleFactor = context.getResources().getDisplayMetrics().density;
             /*** setSelectWidth properties ***/
             setBackgroundColor(context.getResources().getColor(R.color.reg_data_unselected));
-            int padding = (int) (10 * scaleFactor);
+            int padding = (int) (6 * scaleFactor);
             setPadding(padding, padding, padding, padding);
 
             /*** create children ***/
@@ -300,8 +374,7 @@ public class DecoderUnitView extends DeviceView implements Observer {
 
             LayoutParams lpInstructionView = new LayoutParams(
                     LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
-            lpInstructionView.addRule(RelativeLayout.RIGHT_OF, instructionLabel.getId());
-            lpInstructionView.addRule(RelativeLayout.ALIGN_TOP, instructionLabel.getId());
+            lpInstructionView.addRule(RelativeLayout.BELOW, instructionLabel.getId());
             addView(instructionView, lpInstructionView);
         }
 

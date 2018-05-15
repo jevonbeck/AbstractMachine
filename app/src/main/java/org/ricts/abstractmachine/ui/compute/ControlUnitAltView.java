@@ -43,7 +43,7 @@ public class ControlUnitAltView extends RelativeLayout implements Observer{
         float scaleFactor = context.getResources().getDisplayMetrics().density;
         /*** setSelectWidth properties ***/
         setBackgroundColor(context.getResources().getColor(R.color.reg_data_unselected));
-        int padding = (int) (10 * scaleFactor);
+        int padding = (int) (6 * scaleFactor);
         setPadding(padding, padding, padding, padding);
 
         /*** create children ***/
@@ -82,7 +82,7 @@ public class ControlUnitAltView extends RelativeLayout implements Observer{
         stateView.setBackgroundColor(context.getResources().getColor(R.color.test_color2));
 
         /*** determine children layouts and positions ***/
-        int viewWidth = (int) (100 * scaleFactor);
+        int viewWidth = (int) (64 * scaleFactor);
 
         LayoutParams lpPcLabel = new LayoutParams(
                 LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
@@ -113,8 +113,8 @@ public class ControlUnitAltView extends RelativeLayout implements Observer{
 
         LayoutParams lpStateView = new LayoutParams(
                 LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
-        lpStateView.addRule(RelativeLayout.RIGHT_OF, stateLabel.getId());
-        lpStateView.addRule(RelativeLayout.ALIGN_TOP, stateLabel.getId());
+        lpStateView.addRule(RelativeLayout.BELOW, stateLabel.getId());
+        lpStateView.addRule(RelativeLayout.ALIGN_LEFT, stateLabel.getId());
         lpStateView.addRule(RelativeLayout.ALIGN_RIGHT, ir.getId());
         addView(stateView, lpStateView);
     }
@@ -167,8 +167,9 @@ public class ControlUnitAltView extends RelativeLayout implements Observer{
         }
     }
 
-    public void initCU(CuFsmInterface fsm, FetchCore fetchCore, DecoderUnitView decoderView,
-                       ControlUnitInterfaceView cuInterfaceView, ReadPortView instructionCache){
+    public void initCU(CuFsmInterface fsm, FetchCore fetchCore, final DecoderUnitView decoderView,
+                       ControlUnitInterfaceView cuInterfaceView, ReadPortView instructionCache,
+                       final boolean isPipelined){
         /** initialise variables **/
         updateStateText(fsm.currentState());
         updateState();
@@ -202,7 +203,12 @@ public class ControlUnitAltView extends RelativeLayout implements Observer{
             public void onUpdateFetchUnitCompleted() {
                 updatePC();
                 updateIR();
-                actionResponder.onStepAnimationEnd();
+                if(isPipelined) {
+                    decoderView.sendInvalidateCommand();
+                }
+                else {
+                    actionResponder.onStepAnimationEnd();
+                }
             }
         });
 

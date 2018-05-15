@@ -19,6 +19,11 @@ public class ControlUnitFSM extends CuFsmCore {
     }
 
     @Override
+    public int parallelStageCount() {
+        return 1;
+    }
+
+    @Override
     protected State desiredNextState(State currentState) {
         if(currentState == fetch)
             return execute;

@@ -86,6 +86,11 @@ public class PipelinedControlUnit extends ControlUnitCore {
     }
 
     @Override
+    public int fsmStageCount() {
+        return mainFSM.parallelStageCount();
+    }
+
+    @Override
     protected FetchUnit createRegCore(ReadPort instructionCache, int pcWidth, int irWidth) {
         return new FetchUnit(instructionCache, pcWidth, irWidth, true);
     }

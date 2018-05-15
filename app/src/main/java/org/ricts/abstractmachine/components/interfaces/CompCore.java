@@ -6,9 +6,8 @@ package org.ricts.abstractmachine.components.interfaces;
  */
 
 public interface CompCore {
-    void executeInstruction(int programCounter, String instructionGroupName,
-                             int instructionGroupIndex, int[] operands);
-    int instrExecTime(String instructionGroupName, int instructionGroupIndex);
+    void executeInstruction(int programCounter, String mneumonic, int[] operands);
+    int instrExecTime(String mneumonic);
 
     void reset();
     void checkInterrupts();

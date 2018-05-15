@@ -37,6 +37,11 @@ public class ControlUnit extends ControlUnitCore {
     }
 
     @Override
+    public int fsmStageCount() {
+        return mainFSM.parallelStageCount();
+    }
+
+    @Override
     public void setNextFetch(int instructionAddress){
         regCore.setPC(instructionAddress);
         mainFSM.setNextState(FETCH_STATE);

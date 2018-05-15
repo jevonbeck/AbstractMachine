@@ -12,19 +12,16 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import org.ricts.abstractmachine.R;
-import org.ricts.abstractmachine.components.compute.core.ComputeCore;
+import org.ricts.abstractmachine.components.compute.core.DecoderCore;
 import org.ricts.abstractmachine.components.interfaces.CompCore;
-import org.ricts.abstractmachine.components.interfaces.DecoderUnit;
 import org.ricts.abstractmachine.components.observable.ObservableDecoderUnit;
 import org.ricts.abstractmachine.components.system.SystemAltArchitecture;
-import org.ricts.abstractmachine.components.system.SystemArchitecture;
-import org.ricts.abstractmachine.devices.compute.core.BasicScalar;
 import org.ricts.abstractmachine.devices.compute.core.BasicScalarCore;
 import org.ricts.abstractmachine.devices.compute.core.BasicScalarDecoder;
 import org.ricts.abstractmachine.ui.fragment.InspectFragment;
 
 public abstract class InspectAltActivity<T extends CompCore> extends AppCompatActivity implements InspectFragment.InspectActionListener {
-    private static final String TAG = "InspectActivity";
+    private static final String TAG = "InspectAltActivity";
 
     public static final String IS_PIPELINED = "isPipelined";
     public static final String ARCH_TYPE = "architectureType";
@@ -85,7 +82,7 @@ public abstract class InspectAltActivity<T extends CompCore> extends AppCompatAc
             public void onClick(View view) {
                 view.setEnabled(false);
                 runButton.setEnabled(false);
-                resetButton.setEnabled(false);
+                //resetButton.setEnabled(false);
 
                 advanceTime();
             }
@@ -96,7 +93,7 @@ public abstract class InspectAltActivity<T extends CompCore> extends AppCompatAc
             public void onClick(View view) {
                 view.setEnabled(false);
                 advanceButton.setEnabled(false);
-                resetButton.setEnabled(false);
+                //resetButton.setEnabled(false);
                 stopButton.setEnabled(true);
 
                 isRunning = true;
@@ -117,7 +114,7 @@ public abstract class InspectAltActivity<T extends CompCore> extends AppCompatAc
         resetButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                view.setEnabled(false);
+                //view.setEnabled(false);
                 advanceButton.setEnabled(false);
                 runButton.setEnabled(false);
                 stopButton.setEnabled(false);
@@ -203,7 +200,7 @@ public abstract class InspectAltActivity<T extends CompCore> extends AppCompatAc
     private void enableButtons() {
         advanceButton.setEnabled(true);
         runButton.setEnabled(true);
-        resetButton.setEnabled(true);
+        //resetButton.setEnabled(true);
     }
 
     public static CompCore getComputeCore(ObservableDecoderUnit decoderUnit, Bundle options){
@@ -222,7 +219,7 @@ public abstract class InspectAltActivity<T extends CompCore> extends AppCompatAc
         }
     }
 
-    public static DecoderUnit getDecoderUnit(Resources resources, Bundle options){
+    public static DecoderCore getDecoderUnit(Resources resources, Bundle options){
         String coreName = options.getString(CORE_NAME);
         int coreDataWidth = options.getInt(CORE_DATA_WIDTH);
         int instrAddrWidth = options.getInt(INSTR_ADDR_WIDTH);

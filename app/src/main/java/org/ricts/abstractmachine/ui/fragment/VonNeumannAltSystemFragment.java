@@ -5,9 +5,7 @@ import android.view.View;
 
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.compute.cu.ControlUnitAltCore;
-import org.ricts.abstractmachine.components.compute.cu.ControlUnitCore;
 import org.ricts.abstractmachine.components.observable.ObservableComputeAltCore;
-import org.ricts.abstractmachine.components.observable.ObservableComputeCore;
 import org.ricts.abstractmachine.components.observable.ObservableCuFSM;
 import org.ricts.abstractmachine.components.observable.ObservableDecoderUnit;
 import org.ricts.abstractmachine.components.observable.ObservableDefaultValueSource;
@@ -15,7 +13,6 @@ import org.ricts.abstractmachine.components.observable.ObservableFetchCore;
 import org.ricts.abstractmachine.components.observable.ObservableMemoryPort;
 import org.ricts.abstractmachine.components.storage.RAM;
 import org.ricts.abstractmachine.ui.compute.CpuAltCoreView;
-import org.ricts.abstractmachine.ui.compute.CpuCoreView;
 import org.ricts.abstractmachine.ui.compute.InspectActionResponder;
 import org.ricts.abstractmachine.ui.storage.RamView;
 
@@ -71,7 +68,7 @@ public class VonNeumannAltSystemFragment extends VonNeumannAltActivityFragment {
     @Override
     protected void handleUserVisibility(boolean visible) {
         memory.setAnimatePins(visible);
-        cpu.setUpdateIrImmediately(!visible);
+        cpu.setViewVisibility(visible);
     }
 
     @Override

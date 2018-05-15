@@ -5,6 +5,7 @@ import android.content.res.TypedArray;
 import android.graphics.drawable.ShapeDrawable;
 import android.util.AttributeSet;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
@@ -141,18 +142,21 @@ public abstract class ManyToOnePortView extends RelativeLayout {
         int mainViewW = mainView.getMeasuredWidth();
         int mainViewH = mainView.getMeasuredHeight();
 
+        ViewGroup.LayoutParams lpMainView = mainView.getLayoutParams();
         int fullW, fullH;
         switch (inputsPosition) {
             case TOP:
             case BOTTOM:
                 fullW = Math.max(mainViewW, inputPinsW);
                 fullH = outputPinsH + mainViewH + inputPinsH;
+                lpMainView.width = fullW;
                 break;
             case LEFT:
             case RIGHT:
             default:
                 fullW = outputPinsW + mainViewW + inputPinsW;
                 fullH = Math.max(mainViewH, inputPinsH);
+                lpMainView.height = fullH;
                 break;
         }
 

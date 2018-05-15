@@ -1,20 +1,29 @@
 package org.ricts.abstractmachine.components.compute.isa;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.ricts.abstractmachine.components.devicetype.Device;
 import org.ricts.abstractmachine.components.devicetype.InstructionDevice;
 
 public class IsaDecoder extends Device implements InstructionDevice {
     private ArrayList<InstructionGroupDecoder> instructionDecoders;
+    private Map<String, InstructionGroupDecoder> mneumonicToDecoderMap;
     private int instructionWidth;
     private int instructionBitMask;
 
     public IsaDecoder(List<InstructionGroup> formats) {
         instructionDecoders = new ArrayList<>();
+        mneumonicToDecoderMap = new HashMap<>();
         for (int x = 0; x != formats.size(); ++x) {
-            instructionDecoders.add(new InstructionGroupDecoder(formats.get(x)));
+            InstructionGroupDecoder decoder = new InstructionGroupDecoder(formats.get(x));
+            instructionDecoders.add(decoder);
+
+            for(String mneumonic : decoder.getMneumonics()) {
+                mneumonicToDecoderMap.put(mneumonic, decoder);
+            }
         }
 
         int[] maxWidths = combinedWidthArrDescending(instructionDecoders);
@@ -76,25 +85,12 @@ public class IsaDecoder extends Device implements InstructionDevice {
         return null;
     }
 
-    private boolean isValidGroupName(String groupName) {
-        return groupNameIndex(groupName) != -1;
-    }
-
-    private int groupNameIndex(String groupName) {
-        for (int x = 0; x != instructionDecoders.size(); ++x) {
-            if (instructionDecoders.get(x).groupName().equals(groupName)) {
-                return x;
-            }
+    public int encode(String mneumonic, int[] operands) {
+        InstructionGroupDecoder decoder = mneumonicToDecoderMap.get(mneumonic);
+        if(decoder != null) {
+            return decoder.encode(mneumonic, operands);
         }
         return -1;
-    }
-
-    public int encode(String groupName, String mneumonic, int[] operands) {
-        if (isValidGroupName(groupName)) {
-            int decoderIndex = groupNameIndex(groupName);
-            return instructionDecoders.get(decoderIndex).encode(mneumonic, operands);
-        }
-        return -2;
     }
 
     private ArrayList<Integer> findAllMatch(ArrayList<InstructionGroupDecoder> list, int valToMatch) {

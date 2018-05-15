@@ -19,7 +19,7 @@ public class ControlUnitDecodeState extends ControlUnitState {
 
     @Override
     public void performAction() {
-        decoderCore.decode(fetchCore.getPC(), fetchCore.getIR());
+        decoderCore.decode(fetchCore.getInstructionPC(), fetchCore.getIR());
     }
 
     @Override

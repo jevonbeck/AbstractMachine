@@ -10,6 +10,7 @@ import org.ricts.abstractmachine.components.storage.Register;
 
 public class FetchUnit implements FetchCore {
     private Register pc, tempPC; // Program Counter
+    private Register instrPC, tempInstrPC; // Instruction Program Counter value
     private Register ir, tempIR; // Instruction Register
     private ReadPort instructionCache;
     private boolean useTempRegs;
@@ -21,11 +22,13 @@ public class FetchUnit implements FetchCore {
     public FetchUnit(ReadPort iCache, int pcWidth, int irWidth, boolean stageStorage) {
         instructionCache = iCache;
         pc = new Register(pcWidth);
+        instrPC = new Register(pcWidth);
         ir = new Register(irWidth);
         useTempRegs = stageStorage;
 
         if(useTempRegs) {
             tempPC = new Register(pcWidth);
+            tempInstrPC = new Register(pcWidth);
             tempIR = new Register(irWidth);
         }
     }
@@ -37,11 +40,14 @@ public class FetchUnit implements FetchCore {
         int irValue = instructionCache.read(pcValue); // PC += 1
 
         if(useTempRegs){
+            tempInstrPC.write(pcValue);
             tempPC.write(pcIncrementedValue);
             tempIR.write(irValue);
         }
         else {
-            setPcAndIr(pcIncrementedValue, irValue);
+            instrPC.write(pcValue);
+            pc.write(pcIncrementedValue);
+            ir.write(irValue);
         }
     }
 
@@ -59,7 +65,9 @@ public class FetchUnit implements FetchCore {
     @Override
     public void updatePcWithExpectedValues() {
         if(useTempRegs){
-            setPcAndIr(tempPC.read(), tempIR.read());
+            instrPC.write(tempInstrPC.read());
+            pc.write(tempPC.read());
+            ir.write(tempIR.read());
         }
     }
 
@@ -74,6 +82,11 @@ public class FetchUnit implements FetchCore {
     }
 
     @Override
+    public int getInstructionPC() {
+        return instrPC.read();
+    }
+
+    @Override
     public int getIR() {
         return ir.read();
     }
@@ -81,6 +94,11 @@ public class FetchUnit implements FetchCore {
     @Override
     public String getPCString() {
         return pc.dataString();
+    }
+
+    @Override
+    public String getInstructionPCString() {
+        return instrPC.dataString();
     }
 
     @Override

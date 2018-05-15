@@ -2,7 +2,6 @@ package org.ricts.abstractmachine.components.compute.cu;
 
 import org.ricts.abstractmachine.components.compute.cu.fsm.ControlUnitState.GenericCUState;
 import org.ricts.abstractmachine.components.interfaces.CompCore;
-import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
 import org.ricts.abstractmachine.components.interfaces.ControlUnitInterface;
 import org.ricts.abstractmachine.components.interfaces.CuFsmInterface;
 import org.ricts.abstractmachine.components.interfaces.DecoderUnit;
@@ -59,6 +58,11 @@ public abstract class ControlUnitAltCore implements ControlUnitInterface {
     @Override
     public void setNextStateToSleep() {
         mainFSM.setNextState(SLEEP_STATE);
+    }
+
+    @Override
+    public int fsmStageCount() {
+        return mainFSM.parallelStageCount();
     }
 
     public ObservableFetchCore getRegCore() {

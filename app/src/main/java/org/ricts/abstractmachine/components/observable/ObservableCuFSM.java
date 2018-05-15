@@ -58,4 +58,9 @@ public class ObservableCuFSM extends ObservableType<CuFsmInterface> implements C
     public int nextActionDuration() {
         return observable_data.nextActionDuration();
     }
+
+    @Override
+    public int parallelStageCount() {
+        return observable_data.parallelStageCount();
+    }
 }

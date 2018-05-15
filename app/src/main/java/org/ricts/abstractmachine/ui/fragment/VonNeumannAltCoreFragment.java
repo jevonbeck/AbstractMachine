@@ -36,6 +36,8 @@ import java.util.Observer;
  * create an instance of this fragment.
  */
 public class VonNeumannAltCoreFragment extends VonNeumannAltActivityFragment {
+    private static final String TAG = "VonNeumannAltCoreFragment";
+
     private static final int DATA_MEM_ID = UniMemoryCpuCore.SerializerInputId.DATA_MEM.ordinal();
     private static final int INS_MEM_ID = UniMemoryCpuCore.SerializerInputId.INSTRUCTION_MEM.ordinal();
 
@@ -77,18 +79,6 @@ public class VonNeumannAltCoreFragment extends VonNeumannAltActivityFragment {
         });
 
         cuInterfaceView = (ControlUnitInterfaceView) mainView.findViewById(R.id.cuInterface);
-        cuInterfaceView.setUpdateResponder(new ControlUnitInterfaceView.UpdateResponder() {
-            @Override
-            public void onUpdateFetchUnitCompleted() {
-                mListener.onStepActionCompleted();
-            }
-        });
-        cuInterfaceView.setCommandResponder(new ControlUnitInterfaceView.CommandOnlyResponder() {
-            @Override
-            public void onCommandCompleted() {
-                mListener.onStepActionCompleted();
-            }
-        });
 
         coreView = (ComputeAltCoreView) mainView.findViewById(R.id.core);
         coreView.setControlUnitCommandInterface(cuInterfaceView);
@@ -98,6 +88,7 @@ public class VonNeumannAltCoreFragment extends VonNeumannAltActivityFragment {
                 muxView.animatePins();
             }
         });
+        coreView.setNopInstructionString(decoderUnit.instrValueString(decoderUnit.getType().getNopInstruction()));
 
         MemoryPortView dataMemory = (MemoryPortView) (muxView.getInputs())[DATA_MEM_ID];
         dataMemory.setReadResponder(new ReadPortView.ReadResponder() {
@@ -133,7 +124,7 @@ public class VonNeumannAltCoreFragment extends VonNeumannAltActivityFragment {
 
         /** Initialise Views **/
         MemoryPortView instructionCache = (MemoryPortView) (muxView.getInputs())[INS_MEM_ID];
-        cuView.initCU(fsm, regCore, decoderView, cuInterfaceView, instructionCache);
+        cuView.initCU(fsm, regCore, decoderView, cuInterfaceView, instructionCache, controlUnit.isPipelined());
 
         /** Add observers to observables **/
         mainCore.addObserver(coreView);

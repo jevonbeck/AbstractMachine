@@ -72,9 +72,9 @@ public class HarvardAltActivity extends InspectAltActivity<UniMemoryComputeAltCo
         public Fragment getItem(int position) {
             switch (position){
                 case 0:
-                    return HarvardAltSystemFragment.newInstance(mainCore, instructionCache, dataMemory, cu);
+                    return HarvardAltSystemFragment.newInstance(mainCore, decoderUnit, instructionCache, dataMemory, cu);
                 case 1:
-                    return HarvardAltCoreFragment.newInstance(mainCore, instructionCache, dataMemory, cu);
+                    return HarvardAltCoreFragment.newInstance(mainCore, decoderUnit, instructionCache, dataMemory, cu);
                 default:
                     return null;
             }

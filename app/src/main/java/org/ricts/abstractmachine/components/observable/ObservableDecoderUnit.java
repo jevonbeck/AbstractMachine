@@ -1,5 +1,6 @@
 package org.ricts.abstractmachine.components.observable;
 
+import org.ricts.abstractmachine.components.compute.core.DecoderCore;
 import org.ricts.abstractmachine.components.compute.isa.OperandInfo;
 import org.ricts.abstractmachine.components.interfaces.DecoderUnit;
 
@@ -7,15 +8,15 @@ import org.ricts.abstractmachine.components.interfaces.DecoderUnit;
  * Created by jevon.beckles on 19/08/2017.
  */
 
-public class ObservableDecoderUnit extends ObservableType<DecoderUnit> implements DecoderUnit {
+public class ObservableDecoderUnit extends ObservableType<DecoderCore> implements DecoderUnit {
 
-    public ObservableDecoderUnit(DecoderUnit type) {
+    public ObservableDecoderUnit(DecoderCore type) {
         super(type);
     }
 
     public static class DecodeParams extends Params {
         private enum Args{
-            PROGRAM_COUNTER, INSTRUCTION
+            PROGRAM_COUNTER, INSTRUCTION, INSTR_STR
         }
 
         public DecodeParams(Object... objects){
@@ -29,15 +30,23 @@ public class ObservableDecoderUnit extends ObservableType<DecoderUnit> implement
         public int getProgramCounter() {
             return (Integer) params[Args.PROGRAM_COUNTER.ordinal()];
         }
+
+        public String getInstructionString() {
+            return (String) params[Args.INSTR_STR.ordinal()];
+        }
     }
 
     public static class GetNopParams {}
+    public static class InvalidateParams {}
 
     @Override
     public void decode(int programCounter, int instruction) {
         observable_data.decode(programCounter, instruction);
         setChanged();
-        notifyObservers(new DecodeParams(programCounter, instruction));
+
+        String instructionText = observable_data.hasTempStorage() ? observable_data.tempInstrString()
+            : observable_data.instrString();
+        notifyObservers(new DecodeParams(programCounter, instruction, instructionText));
     }
 
     @Override
@@ -57,8 +66,8 @@ public class ObservableDecoderUnit extends ObservableType<DecoderUnit> implement
     @Override
     public void invalidateValues() {
         observable_data.invalidateValues();
-        //setChanged();
-        //notifyObservers();
+        setChanged();
+        notifyObservers(new InvalidateParams());
     }
 
     @Override
@@ -92,16 +101,6 @@ public class ObservableDecoderUnit extends ObservableType<DecoderUnit> implement
     @Override
     public boolean isValidInstruction() {
         return observable_data.isValidInstruction();
-    }
-
-    @Override
-    public String getInstructionGroupName() {
-        return observable_data.getInstructionGroupName();
-    }
-
-    @Override
-    public int getInstructionGroupIndex() {
-        return observable_data.getInstructionGroupIndex();
     }
 
     @Override

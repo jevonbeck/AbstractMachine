@@ -2,6 +2,7 @@ package org.ricts.abstractmachine.ui.compute;
 
 import android.content.Context;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 import android.view.animation.Animation;
 import android.widget.RelativeLayout;
@@ -36,6 +37,7 @@ public class ComputeAltCoreView extends DeviceView implements Observer {
     private ControlUnitInterfaceView cuCommandInterface;
     private MemoryCommandResponder memoryCommandResponder;
     private String haltString, sleepString, doneString;
+    private String nopInstructionString;
 
     public ComputeAltCoreView(Context context) {
         this(context, null);
@@ -73,25 +75,26 @@ public class ComputeAltCoreView extends DeviceView implements Observer {
 
     @Override
     public void update(Observable observable, Object o) {
-        if(o instanceof ObservableComputeAltCore.ExecuteParams) {
-            final CompCore mainCore = (CompCore) ((ObservableComputeAltCore) observable).getType();
+        CompCore mainCore = (CompCore) ((ObservableComputeAltCore) observable).getType();
+        final boolean updatePC = mainCore.controlUnitUpdated();
+        int pcPostExecute = mainCore.getProgramCounterValue();
 
+        DecoderUnit decoderUnit = mainCore.getDecoderUnit();
+        final String pcPostExecuteString = decoderUnit.instrAddrValueString(pcPostExecute);
+        final boolean cuIsPipelined = decoderUnit.hasTempStorage();
+
+        if(o instanceof ObservableComputeAltCore.ExecuteParams) {
             mainBody.setStatusRegText(mainCore.getALU().statusString());
 
             if(updateImmediately){
                 mainBody.updateStatusView();
             }
             else{
-                int pcPostExecute = mainCore.getProgramCounterValue();
-                final boolean updatePC = mainCore.controlUnitUpdated();
-
-                DecoderUnit decoderUnit = mainCore.getDecoderUnit();
-                final boolean cuIsPipelined = decoderUnit.hasTempStorage();
+                int pcPreExecute = decoderUnit.getProgramCounter();
                 final boolean isDataMemInstruction = decoderUnit.isDataMemoryInstruction();
                 final boolean isHaltInstruction = decoderUnit.isHaltInstruction();
                 final boolean isSleepInstruction = decoderUnit.isSleepInstruction();
-                final String pcPostExecuteString = decoderUnit.instrAddrValueString(pcPostExecute);
-                final String nopInstructionString = decoderUnit.instrValueString(decoderUnit.getNopInstruction());
+                String pcPreExecuteString = decoderUnit.instrAddrValueString(pcPreExecute);
 
                 pins.setExecuteResponder(new PinsView.ExecuteResponder() {
                     @Override
@@ -115,7 +118,16 @@ public class ComputeAltCoreView extends DeviceView implements Observer {
                 });
 
                 // actually begin the animation
-                pins.executeInstruction(decoderUnit.getMneumonic(), decoderUnit.getOperandsString());
+                pins.executeInstruction(pcPreExecuteString, decoderUnit.getMneumonic(), decoderUnit.getOperandsString());
+            }
+        }
+        else if(o instanceof ObservableComputeAltCore.InterruptParams) {
+            if(!updateImmediately){
+                if (updatePC) {
+                    cuCommandInterface.updateFetchUnit(pcPostExecuteString, nopInstructionString, cuIsPipelined);
+                } else {
+                    sendDoneCommand();
+                }
             }
         }
         else if(o instanceof Boolean) { // update is from a reset
@@ -140,6 +152,10 @@ public class ComputeAltCoreView extends DeviceView implements Observer {
         updateImmediately = immediately;
     }
 
+    public void setNopInstructionString(String nopString) {
+        nopInstructionString = nopString;
+    }
+
     public static class PinsView extends MultiPinView {
         private ExecuteResponder executeResponder;
 
@@ -148,7 +164,7 @@ public class ComputeAltCoreView extends DeviceView implements Observer {
         }
 
         protected enum PinNames{
-            MNEUMONIC, OPERANDS
+            MNEUMONIC, OPERANDS, PC
         }
 
         public PinsView(Context context) {
@@ -166,6 +182,10 @@ public class ComputeAltCoreView extends DeviceView implements Observer {
             // initialise pin names (memoryPins data)
             DevicePin[] pinData = new DevicePin[PinNames.values().length];
             DevicePin pin = new DevicePin();
+            pin.name = context.getResources().getString(R.string.pin_name_pc_val);
+            pinData[PinNames.PC.ordinal()] = pin;
+
+            pin = new DevicePin();
             pin.name = context.getResources().getString(R.string.pin_name_mneumonic);
             pinData[PinNames.MNEUMONIC.ordinal()] = pin;
 
@@ -184,9 +204,16 @@ public class ComputeAltCoreView extends DeviceView implements Observer {
             executeResponder = execResponder;
         }
 
-        public void executeInstruction(String mneumonic, String operands){
+        public void executeInstruction(String programCounter, String mneumonic, String operands){
             // Setup correct data in pin UI
-            DevicePin pin = pinArray[PinNames.MNEUMONIC.ordinal()];
+            DevicePin pin = pinArray[PinNames.PC.ordinal()];
+            pin.data = programCounter;
+            pin.direction = inDirection;
+            pin.action = DevicePin.PinAction.MOVING;
+            pin.startBehaviour = DevicePin.AnimStartBehaviour.IMMEDIATE;
+            pin.animListener = null;
+
+            pin = pinArray[PinNames.MNEUMONIC.ordinal()];
             pin.data = mneumonic;
             pin.direction = inDirection;
             pin.action = DevicePin.PinAction.MOVING;
@@ -239,7 +266,7 @@ public class ComputeAltCoreView extends DeviceView implements Observer {
             float scaleFactor = context.getResources().getDisplayMetrics().density;
             /*** setSelectWidth properties ***/
             setBackgroundColor(context.getResources().getColor(R.color.reg_data_unselected));
-            int padding = (int) (10 * scaleFactor);
+            int padding = (int) (6 * scaleFactor);
             setPadding(padding, padding, padding, padding);
 
             /*** create children ***/
@@ -259,8 +286,7 @@ public class ComputeAltCoreView extends DeviceView implements Observer {
 
             LayoutParams lpStatusView = new LayoutParams(
                     LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
-            lpStatusView.addRule(RelativeLayout.RIGHT_OF, statusRegLabel.getId());
-            lpStatusView.addRule(RelativeLayout.ALIGN_TOP, statusRegLabel.getId());
+            lpStatusView.addRule(RelativeLayout.BELOW, statusRegLabel.getId());
             addView(statusRegView, lpStatusView);
         }
 

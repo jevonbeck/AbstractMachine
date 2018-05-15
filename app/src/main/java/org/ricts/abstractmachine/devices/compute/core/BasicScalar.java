@@ -171,7 +171,7 @@ public class BasicScalar extends UniMemoryComputeCore {
     private OperandInfo dAddrRegAddrInfo;
     private OperandInfo iAddrRegAddrInfo;
 
-    private Map<String, String> mneumonicToGroupMap;
+    private Map<String, InstructionGrouping> mneumonicToGroupMap;
     private Map<String, OperandInfo[]> mneumonicToOperandInfoMap;
     private String[] mneumonicList;
 
@@ -279,7 +279,7 @@ public class BasicScalar extends UniMemoryComputeCore {
                     array, mneumonicArray, groupName));
 
             for(String mneumonic : mneumonicArray){
-                mneumonicToGroupMap.put(mneumonic, groupName);
+                mneumonicToGroupMap.put(mneumonic, group);
                 mneumonicToOperandInfoMap.put(mneumonic, array);
             }
 
@@ -387,7 +387,7 @@ public class BasicScalar extends UniMemoryComputeCore {
 
     @Override
     public String[] getOperandLabels(String mneumonic) {
-        InstructionGrouping grouping = Enum.valueOf(InstructionGrouping.class, getGroupName(mneumonic));
+        InstructionGrouping grouping = getInstructionGrouping(mneumonic);
         int [] resIds = grouping.getOperandResIdArr();
 
         String [] result = new String [resIds.length];
@@ -483,19 +483,12 @@ public class BasicScalar extends UniMemoryComputeCore {
     }
 
     @Override
-    public boolean isDataMemInstr(String groupName, int groupIndex) {
-        InstructionGrouping grouping = Enum.valueOf(InstructionGrouping.class, groupName);
-        Instruction instruction = grouping.decode(groupIndex);
-
-        switch (grouping){
-            case DataMemOps:
-                switch (instruction){
-                    case LOADM:
-                    case STOREM:
-                        return true;
-                    default:
-                        return false;
-                }
+    public boolean isDataMemInstr(String mneumonic) {
+        Instruction instruction = Enum.valueOf(Instruction.class, mneumonic);
+        switch (instruction){
+            case LOADM:
+            case STOREM:
+                return true;
             default:
                 return false;
         }
@@ -542,21 +535,21 @@ public class BasicScalar extends UniMemoryComputeCore {
     }
 
     @Override
-    protected boolean isHaltInstr(String groupName, int groupIndex) {
-        InstructionGrouping grouping = Enum.valueOf(InstructionGrouping.class, groupName);
-        return grouping == InstructionGrouping.NoOperands && grouping.decode(groupIndex) == Instruction.HALT;
+    protected boolean isHaltInstr(String mneumonic) {
+        Instruction instruction = Enum.valueOf(Instruction.class, mneumonic);
+        return instruction == Instruction.HALT;
     }
 
     @Override
-    protected boolean isSleepInstr(String groupName, int groupIndex) {
+    protected boolean isSleepInstr(String mneumonic) {
         // TODO: implement sleep instruction?
         return false;
     }
 
     @Override
-    protected void fetchOpsExecuteInstr(String groupName, int groupIndex, int[] operands) {
-        InstructionGrouping grouping = Enum.valueOf(InstructionGrouping.class, groupName);
-        Instruction instruction = grouping.decode(groupIndex);
+    protected void fetchOpsExecuteInstr(String mneumonic, int[] operands) {
+        InstructionGrouping grouping = getInstructionGrouping(mneumonic);
+        Instruction instruction = Enum.valueOf(Instruction.class, mneumonic);
 
         int regAddr, destRegAddr, sourceRegAddr, byteLiteral, dRegAddr, bitIndex;
         switch (grouping){
@@ -858,20 +851,12 @@ public class BasicScalar extends UniMemoryComputeCore {
     }
 
     @Override
-    public int executionTime(String groupName, int groupIndex) {
-        InstructionGrouping grouping = Enum.valueOf(InstructionGrouping.class, groupName);
-        Instruction instruction = grouping.decode(groupIndex);
-
-        switch (grouping){
-            case DataMemOps:
-                // Instructions with 1 data register and 1 data address register
-                switch (instruction) {
-                    case LOADM: // DREG <-- MEMORY[DADREG] (dereference pointer and assign value to variable)
-                    case STOREM: // MEMORY[DADREG] <-- DREG (assign variable to dereferenced pointer)
-                        return dataMemory.accessTime();
-                    default:
-                        return 1;
-                }
+    public int executionTime(String mneumonic) {
+        Instruction instruction = Enum.valueOf(Instruction.class, mneumonic);
+        switch (instruction) {
+            case LOADM: // DREG <-- MEMORY[DADREG] (dereference pointer and assign value to variable)
+            case STOREM: // MEMORY[DADREG] <-- DREG (assign variable to dereferenced pointer)
+                return dataMemory.accessTime();
             default:
                 return 1;
         }
@@ -890,9 +875,9 @@ public class BasicScalar extends UniMemoryComputeCore {
     }
 
     @Override
-    protected String insToString(String groupName, int groupIndex, int[] operands) {
-        InstructionGrouping grouping = Enum.valueOf(InstructionGrouping.class, groupName);
-        Instruction instruction = grouping.decode(groupIndex);
+    protected String insToString(String mneumonic, int[] operands) {
+        InstructionGrouping grouping = getInstructionGrouping(mneumonic);
+        Instruction instruction = Enum.valueOf(Instruction.class, mneumonic);
 
         int regAddr, dRegAddr, destRegAddr, sourceRegAddr, bitIndex, iAddrRegAddr;
         switch (grouping){
@@ -1002,14 +987,13 @@ public class BasicScalar extends UniMemoryComputeCore {
     }
 
     @Override
-    protected String getGroupName(String mneumonic) {
-        return mneumonicToGroupMap.containsKey(mneumonic) ?
-                mneumonicToGroupMap.get(mneumonic) : "";
-    }
-
-    @Override
     protected String nopMneumonic() {
         return Instruction.NOP.name();
+    }
+
+    private InstructionGrouping getInstructionGrouping(String mneumonic) {
+        return mneumonicToGroupMap.containsKey(mneumonic) ?
+                mneumonicToGroupMap.get(mneumonic) : null;
     }
 
     private void updateAluCarry() {

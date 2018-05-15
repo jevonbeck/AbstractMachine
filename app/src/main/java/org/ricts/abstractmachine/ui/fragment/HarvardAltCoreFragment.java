@@ -44,6 +44,7 @@ public class HarvardAltCoreFragment extends HarvardAltActivityFragment implement
 
     @Override
     protected void initViews(View mainView) {
+        super.initViews(mainView);
         instructionCacheView = (ReadPortView) mainView.findViewById(R.id.instructionCache);
         instructionCacheView.setReadDelayByMultiple(2);
 
@@ -56,18 +57,6 @@ public class HarvardAltCoreFragment extends HarvardAltActivityFragment implement
         });
 
         cuInterfaceView = (ControlUnitInterfaceView) mainView.findViewById(R.id.cuInterface);
-        cuInterfaceView.setUpdateResponder(new ControlUnitInterfaceView.UpdateResponder() {
-            @Override
-            public void onUpdateFetchUnitCompleted() {
-                notifyStepActionListener();
-            }
-        });
-        cuInterfaceView.setCommandResponder(new ControlUnitInterfaceView.CommandOnlyResponder() {
-            @Override
-            public void onCommandCompleted() {
-                notifyStepActionListener();
-            }
-        });
 
         dataMemoryView = (MemoryPortView) mainView.findViewById(R.id.dataMemory);
 
@@ -114,7 +103,7 @@ public class HarvardAltCoreFragment extends HarvardAltActivityFragment implement
 
             @Override
             public void onResetAnimationEnd() {
-                mListener.onResetCompleted();
+                notifyResetActionListener();
             }
         });
     }
@@ -126,11 +115,11 @@ public class HarvardAltCoreFragment extends HarvardAltActivityFragment implement
         ObservableDefaultValueSource irDefaultValueSource = controlUnit.getIrDefaultValueSource();
 
         /** Initialise Views **/
-        cuView.initCU(fsm, regCore, decoderView, cuInterfaceView, instructionCacheView);
+        cuView.initCU(fsm, regCore, decoderView, cuInterfaceView, instructionCacheView, controlUnit.isPipelined());
 
         /** Add observers to observables **/
         mainCore.addObserver(coreView);
-        ((ObservableDecoderUnit) mainCore.getDecoderUnit()).addObserver(decoderView);
+        decoderUnit.addObserver(decoderView);
         fsm.addObserver(cuView);
         regCore.addObserver(cuView);
         irDefaultValueSource.addObserver(cuView);
@@ -144,6 +133,7 @@ public class HarvardAltCoreFragment extends HarvardAltActivityFragment implement
 
         animatePins = visible;
         cuView.setUpdateImmediately(fragmentNotVisible);
+        decoderView.setUpdateImmediately(fragmentNotVisible);
         coreView.setUpdateImmediately(fragmentNotVisible);
     }
 
@@ -179,11 +169,11 @@ public class HarvardAltCoreFragment extends HarvardAltActivityFragment implement
      * @param cu Control Unit
      * @return A new instance of fragment HarvardCoreFragment.
      */
-    public static HarvardAltCoreFragment newInstance(ObservableComputeAltCore mainCore,
+    public static HarvardAltCoreFragment newInstance(ObservableComputeAltCore mainCore, ObservableDecoderUnit decoderUnit,
                                                      ObservableReadPort<ROM> instructionCache,
                                                      ObservableMemoryPort dataMemory, ControlUnitAltCore cu) {
         HarvardAltCoreFragment fragment = new HarvardAltCoreFragment();
-        fragment.setObservables(mainCore, instructionCache, dataMemory, cu);
+        fragment.setObservables(mainCore, decoderUnit, instructionCache, dataMemory, cu);
         return fragment;
     }
 }

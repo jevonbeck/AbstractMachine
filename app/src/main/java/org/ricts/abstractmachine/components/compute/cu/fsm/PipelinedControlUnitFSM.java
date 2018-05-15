@@ -65,6 +65,11 @@ public class PipelinedControlUnitFSM extends CuFsmCore {
     }
 
     @Override
+    public int parallelStageCount() {
+        return 2;
+    }
+
+    @Override
     protected State desiredNextState(State currentState) {
         return currentState; // all states desire to stay in state unless nextState is set
     }

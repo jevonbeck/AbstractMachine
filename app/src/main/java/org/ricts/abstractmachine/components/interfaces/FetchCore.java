@@ -13,8 +13,10 @@ public interface FetchCore {
     int fetchTime();
 
     int getPC();
+    int getInstructionPC();
     int getIR();
 
     String getPCString();
+    String getInstructionPCString();
     String getIRString();
 }

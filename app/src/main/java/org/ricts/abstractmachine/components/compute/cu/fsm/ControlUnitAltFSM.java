@@ -23,6 +23,11 @@ public class ControlUnitAltFSM extends CuFsmCore {
     }
 
     @Override
+    public int parallelStageCount() {
+        return 1;
+    }
+
+    @Override
     protected State desiredNextState(State currentState) {
         if(currentState == fetch)
             return decode;

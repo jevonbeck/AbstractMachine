@@ -69,6 +69,11 @@ public class ObservableFetchCore extends ObservableType<FetchUnit> implements Fe
     }
 
     @Override
+    public int getInstructionPC() {
+        return observable_data.getInstructionPC();
+    }
+
+    @Override
     public int getIR() {
         return observable_data.getIR();
     }
@@ -76,6 +81,11 @@ public class ObservableFetchCore extends ObservableType<FetchUnit> implements Fe
     @Override
     public String getPCString() {
         return observable_data.getPCString();
+    }
+
+    @Override
+    public String getInstructionPCString() {
+        return observable_data.getInstructionPCString();
     }
 
     @Override

@@ -16,4 +16,5 @@ public interface ControlUnitInterface {
 
     void performNextAction();
     int nextActionDuration();
+    int fsmStageCount();
 }

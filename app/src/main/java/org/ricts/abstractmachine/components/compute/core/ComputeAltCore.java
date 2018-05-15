@@ -13,8 +13,7 @@ public abstract class ComputeAltCore extends Device implements CompCore, Interru
     protected AluCore aluCore;
 
     private DecoderUnit decoderCore;
-    private boolean pcUpdated = false;
-    private boolean cuUpdated = false;
+    private boolean pcUpdated, cuUpdated;
     private ControlUnitState internalControlUnitState = ControlUnitState.ACTIVE;
     private InterruptSource [] interruptSources;
 
@@ -23,7 +22,7 @@ public abstract class ComputeAltCore extends Device implements CompCore, Interru
     }
 
     protected abstract AluCore createALU(int dataWidth);
-    protected abstract void fetchOpsExecuteInstr(String groupName, int groupIndex, int[] operands);
+    protected abstract void fetchOpsExecuteInstr(String mneumonic, int[] operands);
     protected abstract void vectorToInterruptHandler();
     protected abstract void updateProgramCounterRegs(int programCounter);
     protected abstract InterruptSource [] createInterruptSources();
@@ -32,17 +31,17 @@ public abstract class ComputeAltCore extends Device implements CompCore, Interru
         decoderCore = decoder;
         aluCore = createALU(decoderCore.dataWidth());
         interruptSources = createInterruptSources();
+        resetUpdatedFlagsState();
     }
 
     @Override
-    public void executeInstruction(int programCounter, String instructionGroupName,
-                                   int instructionGroupIndex, int[] operands) {
-        cuUpdated = false;
+    public void executeInstruction(int programCounter, String mneumonic, int[] operands) {
+        resetUpdatedFlagsState();
         updateProgramCounterRegs(programCounter);
         latchInterruptSources();
 
         // fetch/indirect operands and execute instruction
-        getOpsExecuteInstruction(instructionGroupName, instructionGroupIndex, operands);
+        getOpsExecuteInstruction(mneumonic, operands);
 
         // apply changes to Control Unit as appropriate
         switch (internalControlUnitState){
@@ -68,6 +67,7 @@ public abstract class ComputeAltCore extends Device implements CompCore, Interru
 
     @Override
     public void checkInterrupts() {
+        resetUpdatedFlagsState();
         latchInterruptSources();
         int before = getProgramCounterValue();
         vectorToInterruptHandler();
@@ -107,10 +107,9 @@ public abstract class ComputeAltCore extends Device implements CompCore, Interru
         internalControlUnitState = state;
     }
 
-    private void getOpsExecuteInstruction(String groupName, int groupIndex, int[] operands) {
-        pcUpdated = false;
+    private void getOpsExecuteInstruction(String mneumonic, int[] operands) {
         setInternalControlUnitState(ControlUnitState.ACTIVE);
-        fetchOpsExecuteInstr(groupName, groupIndex, operands);
+        fetchOpsExecuteInstr(mneumonic, operands);
     }
 
     private void latchInterruptSources() {
@@ -128,5 +127,10 @@ public abstract class ComputeAltCore extends Device implements CompCore, Interru
         else {
             cu.setNextFetch(newPcValue);
         }
+    }
+
+    private void resetUpdatedFlagsState() {
+        pcUpdated = false;
+        cuUpdated = false;
     }
 }

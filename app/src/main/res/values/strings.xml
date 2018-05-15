@@ -89,6 +89,7 @@
     <string name="inspectactivity_system_clock_label">Time elapsed: </string>
 
     <string name="pin_name_command">command</string>
+    <string name="pin_name_command_short">cmd</string>
     <string name="pin_name_address">address</string>
     <string name="pin_name_data">data</string>
     <string name="pin_name_pc_val">PC data</string>
@@ -100,6 +101,7 @@
     <string name="pin_data_execute">execute</string>
     <string name="pin_data_set_next">Set Next</string>
     <string name="pin_data_get_nop">Get NOP</string>
+    <string name="pin_data_invalidate">invalidate</string>
     <string name="pin_data_halt">halt</string>
     <string name="pin_data_sleep">sleep</string>
     <string name="pin_data_done">done</string>

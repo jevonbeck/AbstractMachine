@@ -35,7 +35,7 @@ public class CpuAltConfigureActivity extends WizardActivity implements WizardFra
             if (archType.equals(getString(R.string.architecture_type_von_neumann))) {
                 return new Intent(this, VonNeumannAltActivity.class);
             } else if (archType.equals(getString(R.string.architecture_type_harvard))) {
-                return new Intent(this, HarvardActivity.class);
+                return new Intent(this, HarvardAltActivity.class);
             }
         }
 

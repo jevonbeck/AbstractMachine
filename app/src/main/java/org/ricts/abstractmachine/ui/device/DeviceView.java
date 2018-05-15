@@ -34,6 +34,7 @@ public abstract class DeviceView extends RelativeLayout {
         /*** extract XML attributes ***/
         TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.DeviceView);
         int position = a.getInt(R.styleable.DeviceView_pinPosition, RelativePosition.RIGHT.ordinal());
+        int alignment = a.getInt(R.styleable.DeviceView_pinBodyAlignment, PinBodyAlignment.CENTER.ordinal());
         a.recycle();
 
         /*** create children and determine layouts & positions based on attributes ***/
@@ -43,6 +44,7 @@ public abstract class DeviceView extends RelativeLayout {
                 LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
 
         RelativePosition pinPosition = RelativePosition.getPositionFromInt(position);
+        PinBodyAlignment bodyAlignment = PinBodyAlignment.getAlignmentFromInt(alignment);
         pinView = createPinView(context, pinPosition);
         pinView.setId(R.id.DeviceView_pin_view);
 
@@ -51,7 +53,12 @@ public abstract class DeviceView extends RelativeLayout {
 
         switch (pinPosition) {
             case TOP:
-                lpPinView.addRule(RelativeLayout.CENTER_HORIZONTAL);
+                if(bodyAlignment == PinBodyAlignment.CENTER) {
+                    lpPinView.addRule(RelativeLayout.CENTER_HORIZONTAL);
+                }
+                else if(bodyAlignment == PinBodyAlignment.END) {
+                    lpPinView.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+                }
                 addView(pinView, lpPinView);
 
                 lpMainView.addRule(RelativeLayout.BELOW, pinView.getId());
@@ -61,11 +68,21 @@ public abstract class DeviceView extends RelativeLayout {
                 addView(mainView, lpMainView);
 
                 lpPinView.addRule(RelativeLayout.BELOW, mainView.getId());
-                lpPinView.addRule(RelativeLayout.CENTER_HORIZONTAL);
+                if(bodyAlignment == PinBodyAlignment.CENTER) {
+                    lpPinView.addRule(RelativeLayout.CENTER_HORIZONTAL);
+                }
+                else if(bodyAlignment == PinBodyAlignment.END) {
+                    lpPinView.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+                }
                 addView(pinView, lpPinView);
                 break;
             case LEFT:
-                lpPinView.addRule(RelativeLayout.CENTER_VERTICAL);
+                if(bodyAlignment == PinBodyAlignment.CENTER) {
+                    lpPinView.addRule(RelativeLayout.CENTER_VERTICAL);
+                }
+                else if(bodyAlignment == PinBodyAlignment.END) {
+                    lpPinView.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+                }
                 addView(pinView, lpPinView);
 
                 lpMainView.addRule(RelativeLayout.RIGHT_OF, pinView.getId());
@@ -76,7 +93,12 @@ public abstract class DeviceView extends RelativeLayout {
                 addView(mainView, lpMainView);
 
                 lpPinView.addRule(RelativeLayout.RIGHT_OF, mainView.getId());
-                lpPinView.addRule(RelativeLayout.CENTER_VERTICAL);
+                if(bodyAlignment == PinBodyAlignment.CENTER) {
+                    lpPinView.addRule(RelativeLayout.CENTER_VERTICAL);
+                }
+                else if(bodyAlignment == PinBodyAlignment.END) {
+                    lpPinView.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+                }
                 addView(pinView, lpPinView);
                 break;
         }

@@ -45,7 +45,7 @@ public class ControlUnitInterfaceView extends MultiPinView {
         // initialise pin names (memoryPins data)
         DevicePin[] pinData = new DevicePin[PinNames.values().length];
         DevicePin pin = new DevicePin();
-        pin.name = context.getResources().getString(R.string.pin_name_command);
+        pin.name = context.getResources().getString(R.string.pin_name_command_short);
         pinData[PinNames.COMMAND.ordinal()] = pin;
 
         pin = new DevicePin();

@@ -47,7 +47,7 @@ public class PipelinedControlUnitAlt extends ControlUnitAltCore {
             branchPC.write(instructionAddress);
             branchIR.write(nopInstruction);
         }
-        else { // ... we need to explicitly set each FSM state
+        else { // ... it's a reset, so we need to explicitly set each FSM state
             regCore.setPcAndIr(instructionAddress, nopInstruction);
             decoderUnit.invalidateValues();
             mainFSM.setNextState(ACTIVE_STATE);

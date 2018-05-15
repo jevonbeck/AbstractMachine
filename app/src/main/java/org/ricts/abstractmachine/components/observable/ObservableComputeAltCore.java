@@ -17,15 +17,15 @@ public class ObservableComputeAltCore<T extends CompCore> extends ObservableType
     public static class InterruptParams {}
 
     @Override
-    public void executeInstruction(int programCounter, String instructionGroupName, int instructionGroupIndex, int[] operands) {
-        observable_data.executeInstruction(programCounter, instructionGroupName, instructionGroupIndex, operands);
+    public void executeInstruction(int programCounter, String mneumonic, int[] operands) {
+        observable_data.executeInstruction(programCounter, mneumonic, operands);
         setChanged();
         notifyObservers(new ExecuteParams());
     }
 
     @Override
-    public int instrExecTime(String instructionGroupName, int instructionGroupIndex) {
-        return observable_data.instrExecTime(instructionGroupName, instructionGroupIndex);
+    public int instrExecTime(String mneumonic) {
+        return observable_data.instrExecTime(mneumonic);
     }
 
     @Override

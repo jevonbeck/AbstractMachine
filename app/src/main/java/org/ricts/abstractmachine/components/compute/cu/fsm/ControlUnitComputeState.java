@@ -21,21 +21,20 @@ public class ControlUnitComputeState extends ControlUnitState {
     public void performAction() {
         if(decoderCore.isValidInstruction()) {
             int programCounter = decoderCore.getProgramCounter();
-            String groupName = decoderCore.getInstructionGroupName();
-            int groupIndex = decoderCore.getInstructionGroupIndex();
+            String mneumonic = decoderCore.getMneumonic();
             int[] operands = decoderCore.getOperands();
 
-            compCore.executeInstruction(programCounter, groupName, groupIndex, operands);
+            compCore.executeInstruction(programCounter, mneumonic, operands);
+        }
+        else {
+            compCore.checkInterrupts();
         }
     }
 
     @Override
     public int actionDuration() {
         if(decoderCore.isValidInstruction()) {
-            String groupName = decoderCore.getInstructionGroupName();
-            int groupIndex = decoderCore.getInstructionGroupIndex();
-
-            return compCore.instrExecTime(groupName, groupIndex);
+            return compCore.instrExecTime(decoderCore.getMneumonic());
         }
         else {
             return 1;

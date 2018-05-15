@@ -38,7 +38,7 @@ public class CpuAltCoreView extends RelativeLayout implements Observer {
     private TextView pc, ir;
     private TextView stateView, instructionView, aluStateView;
     private String irText;
-    private boolean updateIrImmediately, irDefaultValueSourceCalled;
+    private boolean isVisible, irDefaultValueSourceCalled;
 
 
     /** Standard Constructors **/
@@ -172,7 +172,7 @@ public class CpuAltCoreView extends RelativeLayout implements Observer {
         addView(aluStateView, lpAluStateView);
 
         /*** Initialise other vars ***/
-        updateIrImmediately = false;
+        isVisible = false;
     }
 
     public void initCpu(CuFsmInterface fsm, FetchCore regCore, ALU alu,
@@ -241,7 +241,7 @@ public class CpuAltCoreView extends RelativeLayout implements Observer {
                 irDefaultValueSourceCalled = false; // clear indication that update was from reset
             }
 
-            if(updateIrImmediately || isUpdateFromReset){
+            if(!isVisible || isUpdateFromReset){
                 updateIrText();
             }
         }
@@ -250,40 +250,63 @@ public class CpuAltCoreView extends RelativeLayout implements Observer {
         }
         else if(observable instanceof ObservableDecoderUnit){
             if(o instanceof ObservableDecoderUnit.DecodeParams) {
-                DecoderUnit decoderUnit = ((ObservableDecoderUnit) observable).getType();
-                instructionView.setText(decoderUnit.instrString());
+                ObservableDecoderUnit.DecodeParams decodeParams = (ObservableDecoderUnit.DecodeParams) o;
+                instructionView.setText(decodeParams.getInstructionString());
 
-                if(!updateIrImmediately && !decoderUnit.isDataMemoryInstruction()) {
-                    // Launch thread to ensure that responder.onAnimationEnd() is called after
-                    // InspectActivity.advanceTime() completes
-                    (new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            postDelayed(new Runnable() {
-                                @Override
-                                public void run() {
-                                    responder.onStepAnimationEnd();
-                                }
-                            }, 1);
-                        }
-                    })).start();
+                if(isVisible) {
+                    launchAsynchronousOnStepCompleted();
                 }
+            }
+            else if(o instanceof ObservableDecoderUnit.InvalidateParams) {
+                instructionView.setText(null);
             }
             else if(o instanceof Boolean){ // update is from a reset
                 instructionView.setText(null);
-                if(!updateIrImmediately) {
+                if(isVisible) {
                     responder.onResetAnimationEnd();
                 }
             }
         }
         else if(observable instanceof ObservableComputeAltCore){
-            ALU alu = ((ObservableComputeAltCore) observable).getALU();
-            aluStateView.setText(alu.statusString());
+            if(o instanceof ObservableComputeAltCore.ExecuteParams) {
+                CompCore core = ((ObservableComputeAltCore) observable);
+                ALU alu = core.getALU();
+                aluStateView.setText(alu.statusString());
+
+                DecoderUnit decoderUnit = core.getDecoderUnit();
+                if(isVisible && !decoderUnit.isDataMemoryInstruction()) {
+                    launchAsynchronousOnStepCompleted();
+                }
+            }
+            else if(o instanceof ObservableComputeAltCore.InterruptParams) {
+                if(isVisible) {
+                    launchAsynchronousOnStepCompleted();
+                }
+            }
+            else if(o instanceof Boolean){ // update is from a reset
+                aluStateView.setText(null);
+            }
         }
     }
 
-    public void setUpdateIrImmediately(boolean immediately){
-        updateIrImmediately = immediately;
+    public void launchAsynchronousOnStepCompleted() {
+        // Launch thread to ensure that responder.onStepAnimationEnd() is called after
+        // InspectActivity.advanceTime() completes
+        (new Thread(new Runnable() {
+            @Override
+            public void run() {
+                postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        responder.onStepAnimationEnd();
+                    }
+                }, 1);
+            }
+        })).start();
+    }
+
+    public void setViewVisibility(boolean visible){
+        isVisible = visible;
     }
 
     public void setActionResponder(InspectActionResponder resp){

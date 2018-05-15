@@ -170,7 +170,7 @@ public class BasicScalarDecoder extends DecoderCore {
     private OperandInfo iAddrRegAddrInfo;
 
     private String[] mneumonicList;
-    private Map<String, String> mneumonicToGroupMap;
+    private Map<String, InstructionGrouping> mneumonicToGroupMap;
     private Map<String, OperandInfo[]> mneumonicToOperandInfoMap;
 
     public BasicScalarDecoder(Resources resources, Integer... widthConfig) {
@@ -188,9 +188,9 @@ public class BasicScalarDecoder extends DecoderCore {
     }
 
     @Override
-    protected String instructionString() {
-        InstructionGrouping grouping = Enum.valueOf(InstructionGrouping.class, groupName);
-        Instruction instruction = grouping.decode(groupIndex);
+    protected String instructionString(String mneumonic, int [] operands) {
+        InstructionGrouping grouping = mneumonicToGroupMap.get(mneumonic);
+        Instruction instruction = Enum.valueOf(Instruction.class, mneumonic);
 
         int regAddr, dRegAddr, destRegAddr, sourceRegAddr, bitIndex, iAddrRegAddr;
         switch (grouping){
@@ -301,18 +301,11 @@ public class BasicScalarDecoder extends DecoderCore {
 
     @Override
     public boolean isDataMemoryInstruction() {
-        InstructionGrouping grouping = Enum.valueOf(InstructionGrouping.class, groupName);
-        Instruction instruction = grouping.decode(groupIndex);
-
-        switch (grouping){
-            case DataMemOps:
-                switch (instruction){
-                    case LOADM:
-                    case STOREM:
-                        return true;
-                    default:
-                        return false;
-                }
+        Instruction instruction = Enum.valueOf(Instruction.class, mneumonic);
+        switch (instruction){
+            case LOADM:
+            case STOREM:
+                return true;
             default:
                 return false;
         }
@@ -320,8 +313,8 @@ public class BasicScalarDecoder extends DecoderCore {
 
     @Override
     public boolean isHaltInstruction() {
-        InstructionGrouping grouping = Enum.valueOf(InstructionGrouping.class, groupName);
-        return grouping == InstructionGrouping.NoOperands && grouping.decode(groupIndex) == Instruction.HALT;
+        Instruction instruction = Enum.valueOf(Instruction.class, mneumonic);
+        return instruction == Instruction.HALT;
     }
 
     @Override
@@ -366,7 +359,7 @@ public class BasicScalarDecoder extends DecoderCore {
 
     @Override
     public String[] getOperandLabels() {
-        InstructionGrouping grouping = Enum.valueOf(InstructionGrouping.class, getGroupName(mneumonic));
+        InstructionGrouping grouping = mneumonicToGroupMap.get(mneumonic);
         int [] resIds = grouping.getOperandResIdArr();
 
         String [] result = new String [resIds.length];
@@ -413,9 +406,8 @@ public class BasicScalarDecoder extends DecoderCore {
     }
 
     @Override
-    protected String getGroupName(String mneumonic) {
-        return mneumonicToGroupMap.containsKey(mneumonic) ?
-                mneumonicToGroupMap.get(mneumonic) : "";
+    protected String haltMneumonic() {
+        return Instruction.HALT.name();
     }
 
     @Override
@@ -482,7 +474,7 @@ public class BasicScalarDecoder extends DecoderCore {
                     array, mneumonicArray, groupName));
 
             for(String mneumonic : mneumonicArray){
-                mneumonicToGroupMap.put(mneumonic, groupName);
+                mneumonicToGroupMap.put(mneumonic, group);
                 mneumonicToOperandInfoMap.put(mneumonic, array);
             }
 

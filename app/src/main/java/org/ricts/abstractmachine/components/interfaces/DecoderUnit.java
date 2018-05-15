@@ -24,8 +24,6 @@ public interface DecoderUnit extends ComputeDevice {
     boolean isHaltInstruction();
     boolean isSleepInstruction();
     boolean isValidInstruction();
-    String getInstructionGroupName();
-    int getInstructionGroupIndex();
     String getMneumonic();
     int[] getOperands();
     int getProgramCounter();

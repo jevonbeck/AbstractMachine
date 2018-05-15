@@ -44,16 +44,15 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
     public abstract int getProgramCounterValue();
     public abstract void reset();
 
-    protected abstract boolean isDataMemInstr(String groupName, int groupIndex);
-    protected abstract boolean isHaltInstr(String groupName, int groupIndex);
-    protected abstract boolean isSleepInstr(String groupName, int groupIndex);
-    protected abstract void fetchOpsExecuteInstr(String groupName, int groupIndex, int[] operands);
+    protected abstract boolean isDataMemInstr(String mneumonic);
+    protected abstract boolean isHaltInstr(String mneumonic);
+    protected abstract boolean isSleepInstr(String mneumonic);
+    protected abstract void fetchOpsExecuteInstr(String mneumonic, int[] operands);
     protected abstract void vectorToInterruptHandler();
-    protected abstract int executionTime(String groupName, int groupIndex);
+    protected abstract int executionTime(String mneumonic);
     protected abstract void updateProgramCounterRegs(int programCounter);
     protected abstract InterruptSource [] createInterruptSources();
-    protected abstract String insToString(String groupName, int groupIndex, int[] operands);
-    protected abstract String getGroupName(String mneumonic);
+    protected abstract String insToString(String mneumonic, int[] operands);
     protected abstract String nopMneumonic();
 
     public ComputeCore(Resources res) {
@@ -91,8 +90,7 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
 			// decode instruction
             InstructionGroupDecoder decoder = instrDecoder.getDecoderForInstruction(instruct);
 
-			String groupName = decoder.groupName();
-			int groupIndex = decoder.decode(instruct);
+			String mneumonic = decoder.decode(instruct);
 			
 			int[] operands = new int [decoder.operandCount()];
 			for(int x=0; x != operands.length; ++x){
@@ -100,7 +98,7 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
 			}
 
 			// fetch/indirect operands and execute instruction
-            getOpsExecuteInstruction(groupName, groupIndex, operands);
+            getOpsExecuteInstruction(mneumonic, operands);
 
             // apply changes to Control Unit as appropriate
             switch (internalControlUnitState){
@@ -135,11 +133,10 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
 			// decode instruction
             InstructionGroupDecoder decoder = instrDecoder.getDecoderForInstruction(instruct);
 
-            String groupName = decoder.groupName();
-            int groupIndex = decoder.decode(instruct);
-						
-			// determine execute time for instruction
-			return executionTime(groupName, groupIndex);
+            String mneumonic = decoder.decode(instruct);
+
+            // determine execute time for instruction
+			return executionTime(mneumonic);
 		}
 		
 		return -1;
@@ -173,11 +170,10 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
             // decode instruction
             InstructionGroupDecoder decoder = instrDecoder.getDecoderForInstruction(instruct);
 
-            String groupName = decoder.groupName();
-            int groupIndex = decoder.decode(instruct);
+            String mneumonic = decoder.decode(instruct);
 
             // determine if instruction halts the CPU
-            return isHaltInstr(groupName, groupIndex);
+            return isHaltInstr(mneumonic);
         }
         return true;
     }
@@ -187,11 +183,10 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
             // decode instruction
             InstructionGroupDecoder decoder = instrDecoder.getDecoderForInstruction(instruction);
 
-            String groupName = decoder.groupName();
-            int groupIndex = decoder.decode(instruction);
+            String mneumonic = decoder.decode(instruction);
 
             // determine if instruction halts the CPU
-            return isSleepInstr(groupName, groupIndex);
+            return isSleepInstr(mneumonic);
         }
         return false;
     }
@@ -202,11 +197,10 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
             // decode instruction
             InstructionGroupDecoder decoder = instrDecoder.getDecoderForInstruction(instruct);
 
-            String groupName = decoder.groupName();
-            int groupIndex = decoder.decode(instruct);
+            String mneumonic = decoder.decode(instruct);
 
             // determine if instruction accesses data memory
-            return isDataMemInstr(groupName, groupIndex);
+            return isDataMemInstr(mneumonic);
         }
         return false;
     }
@@ -217,8 +211,7 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
             // decode instruction
             InstructionGroupDecoder decoder = instrDecoder.getDecoderForInstruction(instruct);
 
-            String groupName = decoder.groupName();
-            int groupIndex = decoder.decode(instruct);
+            String mneumonic = decoder.decode(instruct);
 
             int[] operands = new int [decoder.operandCount()];
             for(int x=0; x != operands.length; ++x){
@@ -226,7 +219,7 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
             }
 
             // print string version of instruction
-            return insToString(groupName, groupIndex, operands);
+            return insToString(mneumonic, operands);
         }
         return "Ins invalid!";
     }
@@ -248,7 +241,7 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
     }
 
     public int encodeInstruction(String iMneumonic, int [] operands) {
-		return instrDecoder.encode(getGroupName(iMneumonic), iMneumonic, operands);
+		return instrDecoder.encode(iMneumonic, operands);
 	}
 
     protected void updateProgramCounter(int programCounter){
@@ -260,10 +253,10 @@ public abstract class ComputeCore extends Device implements ComputeCoreInterface
         internalControlUnitState = state;
     }
 
-    private void getOpsExecuteInstruction(String groupName, int groupIndex, int[] operands) {
+    private void getOpsExecuteInstruction(String mneumonic, int[] operands) {
         pcUpdated = false;
         setInternalControlUnitState(ControlUnitState.ACTIVE);
-        fetchOpsExecuteInstr(groupName, groupIndex, operands);
+        fetchOpsExecuteInstr(mneumonic, operands);
     }
 
     private void latchInterruptSources() {
