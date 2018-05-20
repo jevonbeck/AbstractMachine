@@ -1,6 +1,6 @@
 package org.ricts.abstractmachine.components.compute.cu.fsm;
 
-import org.ricts.abstractmachine.components.interfaces.CompCore;
+import org.ricts.abstractmachine.components.interfaces.ComputeCore;
 import org.ricts.abstractmachine.components.interfaces.DecoderUnit;
 
 /**
@@ -9,12 +9,12 @@ import org.ricts.abstractmachine.components.interfaces.DecoderUnit;
 
 public class ControlUnitExecuteState extends ControlUnitState {
     private DecoderUnit decoderCore;
-    private CompCore compCore;
+    private ComputeCore computeCore;
 
-    public ControlUnitExecuteState(CompCore core, DecoderUnit decoder) {
+    public ControlUnitExecuteState(ComputeCore core, DecoderUnit decoder) {
         super(GenericCUState.EXECUTE);
         decoderCore = decoder;
-        compCore = core;
+        computeCore = core;
     }
 
     @Override
@@ -24,17 +24,17 @@ public class ControlUnitExecuteState extends ControlUnitState {
             String mneumonic = decoderCore.getMneumonic();
             int[] operands = decoderCore.getOperands();
 
-            compCore.executeInstruction(programCounter, mneumonic, operands);
+            computeCore.executeInstruction(programCounter, mneumonic, operands);
         }
         else {
-            compCore.checkInterrupts();
+            computeCore.checkInterrupts();
         }
     }
 
     @Override
     public int actionDuration() {
         if(decoderCore.isValidInstruction()) {
-            return compCore.instrExecTime(decoderCore.getMneumonic());
+            return computeCore.instrExecTime(decoderCore.getMneumonic());
         }
         else {
             return 1;

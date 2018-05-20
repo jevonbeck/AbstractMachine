@@ -13,9 +13,8 @@ import android.widget.SpinnerAdapter;
 import android.widget.TextView;
 
 import org.ricts.abstractmachine.R;
-import org.ricts.abstractmachine.ui.activity.InspectAltActivity;
-import org.ricts.abstractmachine.ui.activity.InspectAltActivity.CoreNames;
-import org.ricts.abstractmachine.ui.activity.InspectAltActivity;
+import org.ricts.abstractmachine.ui.activity.InspectActivity;
+import org.ricts.abstractmachine.ui.activity.InspectActivity.CoreNames;
 import org.ricts.abstractmachine.ui.utils.wizard.WizardFragment;
 
 public class CpuBasicsFragment extends WizardFragment {
@@ -120,14 +119,14 @@ public class CpuBasicsFragment extends WizardFragment {
     public void restorePageData(Bundle bundle) {
         // TODO: review likelihood of 'viewsAvailable' being false
         if(viewsAvailable){
-            CharSequence archType = bundle.getCharSequence(InspectAltActivity.ARCH_TYPE);
+            CharSequence archType = bundle.getCharSequence(InspectActivity.ARCH_TYPE);
             if(archType.equals(getString(R.string.architecture_type_von_neumann))){
                 archRadiGroup.check(R.id.vonNeumannButton);
             }
             else if(archType.equals(getString(R.string.architecture_type_harvard))){
                 archRadiGroup.check(R.id.harvardButton);
 
-                switch (bundle.getInt(InspectAltActivity.DATA_ADDR_WIDTH)){
+                switch (bundle.getInt(InspectActivity.DATA_ADDR_WIDTH)){
                     case 3:
                         dataAddrWidthRadioGroup.check(R.id.dataThreeBitButton);
                         break;
@@ -155,7 +154,7 @@ public class CpuBasicsFragment extends WizardFragment {
                 coreTypeRadioGroup.check(R.id.stackTypeButton);
             }
 
-            switch (bundle.getInt(InspectAltActivity.CORE_DATA_WIDTH)){
+            switch (bundle.getInt(InspectActivity.CORE_DATA_WIDTH)){
                 case 8:
                     bitWidthRadioGroup.check(R.id.eightBitButton);
                     break;
@@ -165,7 +164,7 @@ public class CpuBasicsFragment extends WizardFragment {
                 default:
             }
 
-            switch (bundle.getInt(InspectAltActivity.INSTR_ADDR_WIDTH)){
+            switch (bundle.getInt(InspectActivity.INSTR_ADDR_WIDTH)){
                 case 3:
                     instrAddrWidthRadioGroup.check(R.id.insThreeBitButton);
                     break;
@@ -181,7 +180,7 @@ public class CpuBasicsFragment extends WizardFragment {
                 default:
             }
 
-            String coreName = bundle.getString(InspectAltActivity.CORE_NAME);
+            String coreName = bundle.getString(InspectActivity.CORE_NAME);
             SpinnerAdapter spinAdapter = coreSpinner.getAdapter();
             int itemCount = spinAdapter.getCount();
 
@@ -202,24 +201,24 @@ public class CpuBasicsFragment extends WizardFragment {
         bundle.putCharSequence(CORE_TYPE, getSelectedButtonText(coreTypeRadioGroup));
 
         CharSequence archType = getSelectedButtonText(archRadiGroup);
-        bundle.putCharSequence(InspectAltActivity.ARCH_TYPE, archType);
-        bundle.putBoolean(InspectAltActivity.IS_PIPELINED, !archType.equals(getString(R.string.architecture_type_von_neumann)));
+        bundle.putCharSequence(InspectActivity.ARCH_TYPE, archType);
+        bundle.putBoolean(InspectActivity.IS_PIPELINED, !archType.equals(getString(R.string.architecture_type_von_neumann)));
 
-        bundle.putString(InspectAltActivity.CORE_NAME, getComputeCoreName());
-        bundle.putInt(InspectAltActivity.CORE_DATA_WIDTH, Integer.valueOf(
+        bundle.putString(InspectActivity.CORE_NAME, getComputeCoreName());
+        bundle.putInt(InspectActivity.CORE_DATA_WIDTH, Integer.valueOf(
                 getSelectedButtonText(bitWidthRadioGroup).toString() ));
 
         int instrMemSize = Integer.valueOf( getSelectedButtonText(instrAddrWidthRadioGroup).toString() );
         int instrAddrWidth = getAddressWidthFromSize(instrMemSize);
-        bundle.putInt(InspectAltActivity.INSTR_ADDR_WIDTH, instrAddrWidth);
+        bundle.putInt(InspectActivity.INSTR_ADDR_WIDTH, instrAddrWidth);
 
         switch (archRadiGroup.getCheckedRadioButtonId()){
             case R.id.vonNeumannButton:
-                bundle.putInt(InspectAltActivity.DATA_ADDR_WIDTH, instrAddrWidth);
+                bundle.putInt(InspectActivity.DATA_ADDR_WIDTH, instrAddrWidth);
                 break;
             case R.id.harvardButton:
                 int dataMemSize = Integer.valueOf( getSelectedButtonText(dataAddrWidthRadioGroup).toString() );
-                bundle.putInt(InspectAltActivity.DATA_ADDR_WIDTH, getAddressWidthFromSize(dataMemSize) );
+                bundle.putInt(InspectActivity.DATA_ADDR_WIDTH, getAddressWidthFromSize(dataMemSize) );
                 break;
         }
 

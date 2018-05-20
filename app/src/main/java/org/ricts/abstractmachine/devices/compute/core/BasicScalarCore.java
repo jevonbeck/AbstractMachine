@@ -1,9 +1,8 @@
 package org.ricts.abstractmachine.devices.compute.core;
 
 import org.ricts.abstractmachine.components.compute.core.AluCore;
-import org.ricts.abstractmachine.components.compute.core.UniMemoryComputeAltCore;
+import org.ricts.abstractmachine.components.compute.core.AbstractUniMemoryComputeCore;
 import org.ricts.abstractmachine.components.compute.interrupt.InterruptSource;
-import org.ricts.abstractmachine.components.interfaces.DecoderUnit;
 import org.ricts.abstractmachine.components.observable.ObservableDecoderUnit;
 import org.ricts.abstractmachine.components.storage.Register;
 import org.ricts.abstractmachine.components.storage.RegisterStack;
@@ -14,7 +13,7 @@ import org.ricts.abstractmachine.devices.compute.interrupt.PIC16F877ATimer0;
  * Created by jevon.beckles on 18/08/2017.
  */
 
-public class BasicScalarCore extends UniMemoryComputeAltCore {
+public class BasicScalarCore extends AbstractUniMemoryComputeCore {
     private static final int TMR0_REG_INDEX = PIC16F877ATimer0.Regs.TMR0.ordinal();
     private static final int OPTIONS_REG_INDEX = PIC16F877ATimer0.Regs.OPTION_REG.ordinal();
     private static final int INTERRUPT_VECTOR_ADDRESS = 0x1;
