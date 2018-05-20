@@ -1,18 +1,13 @@
 package org.ricts.abstractmachine.components.system;
 
 import org.ricts.abstractmachine.components.compute.core.UniMemoryComputeAltCore;
-import org.ricts.abstractmachine.components.compute.core.UniMemoryComputeCore;
 import org.ricts.abstractmachine.components.compute.core.VonNeumannAltCore;
-import org.ricts.abstractmachine.components.compute.core.VonNeumannCore;
 import org.ricts.abstractmachine.components.compute.cu.ControlUnitAltCore;
-import org.ricts.abstractmachine.components.compute.cu.ControlUnitCore;
 import org.ricts.abstractmachine.components.observable.ObservableComputeAltCore;
-import org.ricts.abstractmachine.components.observable.ObservableComputeCore;
 import org.ricts.abstractmachine.components.observable.ObservableMemoryPort;
 import org.ricts.abstractmachine.components.observable.ObservableMultiMemoryPort;
 import org.ricts.abstractmachine.components.observable.ObservableMultiplexer;
 import org.ricts.abstractmachine.components.observable.ObservableUniMemoryComputeAltCore;
-import org.ricts.abstractmachine.components.observable.ObservableUniMemoryComputeCore;
 import org.ricts.abstractmachine.components.storage.RAM;
 
 import java.util.List;

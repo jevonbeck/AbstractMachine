@@ -10,9 +10,7 @@ import android.support.v4.view.PagerAdapter;
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.ui.fragment.CpuBasicsFragment;
 import org.ricts.abstractmachine.ui.fragment.DataMemAltFragment;
-import org.ricts.abstractmachine.ui.fragment.DataMemFragment;
 import org.ricts.abstractmachine.ui.fragment.InstrMemAltFragment;
-import org.ricts.abstractmachine.ui.fragment.InstrMemFragment;
 import org.ricts.abstractmachine.ui.utils.wizard.WizardActivity;
 import org.ricts.abstractmachine.ui.utils.wizard.WizardFragment;
 
@@ -77,7 +75,7 @@ public class CpuAltConfigureActivity extends WizardActivity implements WizardFra
 
         @Override
         public int getCount() {
-            String archType = dataBun.getString(InspectActivity.ARCH_TYPE);
+            String archType = dataBun.getString(InspectAltActivity.ARCH_TYPE);
             if(archType != null){
                 return archType.equals(harvardArchType) ? 3 : 2;
             }

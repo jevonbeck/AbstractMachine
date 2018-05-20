@@ -1,9 +1,7 @@
 package org.ricts.abstractmachine.components.compute.core;
 
 import org.ricts.abstractmachine.components.compute.cu.ControlUnitAltCore;
-import org.ricts.abstractmachine.components.compute.cu.ControlUnitCore;
 import org.ricts.abstractmachine.components.interfaces.CompCore;
-import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
 import org.ricts.abstractmachine.components.interfaces.ReadPort;
 import org.ricts.abstractmachine.components.interfaces.ThreadProcessingUnit;
 

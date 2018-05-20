@@ -10,9 +10,7 @@ import android.support.v4.view.PagerAdapter;
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.ui.fragment.CpuBasicsFragment;
 import org.ricts.abstractmachine.ui.fragment.DataMemAltFragment;
-import org.ricts.abstractmachine.ui.fragment.DataMemFragment;
 import org.ricts.abstractmachine.ui.fragment.InstrMemAltFragment;
-import org.ricts.abstractmachine.ui.fragment.InstrMemFragment;
 import org.ricts.abstractmachine.ui.utils.wizard.WizardActivity;
 import org.ricts.abstractmachine.ui.utils.wizard.WizardFragment;
 
@@ -29,14 +27,12 @@ public class CpuConfigureActivity extends WizardActivity implements WizardFragme
 
     @Override
     protected Intent nextActivityIntent() {
-        String archType = dataBundle.getString(InspectActivity.ARCH_TYPE);
+        String archType = dataBundle.getString(InspectAltActivity.ARCH_TYPE);
 
         if(archType != null) {
             if (archType.equals(getString(R.string.architecture_type_von_neumann))) {
-                //return new Intent(this, VonNeumannActivity.class);
                 return new Intent(this, VonNeumannAltActivity.class);
             } else if (archType.equals(getString(R.string.architecture_type_harvard))) {
-                //return new Intent(this, HarvardActivity.class);
                 return new Intent(this, HarvardAltActivity.class);
             }
         }
@@ -69,10 +65,8 @@ public class CpuConfigureActivity extends WizardActivity implements WizardFragme
                 case 0:
                     return new CpuBasicsFragment();
                 case 1:
-                    //return new InstrMemFragment();
                     return new InstrMemAltFragment();
                 case 2:
-                    //return new DataMemFragment();
                     return new DataMemAltFragment();
                     default:
                         return null;
@@ -81,7 +75,7 @@ public class CpuConfigureActivity extends WizardActivity implements WizardFragme
 
         @Override
         public int getCount() {
-            String archType = dataBun.getString(InspectActivity.ARCH_TYPE);
+            String archType = dataBun.getString(InspectAltActivity.ARCH_TYPE);
             if(archType != null){
                 return archType.equals(harvardArchType) ? 3 : 2;
             }

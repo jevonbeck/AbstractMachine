@@ -3,7 +3,6 @@ package org.ricts.abstractmachine.components.compute.core;
 import org.ricts.abstractmachine.components.interfaces.MemoryPort;
 import org.ricts.abstractmachine.components.interfaces.MultiMemoryPort;
 import org.ricts.abstractmachine.components.interfaces.UniMemoryComputeAltCoreInterface;
-import org.ricts.abstractmachine.components.interfaces.UniMemoryComputeCoreInterface;
 import org.ricts.abstractmachine.components.network.MultiPortSerializer;
 import org.ricts.abstractmachine.components.observable.ObservableMultiMemoryPort;
 

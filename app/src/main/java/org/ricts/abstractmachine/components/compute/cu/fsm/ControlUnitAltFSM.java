@@ -17,7 +17,7 @@ public class ControlUnitAltFSM extends CuFsmCore {
         // setup instruction cycle
         fetch = new ControlUnitFetchState(regCore);
         decode = new ControlUnitDecodeState(decoder, regCore);
-        execute = new ControlUnitComputeState(core, decoder);
+        execute = new ControlUnitExecuteState(core, decoder);
         halt = new ControlUnitHaltState();
         sleep = new ControlUnitAltSleepState(core);
     }

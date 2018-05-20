@@ -1,25 +1,43 @@
 package org.ricts.abstractmachine.components.compute.cu.fsm;
 
-import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
-import org.ricts.abstractmachine.components.interfaces.FetchCore;
+import org.ricts.abstractmachine.components.interfaces.CompCore;
+import org.ricts.abstractmachine.components.interfaces.DecoderUnit;
+
+/**
+ * Created by jevon.beckles on 17/08/2017.
+ */
 
 public class ControlUnitExecuteState extends ControlUnitState {
-    private FetchCore cuRegCore;
-    private ComputeCoreInterface core;
+    private DecoderUnit decoderCore;
+    private CompCore compCore;
 
-    public ControlUnitExecuteState(ComputeCoreInterface proc, FetchCore fetchCore){
+    public ControlUnitExecuteState(CompCore core, DecoderUnit decoder) {
         super(GenericCUState.EXECUTE);
-        core = proc;
-        cuRegCore = fetchCore;
+        decoderCore = decoder;
+        compCore = core;
     }
 
     @Override
-    public void performAction(){
-        core.executeInstruction(cuRegCore.getPC(), cuRegCore.getIR());
+    public void performAction() {
+        if(decoderCore.isValidInstruction()) {
+            int programCounter = decoderCore.getProgramCounter();
+            String mneumonic = decoderCore.getMneumonic();
+            int[] operands = decoderCore.getOperands();
+
+            compCore.executeInstruction(programCounter, mneumonic, operands);
+        }
+        else {
+            compCore.checkInterrupts();
+        }
     }
 
     @Override
-    public int actionDuration(){
-        return core.instrExecTime(cuRegCore.getIR());
+    public int actionDuration() {
+        if(decoderCore.isValidInstruction()) {
+            return compCore.instrExecTime(decoderCore.getMneumonic());
+        }
+        else {
+            return 1;
+        }
     }
 }

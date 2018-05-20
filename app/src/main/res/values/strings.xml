@@ -89,7 +89,7 @@
     <string name="inspectactivity_system_clock_label">Time elapsed: </string>
 
     <string name="pin_name_command">command</string>
-    <string name="pin_name_command_short">cmd</string>
+    <string name="pin_name_command_short">comand</string>
     <string name="pin_name_address">address</string>
     <string name="pin_name_data">data</string>
     <string name="pin_name_pc_val">PC data</string>

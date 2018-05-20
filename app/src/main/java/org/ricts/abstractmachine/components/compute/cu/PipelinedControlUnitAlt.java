@@ -1,13 +1,9 @@
 package org.ricts.abstractmachine.components.compute.cu;
 
 import org.ricts.abstractmachine.components.compute.cu.fsm.ControlUnitAltFSM;
-import org.ricts.abstractmachine.components.compute.cu.fsm.ControlUnitFSM;
 import org.ricts.abstractmachine.components.compute.cu.fsm.PipelinedControlUnitAltFSM;
-import org.ricts.abstractmachine.components.compute.cu.fsm.PipelinedControlUnitFSM;
 import org.ricts.abstractmachine.components.interfaces.CompCore;
-import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
 import org.ricts.abstractmachine.components.interfaces.CuFsmInterface;
-import org.ricts.abstractmachine.components.interfaces.DecoderUnit;
 import org.ricts.abstractmachine.components.interfaces.FetchCore;
 import org.ricts.abstractmachine.components.interfaces.ReadPort;
 import org.ricts.abstractmachine.components.storage.Register;

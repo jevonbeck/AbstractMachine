@@ -92,7 +92,7 @@ public class HarvardAltSystemFragment extends HarvardAltActivityFragment {
      * @param instructionCache instruction memory
      * @param dataMemory data memory
      * @param cu Control Unit
-     * @return A new instance of fragment HarvardSystemFragment.
+     * @return A new instance of fragment HarvardAltSystemFragment.
      */
     public static HarvardAltSystemFragment newInstance(ObservableComputeAltCore mainCore, ObservableDecoderUnit decoderUnit,
                                                        ObservableReadPort<ROM> instructionCache,

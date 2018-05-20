@@ -25,13 +25,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import org.ricts.abstractmachine.R;
-import org.ricts.abstractmachine.components.compute.core.ComputeCore;
 import org.ricts.abstractmachine.components.devicetype.Device;
-import org.ricts.abstractmachine.components.interfaces.CompCore;
 import org.ricts.abstractmachine.components.interfaces.DecoderUnit;
-import org.ricts.abstractmachine.ui.activity.InspectActivity;
 import org.ricts.abstractmachine.ui.activity.InspectAltActivity;
-import org.ricts.abstractmachine.ui.activity.MemoryContentsDialogActivity;
+import org.ricts.abstractmachine.ui.activity.MemoryContentsAltDialogActivity;
 import org.ricts.abstractmachine.ui.utils.wizard.WizardFragment;
 
 import java.io.BufferedReader;
@@ -139,10 +136,10 @@ public abstract class MemAltFragment extends WizardFragment {
 
         switch (memoryType()){
             case INSTRUCTION:
-                key = InspectActivity.PROGRAM_MEMORY;
+                key = InspectAltActivity.PROGRAM_MEMORY;
                 break;
             case DATA:
-                key = InspectActivity.DATA_MEMORY;
+                key = InspectAltActivity.DATA_MEMORY;
                 break;
         }
         bundle.putIntegerArrayList(key, memoryContents);
@@ -296,13 +293,13 @@ public abstract class MemAltFragment extends WizardFragment {
             @Override
             public void onReceive(Context context, Intent intent) {
                 if(intent.getAction().equals(UPDATE_MEM_LOCATION_ACTION)) {
-                    String memType = intent.getStringExtra(MemoryContentsDialogActivity.MEM_TYPE_KEY);
+                    String memType = intent.getStringExtra(MemoryContentsAltDialogActivity.MEM_TYPE_KEY);
 
                     // update the appropriate MemFragment (identified by type)
                     if(memType.equals(memoryType().name())) {
-                        int position = intent.getIntExtra(MemoryContentsDialogActivity.MEM_ADDR_KEY, -1);
+                        int position = intent.getIntExtra(MemoryContentsAltDialogActivity.MEM_ADDR_KEY, -1);
                         AssemblyMemoryData memoryData =
-                                intent.getParcelableExtra(MemoryContentsDialogActivity.MEM_DATA_KEY);
+                                intent.getParcelableExtra(MemoryContentsAltDialogActivity.MEM_DATA_KEY);
 
                         // update the appropriate memory location
                         AssemblyMemoryData currentData = adapter.getItem(position);
@@ -336,15 +333,15 @@ public abstract class MemAltFragment extends WizardFragment {
 
     protected void populateActivityIntent(Intent intent, int position,
                                           AssemblyMemoryData data, DecoderUnit decoderUnit, String coreName){
-        intent.putExtra(MemoryContentsDialogActivity.MEM_TYPE_KEY, memoryType().name());
-        intent.putExtra(MemoryContentsDialogActivity.MEM_ADDR_KEY, position);
-        intent.putExtra(MemoryContentsDialogActivity.MEM_DATA_KEY, data);
+        intent.putExtra(MemoryContentsAltDialogActivity.MEM_TYPE_KEY, memoryType().name());
+        intent.putExtra(MemoryContentsAltDialogActivity.MEM_ADDR_KEY, position);
+        intent.putExtra(MemoryContentsAltDialogActivity.MEM_DATA_KEY, data);
 
-        intent.putExtra(InspectActivity.CORE_NAME, coreName);
+        intent.putExtra(InspectAltActivity.CORE_NAME, coreName);
 
-        intent.putExtra(InspectActivity.CORE_DATA_WIDTH, decoderUnit.dataWidth());
-        intent.putExtra(InspectActivity.INSTR_ADDR_WIDTH, decoderUnit.iAddrWidth());
-        intent.putExtra(InspectActivity.DATA_ADDR_WIDTH, decoderUnit.dAddrWidth());
+        intent.putExtra(InspectAltActivity.CORE_DATA_WIDTH, decoderUnit.dataWidth());
+        intent.putExtra(InspectAltActivity.INSTR_ADDR_WIDTH, decoderUnit.iAddrWidth());
+        intent.putExtra(InspectAltActivity.DATA_ADDR_WIDTH, decoderUnit.dAddrWidth());
     }
 
     private ArrayList<AssemblyMemoryData> loadListFromFile(File file, int maxLines, Context context){
@@ -448,8 +445,8 @@ public abstract class MemAltFragment extends WizardFragment {
     }
 
     private File getComputeCorePath(Bundle dataBundle, Context context){
-        String coreName = dataBundle.getString(InspectActivity.CORE_NAME);
-        int coreDataWidth = dataBundle.getInt(InspectActivity.CORE_DATA_WIDTH);
+        String coreName = dataBundle.getString(InspectAltActivity.CORE_NAME);
+        int coreDataWidth = dataBundle.getInt(InspectAltActivity.CORE_DATA_WIDTH);
 
         String directoryName = coreName + "_" + coreDataWidth + "_" + memoryType().getShortName();
         return context.getDir(directoryName, Context.MODE_PRIVATE);

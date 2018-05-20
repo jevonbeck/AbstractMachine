@@ -5,7 +5,7 @@ import android.view.View;
 import android.widget.TextView;
 
 import org.ricts.abstractmachine.R;
-import org.ricts.abstractmachine.components.compute.core.UniMemoryCpuCore;
+import org.ricts.abstractmachine.components.compute.core.UniMemoryCpuAltCore;
 import org.ricts.abstractmachine.components.compute.cu.ControlUnitAltCore;
 import org.ricts.abstractmachine.components.observable.ObservableComputeAltCore;
 import org.ricts.abstractmachine.components.observable.ObservableCuFSM;
@@ -38,8 +38,8 @@ import java.util.Observer;
 public class VonNeumannAltCoreFragment extends VonNeumannAltActivityFragment {
     private static final String TAG = "VonNeumannAltCoreFragment";
 
-    private static final int DATA_MEM_ID = UniMemoryCpuCore.SerializerInputId.DATA_MEM.ordinal();
-    private static final int INS_MEM_ID = UniMemoryCpuCore.SerializerInputId.INSTRUCTION_MEM.ordinal();
+    private static final int DATA_MEM_ID = UniMemoryCpuAltCore.SerializerInputId.DATA_MEM.ordinal();
+    private static final int INS_MEM_ID = UniMemoryCpuAltCore.SerializerInputId.INSTRUCTION_MEM.ordinal();
 
     private MemoryPortMultiplexerView muxView;
     private ControlUnitAltView cuView;

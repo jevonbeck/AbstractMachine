@@ -19,7 +19,6 @@ import org.ricts.abstractmachine.components.system.HarvardAltArchitecture;
 import org.ricts.abstractmachine.components.system.SystemAltArchitecture;
 import org.ricts.abstractmachine.ui.fragment.HarvardAltCoreFragment;
 import org.ricts.abstractmachine.ui.fragment.HarvardAltSystemFragment;
-import org.ricts.abstractmachine.ui.fragment.HarvardCoreFragment;
 
 /**
  * Created by Jevon on 13/08/2016.

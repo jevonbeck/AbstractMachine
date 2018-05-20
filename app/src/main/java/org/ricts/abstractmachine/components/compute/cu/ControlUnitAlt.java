@@ -1,18 +1,16 @@
 package org.ricts.abstractmachine.components.compute.cu;
 
-import org.ricts.abstractmachine.components.compute.core.UniMemoryCpuCore;
+import org.ricts.abstractmachine.components.compute.core.UniMemoryCpuAltCore;
 import org.ricts.abstractmachine.components.compute.cu.fsm.ControlUnitAltFSM;
-import org.ricts.abstractmachine.components.compute.cu.fsm.ControlUnitFSM;
 import org.ricts.abstractmachine.components.interfaces.CompCore;
-import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
 import org.ricts.abstractmachine.components.interfaces.CuFsmInterface;
 import org.ricts.abstractmachine.components.interfaces.FetchCore;
 import org.ricts.abstractmachine.components.interfaces.Multiplexer;
 import org.ricts.abstractmachine.components.interfaces.ReadPort;
 
 public class ControlUnitAlt extends ControlUnitAltCore {
-    private static final int DATA_MEM_ID = UniMemoryCpuCore.SerializerInputId.DATA_MEM.ordinal();
-    private static final int INS_MEM_ID = UniMemoryCpuCore.SerializerInputId.INSTRUCTION_MEM.ordinal();
+    private static final int DATA_MEM_ID = UniMemoryCpuAltCore.SerializerInputId.DATA_MEM.ordinal();
+    private static final int INS_MEM_ID = UniMemoryCpuAltCore.SerializerInputId.INSTRUCTION_MEM.ordinal();
 
     private Multiplexer mux;
     private ControlUnitAltFSM fsm;
