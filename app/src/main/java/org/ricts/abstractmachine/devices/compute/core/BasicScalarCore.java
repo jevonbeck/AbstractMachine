@@ -1,21 +1,26 @@
 package org.ricts.abstractmachine.devices.compute.core;
 
-import org.ricts.abstractmachine.components.compute.core.AluCore;
 import org.ricts.abstractmachine.components.compute.core.AbstractUniMemoryComputeCore;
+import org.ricts.abstractmachine.components.compute.core.AluCore;
 import org.ricts.abstractmachine.components.compute.interrupt.InterruptSource;
+import org.ricts.abstractmachine.components.interfaces.Bit;
+import org.ricts.abstractmachine.components.interfaces.Register;
+import org.ricts.abstractmachine.components.interfaces.RegisterFile;
 import org.ricts.abstractmachine.components.observable.ObservableDecoderUnit;
-import org.ricts.abstractmachine.components.storage.Register;
+import org.ricts.abstractmachine.components.storage.AbstractRegisterFile;
+import org.ricts.abstractmachine.components.storage.RegisterImpl;
 import org.ricts.abstractmachine.components.storage.RegisterStack;
-import org.ricts.abstractmachine.devices.compute.alu.BasicALU;
+import org.ricts.abstractmachine.devices.compute.alu.RegisteredALU;
 import org.ricts.abstractmachine.devices.compute.interrupt.PIC16F877ATimer0;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by jevon.beckles on 18/08/2017.
  */
 
 public class BasicScalarCore extends AbstractUniMemoryComputeCore {
-    private static final int TMR0_REG_INDEX = PIC16F877ATimer0.Regs.TMR0.ordinal();
-    private static final int OPTIONS_REG_INDEX = PIC16F877ATimer0.Regs.OPTION_REG.ordinal();
     private static final int INTERRUPT_VECTOR_ADDRESS = 0x1;
     
     /* core dependent features */
@@ -34,26 +39,38 @@ public class BasicScalarCore extends AbstractUniMemoryComputeCore {
         INTERRUPTS
     }
 
+    public enum NamedRegister {
+        STATUS(0), INT_ENABLE(1), INT_FLAGS(2), CONTROL(3), OPTIONS_REG(4), TMR0(5);
+
+        private int address;
+
+        NamedRegister(int addr) {
+            address = addr;
+        }
+
+        public int getAddress() {
+            return address;
+        }
+    }
+
     private Register pcReg;
-    private Register statusReg;
-    private Register controlReg;
     private Register intEnableReg; // interrupt enable
     private Register intFlagsReg; // interrupt flags
-    private Register intSourceEnableReg; // interrupt source enable
-    private Register[] dataRegs; // (no. of) registers for manipulating data
     private Register[] dataAddrRegs; // (no. of) registers for storing data addresses
     private Register[] instrAddrRegs; // (no. of) registers for storing instruction addresses (temporarily)
     private RegisterStack callStack; // presence or absence of on-chip call stack
-    private BasicALU alu; // operations allowed by ALU
+    private RegisterFile dataRegFile;
+    private Bit globalInterruptEnable;
+    private InterruptSource [] interruptSources;
 
     private BasicScalarDecoder decoderCore;
+    private RegisteredALU aluCore;
     private Register tmr0Reg, optionsReg;
     private int iAddrWidth, dAddrWidth, dataWidth;
 
     public BasicScalarCore(ObservableDecoderUnit decoder) {
         super(decoder);
         decoderCore = (BasicScalarDecoder) decoder.getType();
-        alu = (BasicALU) aluCore;
 
         iAddrWidth = decoderCore.iAddrWidth();
         dataWidth = decoderCore.dataWidth();
@@ -63,41 +80,13 @@ public class BasicScalarCore extends AbstractUniMemoryComputeCore {
     @Override
     public boolean isEnabled(String sourceName) {
         InterruptFlags interrupt = Enum.valueOf(InterruptFlags.class, sourceName);
-        return getBitAtIndex(interrupt.ordinal(), intSourceEnableReg.read());
+        return intEnableReg.getBitAt(interrupt.ordinal()).read();
     }
 
     @Override
     public void raiseInterrupt(String sourceName) {
         InterruptFlags interrupt = Enum.valueOf(InterruptFlags.class, sourceName);
-        intFlagsReg.write(setBitAtIndex(interrupt.ordinal(), intFlagsReg.read()));
-    }
-
-    @Override
-    public int[] getRegData(String sourceName) {
-        int [] result;
-
-        InterruptFlags interrupt = Enum.valueOf(InterruptFlags.class, sourceName);
-        switch(interrupt) {
-            case TMR0:
-                result = new int[PIC16F877ATimer0.Regs.values().length];
-                result[TMR0_REG_INDEX] = tmr0Reg.read();
-                result[OPTIONS_REG_INDEX] = optionsReg.read();
-                break;
-            default:
-                result = new int[0];
-        }
-
-        return result;
-    }
-
-    @Override
-    public void setRegData(String sourceName, int[] data) {
-        InterruptFlags interrupt = Enum.valueOf(InterruptFlags.class, sourceName);
-        switch(interrupt) {
-            case TMR0:
-                tmr0Reg.write(data[TMR0_REG_INDEX]);
-                break;
-        }
+        intFlagsReg.getBitAt(interrupt.ordinal()).set();
     }
 
     @Override
@@ -113,48 +102,41 @@ public class BasicScalarCore extends AbstractUniMemoryComputeCore {
         int iAddrRegAddrWidth = decoderCore.getiAddrRegAddrWidth();
 
         /* Initialise core units */
-        alu = new BasicALU(dataWidth);
         callStack = new RegisterStack(iAddrWidth, 1 << stackAddrWidth); // stack with size 2^stackAddrWidth
 
 	    /* Initialise registers */
-        dataRegs = new Register[1 << dataRegAddrWidth]; // for data (2^dataRegAddrWidth regs)
-        pcReg = new Register(iAddrWidth);
-        statusReg = new Register(StatusFlags.values().length);
-        intEnableReg = new Register(InterruptFlags.values().length);
-        intFlagsReg = new Register(InterruptFlags.values().length);
-        intSourceEnableReg = new Register(InterruptFlags.values().length);
-        controlReg = new Register(dataWidth);
-        optionsReg = new Register(dataWidth);
-        tmr0Reg = new Register(dataWidth);
+        dataRegFile = new BasicScalarRegFile(decoderCore.dataWidth(), dataRegAddrWidth);
 
-        int dataRegAddrCount = 0;
-        dataRegs[dataRegAddrCount++] = statusReg;
-        dataRegs[dataRegAddrCount++] = intEnableReg;
-        dataRegs[dataRegAddrCount++] = intFlagsReg;
-        dataRegs[dataRegAddrCount++] = intSourceEnableReg;
-        dataRegs[dataRegAddrCount++] = controlReg;
-        dataRegs[dataRegAddrCount++] = optionsReg;
-        dataRegs[dataRegAddrCount++] = tmr0Reg;
-        for (int x = dataRegAddrCount; x < dataRegs.length; ++x) {
-            dataRegs[x] = new Register(dataWidth);
-        }
+        Register statusReg = dataRegFile.getRegisterByName(NamedRegister.STATUS.name());
+        aluCore = new RegisteredALU(
+                new AluCore(decoderCore.dataWidth(),
+                statusReg.getBitAt(StatusFlags.CARRY.ordinal()), statusReg.getBitAt(StatusFlags.SIGN.ordinal()),
+                statusReg.getBitAt(StatusFlags.ZERO.ordinal()), statusReg.getBitAt(StatusFlags.OVERFLOW.ordinal()))
+        );
+
+        pcReg = new RegisterImpl(iAddrWidth);
+        intEnableReg = dataRegFile.getRegisterByName(NamedRegister.INT_ENABLE.name());
+        intFlagsReg = dataRegFile.getRegisterByName(NamedRegister.INT_FLAGS.name());
+
+        Register controlReg = dataRegFile.getRegisterByName(NamedRegister.CONTROL.name());
+        globalInterruptEnable = controlReg.getBitAt(ControlRegFlags.INTERRUPTS.ordinal());
+
+        optionsReg = dataRegFile.getRegisterByName(NamedRegister.OPTIONS_REG.name());
+        tmr0Reg = dataRegFile.getRegisterByName(NamedRegister.TMR0.name());
+
+        interruptSources = createInterruptSources();
 
         dataAddrRegs = new Register[1 << dAddrRegAddrWidth]; // for data addresses (2^dAddrRegAddrWidth regs)
         for (int x = 0; x < dataAddrRegs.length; ++x) {
-            dataAddrRegs[x] = new Register(dAddrWidth);
+            dataAddrRegs[x] = new RegisterImpl(dAddrWidth);
         }
 
         instrAddrRegs = new Register[1 << iAddrRegAddrWidth]; // for instruction addresses (2^iAddrRegAddrWidth regs)
         int instrAddrRegAddrCount = 0;
         instrAddrRegs[instrAddrRegAddrCount++] = pcReg;
         for (int x = instrAddrRegAddrCount; x < instrAddrRegs.length; ++x) {
-            instrAddrRegs[x] = new Register(iAddrWidth);
+            instrAddrRegs[x] = new RegisterImpl(iAddrWidth);
         }
-    }
-
-    @Override
-    protected AluCore createALU(int dataWidth) {
-        return new BasicALU(dataWidth);
     }
 
     @Override
@@ -173,7 +155,7 @@ public class BasicScalarCore extends AbstractUniMemoryComputeCore {
     protected void fetchOpsExecuteInstr(String mneumonic, int[] operands) {
         BasicScalarDecoder.Instruction instruction = Enum.valueOf(BasicScalarDecoder.Instruction.class, mneumonic);
 
-        int regAddr, destRegAddr, sourceRegAddr, byteLiteral, bitIndex, dRegAddr;
+        int regAddr, destRegAddr, aRegAddr, bRegAddr, sourceRegAddr, byteLiteral, bitIndex, dRegAddr;
         switch (instruction) {
             // Instructions with 0 operands
             case POP: // cu <-- predefinedStack.pop(); updateUnderflowFlag(); ('return' control-flow construct)
@@ -185,7 +167,7 @@ public class BasicScalarCore extends AbstractUniMemoryComputeCore {
                 setInternalControlUnitState(ControlUnitState.HALT);
                 break;
             case RETFIE:
-                controlReg.write(setBitAtIndex(ControlRegFlags.INTERRUPTS.ordinal(), controlReg.read())); // re-enable interrupts
+                globalInterruptEnable.set(); // re-enable interrupts
                 popCallStack();
                 break;
 
@@ -207,7 +189,7 @@ public class BasicScalarCore extends AbstractUniMemoryComputeCore {
 
             // Instructions with 1 data register and 1 data literal
             case LOAD: // DREG <-- DATA (variable assignment)
-                dataRegs[operands[0]].write(operands[1]);
+                dataRegFile.write(operands[0], operands[1]);
                 break;
 
             // Instructions with 1 data register and 1 bit-index
@@ -217,10 +199,10 @@ public class BasicScalarCore extends AbstractUniMemoryComputeCore {
                 bitIndex = operands[1];
                 switch (instruction) {
                     case SETB: // DREG[BITINDEX] <-- true (boolean variable assignment)
-                        dataRegs[regAddr].write(setBitAtIndex(bitIndex, dataRegs[regAddr].read()));
+                        dataRegFile.getRegisterAt(regAddr).getBitAt(bitIndex).set();
                         break;
                     case CLRB: // DREG[BITINDEX] <-- false (boolean variable assignment)
-                        dataRegs[regAddr].write(clearBitAtIndex(bitIndex, dataRegs[regAddr].read()));
+                        dataRegFile.getRegisterAt(regAddr).getBitAt(bitIndex).clear();
                         break;
                 }
                 break;
@@ -234,16 +216,16 @@ public class BasicScalarCore extends AbstractUniMemoryComputeCore {
                 int dAddrRegAddr = operands[1];
                 switch (instruction) {
                     case LOADM: // DREG <-- MEMORY[DADREG] (dereference pointer and assign value to variable)
-                        dataRegs[dRegAddr].write(dataMemory.read(dataAddrRegs[dAddrRegAddr].read()));
+                        dataRegFile.write(dRegAddr, dataMemory.read(dataAddrRegs[dAddrRegAddr].read()));
                         break;
                     case STOREM: // MEMORY[DADREG] <-- DREG (assign variable to dereferenced pointer)
-                        dataMemory.write(dataAddrRegs[dAddrRegAddr].read(), dataRegs[dRegAddr].read());
+                        dataMemory.write(dataAddrRegs[dAddrRegAddr].read(), dataRegFile.read(dRegAddr));
                         break;
                     case LOADA: // DREG <-- (int) DADREG (put pointer address value in variable - for pointer arithmetic)
-                        dataRegs[dRegAddr].write(dataAddrRegs[dAddrRegAddr].read());
+                        dataRegFile.write(dRegAddr, dataAddrRegs[dAddrRegAddr].read());
                         break;
                     case STOREA: // DADREG <-- (data address) DREG (pointer assignment) [OS level operation / result of call to 'new']
-                        dataAddrRegs[dAddrRegAddr].write(dataRegs[dRegAddr].read());
+                        dataAddrRegs[dAddrRegAddr].write(dataRegFile.read(dRegAddr));
                         break;
                 }
                 break;
@@ -255,10 +237,10 @@ public class BasicScalarCore extends AbstractUniMemoryComputeCore {
                 int iAddrRegAddr = operands[1];
                 switch (instruction) {
                     case LOADI: // DREG <-- (int) IADREG (dereference pointer and assign value to variable)
-                        dataRegs[dRegAddr].write(instrAddrRegs[iAddrRegAddr].read());
+                        dataRegFile.write(dRegAddr, instrAddrRegs[iAddrRegAddr].read());
                         break;
                     case STOREI: // IADREG <-- (instruction address) DREG [OS level operation / load start address of new program]
-                        instrAddrRegs[iAddrRegAddr].write(dataRegs[dRegAddr].read());
+                        instrAddrRegs[iAddrRegAddr].write(dataRegFile.read(dRegAddr));
                         break;
                 }
                 break;
@@ -273,28 +255,26 @@ public class BasicScalarCore extends AbstractUniMemoryComputeCore {
                 destRegAddr = operands[0];
                 sourceRegAddr = operands[1];
 
-                updateAluCarry();
                 switch (instruction) {
                     case MOVE: // DESTINATION <-- SOURCE (variable assignment)
-                        dataRegs[destRegAddr].write(dataRegs[sourceRegAddr].read());
+                        dataRegFile.write(destRegAddr, dataRegFile.read(sourceRegAddr));
                         break;
                     case NOT: // DESTINATION <-- 1's_COMPLEMENT(SOURCE)
-                        dataRegs[destRegAddr].write(alu.result(BasicALU.Mneumonics.COMP, dataRegs[sourceRegAddr].read()));
+                        aluCore.onesComplement(dataRegFile.getRegisterAt(sourceRegAddr), dataRegFile.getRegisterAt(destRegAddr));
                         break;
                     case RLC: // DESTINATION <-- ROTATE_LEFT_WITH_CARRY(SOURCE)
-                        dataRegs[destRegAddr].write(alu.result(BasicALU.Mneumonics.RLC, dataRegs[sourceRegAddr].read()));
+                        aluCore.rotateLeftWithCarry(dataRegFile.getRegisterAt(sourceRegAddr), dataRegFile.getRegisterAt(destRegAddr));
                         break;
                     case RRC: // DESTINATION <-- ROTATE_RIGHT_WITH_CARRY(SOURCE)
-                        dataRegs[destRegAddr].write(alu.result(BasicALU.Mneumonics.RRC, dataRegs[sourceRegAddr].read()));
+                        aluCore.rotateRightWithCarry(dataRegFile.getRegisterAt(sourceRegAddr), dataRegFile.getRegisterAt(destRegAddr));
                         break;
                     case INC: // DESTINATION <-- SOURCE + 1
-                        dataRegs[destRegAddr].write(alu.result(BasicALU.Mneumonics.INC, dataRegs[sourceRegAddr].read()));
+                        aluCore.increment(dataRegFile.getRegisterAt(sourceRegAddr), dataRegFile.getRegisterAt(destRegAddr));
                         break;
                     case DEC: // DESTINATION <-- SOURCE - 1 (useful for end of array indexing with DESTINATION)
-                        dataRegs[destRegAddr].write(alu.result(BasicALU.Mneumonics.DEC, dataRegs[sourceRegAddr].read()));
+                        aluCore.decrement(dataRegFile.getRegisterAt(sourceRegAddr), dataRegFile.getRegisterAt(destRegAddr));
                         break;
                 }
-                updateStatusReg();
                 break;
 
             // Instructions with 1 data register, 1 byte-index and 1 byte literal
@@ -302,7 +282,7 @@ public class BasicScalarCore extends AbstractUniMemoryComputeCore {
                 regAddr = operands[0];
                 int byteIndex = operands[1];
                 byteLiteral = operands[2];
-                dataRegs[regAddr].write(setWordIn(dataRegs[regAddr].read(), byteLiteral, BYTE_WIDTH, BYTE_WIDTH * byteIndex));
+                dataRegFile.write(regAddr, setWordIn(dataRegFile.read(regAddr), byteLiteral, BYTE_WIDTH, BYTE_WIDTH * byteIndex));
                 break;
 
             // Instructions with 1 data register, 1 bit-index and 1 instruction address register
@@ -313,12 +293,12 @@ public class BasicScalarCore extends AbstractUniMemoryComputeCore {
                 int iAddrRegValue = instrAddrRegs[operands[2]].read();
                 switch (instruction) {
                     case JUMPIFBC: // IF (!DREG[BITINDEX]) cu <-- IADREG ('for'/'while'/'if-else' sourceReg[bitIndex])
-                        if (!getBitAtIndex(bitIndex, dataRegs[dRegAddr].read())) {
+                        if (!dataRegFile.getRegisterAt(dRegAddr).getBitAt(bitIndex).read()) {
                             updateProgramCounter(iAddrRegValue);
                         }
                         break;
                     case JUMPIFBS: // IF (DREG[BITINDEX]) cu <-- IADREG ('do-while' sourceReg[bitIndex])
-                        if (getBitAtIndex(bitIndex, dataRegs[dRegAddr].read())) {
+                        if (dataRegFile.getRegisterAt(dRegAddr).getBitAt(bitIndex).read()) {
                             updateProgramCounter(iAddrRegValue);
                         }
                         break;
@@ -333,12 +313,12 @@ public class BasicScalarCore extends AbstractUniMemoryComputeCore {
                 int iAddrLiteral = operands[2];
                 switch (instruction) {
                     case JUMPIFBCL: // IF (!DREG[BITINDEX]) cu <-- IADLITERAL ('for'/'while'/'if-else' sourceReg[bitIndex])
-                        if (!getBitAtIndex(bitIndex, dataRegs[dRegAddr].read())) {
+                        if (!dataRegFile.getRegisterAt(dRegAddr).getBitAt(bitIndex).read()) {
                             updateProgramCounter(iAddrLiteral);
                         }
                         break;
                     case JUMPIFBSL: // IF (DREG[BITINDEX]) cu <-- IADLITERAL ('do-while' sourceReg[bitIndex])
-                        if (getBitAtIndex(bitIndex, dataRegs[dRegAddr].read())) {
+                        if (dataRegFile.getRegisterAt(dRegAddr).getBitAt(bitIndex).read()) {
                             updateProgramCounter(iAddrLiteral);
                         }
                         break;
@@ -353,10 +333,10 @@ public class BasicScalarCore extends AbstractUniMemoryComputeCore {
                 int shiftAmount = operands[2];
                 switch (instruction) {
                     case SHIFTL: // DESTINATION <-- (SOURCE << SHIFTAMOUNT)
-                        dataRegs[destRegAddr].write(alu.result(BasicALU.Mneumonics.SHIFTL, dataRegs[sourceRegAddr].read(), shiftAmount));
+                        aluCore.logicalShiftLeft(dataRegFile.getRegisterAt(sourceRegAddr), shiftAmount, dataRegFile.getRegisterAt(destRegAddr));
                         break;
                     case SHIFTR: // DESTINATION <-- (SOURCE >> SHIFTAMOUNT)
-                        dataRegs[destRegAddr].write(alu.result(BasicALU.Mneumonics.SHIFTR, dataRegs[sourceRegAddr].read(), shiftAmount));
+                        aluCore.logicalShiftRight(dataRegFile.getRegisterAt(sourceRegAddr), shiftAmount, dataRegFile.getRegisterAt(destRegAddr));
                         break;
                 }
                 break;
@@ -370,34 +350,32 @@ public class BasicScalarCore extends AbstractUniMemoryComputeCore {
             case OR: // RESULT <-- A | B
             case XOR: // RESULT <-- A ^ B
                 destRegAddr = operands[0];
-                int aRegAddr = operands[1];
-                int bRegAddr = operands[2];
+                aRegAddr = operands[1];
+                bRegAddr = operands[2];
 
-                updateAluCarry();
                 switch (instruction) {
                     case ADD: // RESULT <-- A + B
-                        dataRegs[destRegAddr].write(alu.result(BasicALU.Mneumonics.ADD, dataRegs[aRegAddr].read(), dataRegs[bRegAddr].read()));
+                        aluCore.add(dataRegFile.getRegisterAt(aRegAddr), dataRegFile.getRegisterAt(bRegAddr), dataRegFile.getRegisterAt(destRegAddr));
                         break;
                     case ADDWC: // RESULT <-- A + B + CARRY
-                        dataRegs[destRegAddr].write(alu.result(BasicALU.Mneumonics.ADDWC, dataRegs[aRegAddr].read(), dataRegs[bRegAddr].read()));
+                        aluCore.addWithCarry(dataRegFile.getRegisterAt(aRegAddr), dataRegFile.getRegisterAt(bRegAddr), dataRegFile.getRegisterAt(destRegAddr));
                         break;
                     case SUB: // RESULT <-- A - B
-                        dataRegs[destRegAddr].write(alu.result(BasicALU.Mneumonics.SUB, dataRegs[aRegAddr].read(), dataRegs[bRegAddr].read()));
+                        aluCore.sub(dataRegFile.getRegisterAt(aRegAddr), dataRegFile.getRegisterAt(bRegAddr), dataRegFile.getRegisterAt(destRegAddr));
                         break;
                     case SUBWB: // RESULT <-- A - B + BORROW
-                        dataRegs[destRegAddr].write(alu.result(BasicALU.Mneumonics.SUBWB, dataRegs[aRegAddr].read(), dataRegs[bRegAddr].read()));
+                        aluCore.subWithBorrow(dataRegFile.getRegisterAt(aRegAddr), dataRegFile.getRegisterAt(bRegAddr), dataRegFile.getRegisterAt(destRegAddr));
                         break;
                     case AND: // RESULT <-- A & B
-                        dataRegs[destRegAddr].write(alu.result(BasicALU.Mneumonics.AND, dataRegs[aRegAddr].read(), dataRegs[bRegAddr].read()));
+                        aluCore.and(dataRegFile.getRegisterAt(aRegAddr), dataRegFile.getRegisterAt(bRegAddr), dataRegFile.getRegisterAt(destRegAddr));
                         break;
                     case OR: // RESULT <-- A | B
-                        dataRegs[destRegAddr].write(alu.result(BasicALU.Mneumonics.OR, dataRegs[aRegAddr].read(), dataRegs[bRegAddr].read()));
+                        aluCore.or(dataRegFile.getRegisterAt(aRegAddr), dataRegFile.getRegisterAt(bRegAddr), dataRegFile.getRegisterAt(destRegAddr));
                         break;
                     case XOR: // RESULT <-- A ^ B
-                        dataRegs[destRegAddr].write(alu.result(BasicALU.Mneumonics.XOR, dataRegs[aRegAddr].read(), dataRegs[bRegAddr].read()));
+                        aluCore.xor(dataRegFile.getRegisterAt(aRegAddr), dataRegFile.getRegisterAt(bRegAddr), dataRegFile.getRegisterAt(destRegAddr));
                         break;
                 }
-                updateStatusReg();
                 break;
 
             // Instructions with 2 data registers (destination, source) and 2 byte-indices (destination, source)
@@ -407,9 +385,8 @@ public class BasicScalarCore extends AbstractUniMemoryComputeCore {
                 sourceRegAddr = operands[2];
                 int sourceByteIndex = operands[3];
 
-                byteLiteral = getWordFrom(dataRegs[sourceRegAddr].read(), BYTE_WIDTH, BYTE_WIDTH * sourceByteIndex);
-
-                dataRegs[destRegAddr].write(setWordIn(dataRegs[destRegAddr].read(), byteLiteral, BYTE_WIDTH, BYTE_WIDTH * destByteIndex));
+                byteLiteral = getWordFrom(dataRegFile.read(sourceRegAddr), BYTE_WIDTH, BYTE_WIDTH * sourceByteIndex);
+                dataRegFile.write(destRegAddr, setWordIn(dataRegFile.read(destRegAddr), byteLiteral, BYTE_WIDTH, BYTE_WIDTH * destByteIndex));
                 break;
 
             // Instructions with 3 data registers (result, A, B) and 1 byte multiplier literal
@@ -422,46 +399,43 @@ public class BasicScalarCore extends AbstractUniMemoryComputeCore {
             case XORWIDTH: // RESULT <-- A[((BYTEMULT*8)-1):0] ^ B[((BYTEMULT*8)-1):0]
                 int byteMultiplier = operands[3];
                 int bitWidth = (byteMultiplier != 0) ? BYTE_WIDTH * byteMultiplier : 4;
-                int byteMask = bitMaskOfWidth(bitWidth);
 
                 int resultRegAddr = operands[0];
-                int A = dataRegs[operands[1]].read() & byteMask;
-                int B = dataRegs[operands[2]].read() & byteMask;
+                aRegAddr = operands[1];
+                bRegAddr = operands[2];
 
-                updateAluCarry();
-                alu.result(BasicALU.Mneumonics.UPDATEWIDTH, bitWidth); // temporarily modify ALU dataWidth to set appropriately set ALU flags
+                aluCore.updateDataWidth(bitWidth); // temporarily modify ALU dataWidth to set appropriately set ALU flags
                 switch (instruction) {
                     case ADDWIDTH: // RESULT <-- A[((BYTEMULT*8)-1):0] + B[((BYTEMULT*8)-1):0]
-                        dataRegs[resultRegAddr].write(alu.result(BasicALU.Mneumonics.ADD, A, B) & byteMask);
+                        aluCore.add(dataRegFile.getRegisterAt(aRegAddr), dataRegFile.getRegisterAt(bRegAddr), dataRegFile.getRegisterAt(resultRegAddr));
                         break;
                     case ADDCWIDTH: // RESULT <-- A[((BYTEMULT*8)-1):0] + B[((BYTEMULT*8)-1):0] + CARRY
-                        dataRegs[resultRegAddr].write(alu.result(BasicALU.Mneumonics.ADDWC, A, B) & byteMask);
+                        aluCore.addWithCarry(dataRegFile.getRegisterAt(aRegAddr), dataRegFile.getRegisterAt(bRegAddr), dataRegFile.getRegisterAt(resultRegAddr));
                         break;
                     case SUBWIDTH: // RESULT <-- A[((BYTEMULT*8)-1):0] - B[((BYTEMULT*8)-1):0]
-                        dataRegs[resultRegAddr].write(alu.result(BasicALU.Mneumonics.SUB, A, B) & byteMask);
+                        aluCore.sub(dataRegFile.getRegisterAt(aRegAddr), dataRegFile.getRegisterAt(bRegAddr), dataRegFile.getRegisterAt(resultRegAddr));
                         break;
                     case SUBCWIDTH: // RESULT <-- A[((BYTEMULT*8)-1):0] - B[((BYTEMULT*8)-1):0] + BORROW
-                        dataRegs[resultRegAddr].write(alu.result(BasicALU.Mneumonics.SUBWB, A, B) & byteMask);
+                        aluCore.subWithBorrow(dataRegFile.getRegisterAt(aRegAddr), dataRegFile.getRegisterAt(bRegAddr), dataRegFile.getRegisterAt(resultRegAddr));
                         break;
                     case ANDWIDTH: // RESULT <-- A[((BYTEMULT*8)-1):0] & B[((BYTEMULT*8)-1):0]
-                        dataRegs[resultRegAddr].write(alu.result(BasicALU.Mneumonics.AND, A, B) & byteMask);
+                        aluCore.and(dataRegFile.getRegisterAt(aRegAddr), dataRegFile.getRegisterAt(bRegAddr), dataRegFile.getRegisterAt(resultRegAddr));
                         break;
                     case ORWIDTH: // RESULT <-- A[((BYTEMULT*8)-1):0] | B[((BYTEMULT*8)-1):0]
-                        dataRegs[resultRegAddr].write(alu.result(BasicALU.Mneumonics.OR, A, B) & byteMask);
+                        aluCore.or(dataRegFile.getRegisterAt(aRegAddr), dataRegFile.getRegisterAt(bRegAddr), dataRegFile.getRegisterAt(resultRegAddr));
                         break;
                     case XORWIDTH: // RESULT <-- A[((BYTEMULT*8)-1):0] ^ B[((BYTEMULT*8)-1):0]
-                        dataRegs[resultRegAddr].write(alu.result(BasicALU.Mneumonics.XOR, A, B) & byteMask);
+                        aluCore.xor(dataRegFile.getRegisterAt(aRegAddr), dataRegFile.getRegisterAt(bRegAddr), dataRegFile.getRegisterAt(resultRegAddr));
                         break;
                 }
-                alu.result(BasicALU.Mneumonics.UPDATEWIDTH, dataWidth); // restore ALU dataWidth
-                updateStatusReg(); // flags are in accordance with previously set dataWidth
+                aluCore.updateDataWidth(dataWidth); // restore ALU dataWidth
                 break;
         }
     }
 
     @Override
     protected void vectorToInterruptHandler() {
-        if(getBitAtIndex(ControlRegFlags.INTERRUPTS.ordinal(), controlReg.read())){ // interrupts enabled globally
+        if(globalInterruptEnable.read()){ // interrupts enabled globally
             // Interrupt enable bits and flags are aligned in respective registers.
             // Logical AND comparison determines whether interrupts are enabled and flags raised.
             int compareResult = intEnableReg.read() & intFlagsReg.read();
@@ -470,7 +444,7 @@ public class BasicScalarCore extends AbstractUniMemoryComputeCore {
             // results in vectoring to that location.
             if(compareResult != 0) {
                 // temporarily disable interrupts to avoid further interrupts
-                controlReg.write(clearBitAtIndex(ControlRegFlags.INTERRUPTS.ordinal(), controlReg.read()));
+                globalInterruptEnable.clear();
 
                 pushCallStack(pcReg.read()); // store current program location
                 updateProgramCounter(INTERRUPT_VECTOR_ADDRESS); // go to interrupt vector
@@ -484,24 +458,15 @@ public class BasicScalarCore extends AbstractUniMemoryComputeCore {
     }
 
     @Override
-    protected InterruptSource[] createInterruptSources() {
-        return new InterruptSource[]{
-                new PIC16F877ATimer0(InterruptFlags.TMR0.name(), this)
-        };
+    protected InterruptSource[] getInterruptSources() {
+        return interruptSources;
     }
 
-    private void updateAluCarry() {
-        if (getBitAtIndex(StatusFlags.CARRY.ordinal(), statusReg.read())) {
-            alu.result(BasicALU.Mneumonics.SETC);
-        } else {
-            alu.result(BasicALU.Mneumonics.CLRC);
-        }
-    }
-    
-    private void updateStatusReg() {
-        statusReg.write(setBitValueAtIndex(StatusFlags.OVERFLOW.ordinal(), statusReg.read(), alu.overflowFlag()));
-        statusReg.write(setBitValueAtIndex(StatusFlags.SIGN.ordinal(), statusReg.read(), alu.signFlag()));
-        statusReg.write(setBitValueAtIndex(StatusFlags.ZERO.ordinal(), statusReg.read(), alu.zeroFlag()));
+    private InterruptSource[] createInterruptSources() {
+        return new InterruptSource[]{
+                new PIC16F877ATimer0(InterruptFlags.TMR0.name(), this,
+                        tmr0Reg, optionsReg.getBitAt(5), optionsReg.getSubRegister(3,0), optionsReg.getBitAt(3))
+        };
     }
 
     private void pushCallStack(int value) {
@@ -515,4 +480,20 @@ public class BasicScalarCore extends AbstractUniMemoryComputeCore {
         intFlagsReg.write(setBitValueAtIndex(InterruptFlags.STACKUFLOW.ordinal(),
                 intFlagsReg.read(), callStack.isEmpty()));
     }
+
+    private static class BasicScalarRegFile extends AbstractRegisterFile {
+        public BasicScalarRegFile(int dataWidth, int addrWidth) {
+            super(dataWidth, addrWidth);
+        }
+
+        @Override
+        protected Map<String, Integer> createAddressMap() {
+            Map<String, Integer> addressMap = new HashMap<>();
+            for(NamedRegister named : NamedRegister.values()) {
+                addressMap.put(named.name(), named.getAddress());
+            }
+            return addressMap;
+        }
+    }
+
 }

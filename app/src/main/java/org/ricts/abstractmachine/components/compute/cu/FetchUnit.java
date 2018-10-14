@@ -2,7 +2,8 @@ package org.ricts.abstractmachine.components.compute.cu;
 
 import org.ricts.abstractmachine.components.interfaces.FetchCore;
 import org.ricts.abstractmachine.components.interfaces.ReadPort;
-import org.ricts.abstractmachine.components.storage.Register;
+import org.ricts.abstractmachine.components.interfaces.Register;
+import org.ricts.abstractmachine.components.storage.RegisterImpl;
 
 /**
  * Created by Jevon on 11/03/2017.
@@ -21,15 +22,15 @@ public class FetchUnit implements FetchCore {
 
     public FetchUnit(ReadPort iCache, int pcWidth, int irWidth, boolean stageStorage) {
         instructionCache = iCache;
-        pc = new Register(pcWidth);
-        instrPC = new Register(pcWidth);
-        ir = new Register(irWidth);
+        pc = new RegisterImpl(pcWidth);
+        instrPC = new RegisterImpl(pcWidth);
+        ir = new RegisterImpl(irWidth);
         useTempRegs = stageStorage;
 
         if(useTempRegs) {
-            tempPC = new Register(pcWidth);
-            tempInstrPC = new Register(pcWidth);
-            tempIR = new Register(irWidth);
+            tempPC = new RegisterImpl(pcWidth);
+            tempInstrPC = new RegisterImpl(pcWidth);
+            tempIR = new RegisterImpl(irWidth);
         }
     }
 

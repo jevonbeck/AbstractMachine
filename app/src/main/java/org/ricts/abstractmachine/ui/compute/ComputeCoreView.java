@@ -83,12 +83,7 @@ public class ComputeCoreView extends DeviceView implements Observer {
         final boolean cuIsPipelined = decoderUnit.hasTempStorage();
 
         if(o instanceof ObservableComputeCore.ExecuteParams) {
-            mainBody.setStatusRegText(mainCore.getALU().statusString());
-
-            if(updateImmediately){
-                mainBody.updateStatusView();
-            }
-            else{
+            if(!updateImmediately){
                 int pcPreExecute = decoderUnit.getProgramCounter();
                 final boolean isDataMemInstruction = decoderUnit.isDataMemoryInstruction();
                 final boolean isHaltInstruction = decoderUnit.isHaltInstruction();
@@ -99,8 +94,6 @@ public class ComputeCoreView extends DeviceView implements Observer {
                     @Override
                     public void onExecuteCompleted() {
                         // first animation [executeInstruction()] ends here!
-                        mainBody.updateStatusView();
-
                         /** Execute one of these if applicable (they are mutually exclusive) **/
                         if (isDataMemInstruction) {
                             memoryCommandResponder.onMemoryCommandIssued();
@@ -128,10 +121,6 @@ public class ComputeCoreView extends DeviceView implements Observer {
                     sendDoneCommand();
                 }
             }
-        }
-        else if(o instanceof Boolean) { // update is from a reset
-            mainBody.setStatusRegText(null);
-            mainBody.updateStatusView();
         }
     }
 
@@ -248,9 +237,6 @@ public class ComputeCoreView extends DeviceView implements Observer {
     }
 
     private static class MainBodyView extends RelativeLayout {
-        private TextView statusRegView;
-        private String statusRegText;
-
         public MainBodyView(Context context) {
             this(context, null);
         }
@@ -267,34 +253,6 @@ public class ComputeCoreView extends DeviceView implements Observer {
             setBackgroundColor(context.getResources().getColor(R.color.reg_data_unselected));
             int padding = (int) (6 * scaleFactor);
             setPadding(padding, padding, padding, padding);
-
-            /*** create children ***/
-            TextView statusRegLabel = new TextView(context);
-            statusRegLabel.setId(R.id.ComputeAltCoreView_status_label);
-            statusRegLabel.setTextColor(context.getResources().getColor(android.R.color.white));
-            statusRegLabel.setText(context.getResources().getText(R.string.status_reg_label));
-
-            statusRegView = new TextView(context);
-            statusRegView.setTextColor(context.getResources().getColor(android.R.color.white));
-            statusRegView.setBackgroundColor(context.getResources().getColor(R.color.test_color2));
-
-            /*** determine children layouts and positions ***/
-            LayoutParams lpStatusLabel = new LayoutParams(
-                    LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
-            addView(statusRegLabel, lpStatusLabel);
-
-            LayoutParams lpStatusView = new LayoutParams(
-                    LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
-            lpStatusView.addRule(RelativeLayout.BELOW, statusRegLabel.getId());
-            addView(statusRegView, lpStatusView);
-        }
-
-        public void updateStatusView(){
-            statusRegView.setText(statusRegText);
-        }
-
-        public void setStatusRegText(String text){
-            statusRegText = text;
         }
     }
 }

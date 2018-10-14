@@ -3,34 +3,27 @@ package org.ricts.abstractmachine.components.compute.core;
 import org.ricts.abstractmachine.components.compute.interrupt.InterruptSource;
 import org.ricts.abstractmachine.components.compute.interrupt.InterruptTarget;
 import org.ricts.abstractmachine.components.devicetype.Device;
-import org.ricts.abstractmachine.components.interfaces.ALU;
 import org.ricts.abstractmachine.components.interfaces.ComputeCore;
 import org.ricts.abstractmachine.components.interfaces.ControlUnitInterface;
 import org.ricts.abstractmachine.components.interfaces.DecoderUnit;
 
 public abstract class AbstractComputeCore extends Device implements ComputeCore, InterruptTarget {
     protected ControlUnitInterface cu;
-    protected AluCore aluCore;
 
     private DecoderUnit decoderCore;
     private boolean pcUpdated, cuUpdated;
     private ControlUnitState internalControlUnitState = ControlUnitState.ACTIVE;
-    private InterruptSource [] interruptSources;
 
     protected enum ControlUnitState {
         ACTIVE, SLEEP, HALT
     }
 
-    protected abstract AluCore createALU(int dataWidth);
     protected abstract void fetchOpsExecuteInstr(String mneumonic, int[] operands);
     protected abstract void vectorToInterruptHandler();
     protected abstract void updateProgramCounterRegs(int programCounter);
-    protected abstract InterruptSource [] createInterruptSources();
 
     public AbstractComputeCore(DecoderUnit decoder) {
         decoderCore = decoder;
-        aluCore = createALU(decoderCore.dataWidth());
-        interruptSources = createInterruptSources();
         resetUpdatedFlagsState();
     }
 
@@ -93,9 +86,8 @@ public abstract class AbstractComputeCore extends Device implements ComputeCore,
         return decoderCore;
     }
 
-    @Override
-    public ALU getALU() {
-        return aluCore;
+    protected InterruptSource [] getInterruptSources() {
+        return new InterruptSource[0];
     }
 
     protected void updateProgramCounter(int programCounter){
@@ -113,7 +105,7 @@ public abstract class AbstractComputeCore extends Device implements ComputeCore,
     }
 
     private void latchInterruptSources() {
-        for(InterruptSource source : interruptSources) {
+        for(InterruptSource source : getInterruptSources()) {
             source.updateTarget();
         }
     }

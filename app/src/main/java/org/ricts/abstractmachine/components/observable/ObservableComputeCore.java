@@ -1,6 +1,5 @@
 package org.ricts.abstractmachine.components.observable;
 
-import org.ricts.abstractmachine.components.interfaces.ALU;
 import org.ricts.abstractmachine.components.interfaces.ComputeCore;
 import org.ricts.abstractmachine.components.interfaces.ControlUnitInterface;
 import org.ricts.abstractmachine.components.interfaces.DecoderUnit;
@@ -60,10 +59,5 @@ public class ObservableComputeCore<T extends ComputeCore> extends ObservableType
     @Override
     public DecoderUnit getDecoderUnit() {
         return observable_data.getDecoderUnit();
-    }
-
-    @Override
-    public ALU getALU() {
-        return observable_data.getALU();
     }
 }

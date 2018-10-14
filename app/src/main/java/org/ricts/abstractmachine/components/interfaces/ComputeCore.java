@@ -17,5 +17,4 @@ public interface ComputeCore {
     int getProgramCounterValue();
 
     DecoderUnit getDecoderUnit();
-    ALU getALU();
 }

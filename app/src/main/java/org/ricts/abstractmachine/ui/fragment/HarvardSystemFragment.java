@@ -55,7 +55,7 @@ public class HarvardSystemFragment extends HarvardActivityFragment {
         /** Initialise Views **/
         instructionCacheView.setDataSource(instructionCache.getType());
         dataMemoryView.setDataSource((RAM) dataMemory.getType());
-        cpuView.initCpu(fsm, regCore, mainCore.getALU(), instructionCacheView, dataMemoryView);
+        cpuView.initCpu(fsm, regCore, instructionCacheView, dataMemoryView);
 
         /** Add observers to observables **/
         instructionCache.addObserver(instructionCacheView);

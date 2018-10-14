@@ -6,7 +6,8 @@ import org.ricts.abstractmachine.components.interfaces.ComputeCore;
 import org.ricts.abstractmachine.components.interfaces.CuFsmInterface;
 import org.ricts.abstractmachine.components.interfaces.FetchCore;
 import org.ricts.abstractmachine.components.interfaces.ReadPort;
-import org.ricts.abstractmachine.components.storage.Register;
+import org.ricts.abstractmachine.components.interfaces.Register;
+import org.ricts.abstractmachine.components.storage.RegisterImpl;
 
 /**
  * Created by Jevon on 09/07/2016.
@@ -23,8 +24,8 @@ public class PipelinedControlUnit extends ControlUnitCore {
         int iAddrWidth = decoderUnit.iAddrWidth();
         int instrWidth = decoderUnit.instrWidth();
 
-        branchPC = new Register(iAddrWidth);
-        branchIR = new Register(instrWidth);
+        branchPC = new RegisterImpl(iAddrWidth);
+        branchIR = new RegisterImpl(instrWidth);
 
         // initialise FSMs
         reset();

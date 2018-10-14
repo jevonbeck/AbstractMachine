@@ -9,7 +9,6 @@ import android.widget.TextView;
 import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.compute.cu.FetchUnit;
 import org.ricts.abstractmachine.components.compute.cu.fsm.ControlUnitState;
-import org.ricts.abstractmachine.components.interfaces.ALU;
 import org.ricts.abstractmachine.components.interfaces.ComputeCore;
 import org.ricts.abstractmachine.components.interfaces.CuFsmInterface;
 import org.ricts.abstractmachine.components.interfaces.DecoderUnit;
@@ -36,7 +35,7 @@ public class CpuCoreView extends RelativeLayout implements Observer {
     private InspectActionResponder responder;
 
     private TextView pc, ir;
-    private TextView stateView, instructionView, aluStateView;
+    private TextView stateView, instructionView;
     private String irText;
     private boolean isVisible, irDefaultValueSourceCalled;
 
@@ -101,15 +100,6 @@ public class CpuCoreView extends RelativeLayout implements Observer {
         instructionView.setTextColor(context.getResources().getColor(android.R.color.white));
         instructionView.setBackgroundColor(context.getResources().getColor(R.color.test_color2));
 
-        TextView aluStateLabel = new TextView(context);
-        aluStateLabel.setId(R.id.ComputeCoreView_alu_state_label);
-        aluStateLabel.setTextColor(context.getResources().getColor(android.R.color.white));
-        aluStateLabel.setText(context.getResources().getText(R.string.alu_state_label));
-
-        aluStateView = new TextView(context);
-        aluStateView.setTextColor(context.getResources().getColor(android.R.color.white));
-        aluStateView.setBackgroundColor(context.getResources().getColor(R.color.test_color2));
-
         /*** determine children layouts and positions ***/
         int viewWidth = (int) (110 * scaleFactor);
 
@@ -159,29 +149,16 @@ public class CpuCoreView extends RelativeLayout implements Observer {
         lpInstructionView.addRule(RelativeLayout.ALIGN_RIGHT, ir.getId());
         addView(instructionView, lpInstructionView);
 
-        LayoutParams lpAluStateLabel = new LayoutParams(
-                LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
-        lpAluStateLabel.addRule(RelativeLayout.BELOW, instructionLabel.getId());
-        addView(aluStateLabel, lpAluStateLabel);
-
-        LayoutParams lpAluStateView = new LayoutParams(
-                LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
-        lpAluStateView.addRule(RelativeLayout.RIGHT_OF, aluStateLabel.getId());
-        lpAluStateView.addRule(RelativeLayout.ALIGN_TOP, aluStateLabel.getId());
-        lpAluStateView.addRule(RelativeLayout.ALIGN_RIGHT, ir.getId());
-        addView(aluStateView, lpAluStateView);
-
         /*** Initialise other vars ***/
         isVisible = false;
     }
 
-    public void initCpu(CuFsmInterface fsm, FetchCore regCore, ALU alu,
+    public void initCpu(CuFsmInterface fsm, FetchCore regCore,
                         RomView instructionCache, RamView dataMemory){
         /** initialise variables **/
         updateState(fsm.currentState());
         pc.setText(regCore.getPCString());
         ir.setText(regCore.getIRString());
-        aluStateView.setText(alu.statusString());
 
         /** setup callback behaviour **/
         dataMemory.setReadResponder(new ReadPortView.ReadResponder() {
@@ -270,8 +247,6 @@ public class CpuCoreView extends RelativeLayout implements Observer {
         else if(observable instanceof ObservableComputeCore){
             if(o instanceof ObservableComputeCore.ExecuteParams) {
                 ComputeCore core = ((ObservableComputeCore) observable);
-                ALU alu = core.getALU();
-                aluStateView.setText(alu.statusString());
 
                 DecoderUnit decoderUnit = core.getDecoderUnit();
                 if(isVisible && !decoderUnit.isDataMemoryInstruction()) {
@@ -282,9 +257,6 @@ public class CpuCoreView extends RelativeLayout implements Observer {
                 if(isVisible) {
                     launchAsynchronousOnStepCompleted();
                 }
-            }
-            else if(o instanceof Boolean){ // update is from a reset
-                aluStateView.setText(null);
             }
         }
     }

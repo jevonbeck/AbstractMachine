@@ -54,7 +54,7 @@ public class VonNeumannSystemFragment extends VonNeumannActivityFragment {
 
         /** Initialise Views **/
         memory.setDataSource((RAM) mainMemory.getType());
-        cpu.initCpu(fsm, regCore, mainCore.getALU(), memory, memory);
+        cpu.initCpu(fsm, regCore, memory, memory);
 
         /** Add observers to observables **/
         mainMemory.addObserver(memory);
