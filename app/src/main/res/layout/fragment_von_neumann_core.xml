@@ -6,12 +6,12 @@
 
     <RelativeLayout
         android:id="@+id/cuExtension"
-        android:layout_width="300dp"
+        android:layout_width="260dp"
         android:layout_height="50dp"
         android:layout_alignRight="@+id/control_unit"
         android:background="@color/reg_data_unselected"
-        android:paddingLeft="38dp"
-        android:paddingBottom="10dp"
+        android:paddingLeft="45dp"
+        android:paddingBottom="6dp"
         >
         <TextView
             android:id="@+id/muxSelect"
@@ -29,7 +29,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/cuExtension"
-        custom:dividerThickness="100dp"
+        custom:dividerThickness="200dp"
         custom:outputPosition = "left"
         custom:selectPosition = "firstEdge"
         />
@@ -38,18 +38,62 @@
         class="org.ricts.abstractmachine.ui.compute.ControlUnitView"
         android:id="@+id/control_unit"
         android:layout_width="wrap_content"
-        android:layout_height="130dp"
+        android:layout_height="124dp"
         android:layout_below="@id/cuExtension"
         android:layout_toRightOf="@+id/mux"
+        />
+
+    <View
+        android:id="@+id/cuExtRight"
+        android:layout_width="40dp"
+        android:layout_height="20dp"
+        android:layout_toRightOf="@+id/control_unit"
+        android:layout_alignBottom="@id/control_unit"
+        android:background="@color/reg_data_unselected"
+        />
+
+    <view
+        class="org.ricts.abstractmachine.ui.compute.DecoderUnitView"
+        android:id="@+id/decoder"
+        android:layout_width="match_parent"
+        android:layout_height="120dp"
+        android:layout_alignLeft="@id/control_unit"
+        android:layout_alignRight="@+id/cuExtRight"
+        android:layout_toRightOf="@+id/mux"
+        android:layout_below="@+id/control_unit"
+        custom:pinPosition="top"
+        custom:pinBodyAlignment="start"
+        />
+
+    <view
+        class="org.ricts.abstractmachine.ui.compute.ControlUnitInterfaceView"
+        android:id="@+id/cuInterface"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@+id/cuExtension"
+        android:layout_alignTop="@id/cuExtension"
+        custom:pinPosition="left"
         />
 
     <view
         class="org.ricts.abstractmachine.ui.compute.ComputeCoreView"
         android:id="@+id/core"
         android:layout_width="match_parent"
-        android:layout_height="210dp"
+        android:layout_height="265dp"
+        android:layout_below="@+id/decoder"
         android:layout_toRightOf="@+id/mux"
-        android:layout_below="@+id/control_unit"
+        android:layout_alignRight="@+id/cuInterface"
         custom:pinPosition="top"
+        custom:pinBodyAlignment="start"
+        />
+
+    <View
+        android:id="@+id/computeCoreExt"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_toRightOf="@+id/cuInterface"
+        android:layout_alignTop="@+id/cuExtension"
+        android:layout_alignBottom="@+id/core"
+        android:background="@color/reg_data_unselected"
         />
 </RelativeLayout>

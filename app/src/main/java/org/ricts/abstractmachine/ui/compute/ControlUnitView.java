@@ -7,13 +7,13 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import org.ricts.abstractmachine.R;
+import org.ricts.abstractmachine.components.compute.cu.FetchUnit;
 import org.ricts.abstractmachine.components.compute.cu.fsm.ControlUnitState;
-import org.ricts.abstractmachine.components.compute.cu.CuRegCore;
-import org.ricts.abstractmachine.components.interfaces.ControlUnitRegCore;
 import org.ricts.abstractmachine.components.interfaces.CuFsmInterface;
+import org.ricts.abstractmachine.components.interfaces.FetchCore;
 import org.ricts.abstractmachine.components.observable.ObservableCuFSM;
-import org.ricts.abstractmachine.components.observable.ObservableCuRegCore;
 import org.ricts.abstractmachine.components.observable.ObservableDefaultValueSource;
+import org.ricts.abstractmachine.components.observable.ObservableFetchCore;
 import org.ricts.abstractmachine.ui.storage.ReadPortView;
 
 import java.util.Observable;
@@ -43,7 +43,7 @@ public class ControlUnitView extends RelativeLayout implements Observer{
         float scaleFactor = context.getResources().getDisplayMetrics().density;
         /*** setSelectWidth properties ***/
         setBackgroundColor(context.getResources().getColor(R.color.reg_data_unselected));
-        int padding = (int) (10 * scaleFactor);
+        int padding = (int) (6 * scaleFactor);
         setPadding(padding, padding, padding, padding);
 
         /*** create children ***/
@@ -82,39 +82,39 @@ public class ControlUnitView extends RelativeLayout implements Observer{
         stateView.setBackgroundColor(context.getResources().getColor(R.color.test_color2));
 
         /*** determine children layouts and positions ***/
-        int viewWidth = (int) (100 * scaleFactor);
+        int viewWidth = (int) (64 * scaleFactor);
 
-        RelativeLayout.LayoutParams lpPcLabel = new RelativeLayout.LayoutParams(
-                RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+        LayoutParams lpPcLabel = new LayoutParams(
+                LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
         addView(pcLabel, lpPcLabel);
 
-        RelativeLayout.LayoutParams lpPcView = new RelativeLayout.LayoutParams(
-                viewWidth, RelativeLayout.LayoutParams.WRAP_CONTENT);
+        LayoutParams lpPcView = new LayoutParams(
+                viewWidth, LayoutParams.WRAP_CONTENT);
         lpPcView.addRule(RelativeLayout.RIGHT_OF, pcLabel.getId());
         lpPcView.addRule(RelativeLayout.ALIGN_TOP, pcLabel.getId());
         addView(pc, lpPcView);
 
-        RelativeLayout.LayoutParams lpIrLabel = new RelativeLayout.LayoutParams(
-                RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+        LayoutParams lpIrLabel = new LayoutParams(
+                LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
         lpIrLabel.addRule(RelativeLayout.BELOW, pcLabel.getId());
         lpIrLabel.addRule(RelativeLayout.ALIGN_LEFT, pcLabel.getId());
         addView(irLabel, lpIrLabel);
 
-        RelativeLayout.LayoutParams lpIrView = new RelativeLayout.LayoutParams(
-                viewWidth, RelativeLayout.LayoutParams.WRAP_CONTENT);
+        LayoutParams lpIrView = new LayoutParams(
+                viewWidth, LayoutParams.WRAP_CONTENT);
         lpIrView.addRule(RelativeLayout.RIGHT_OF, irLabel.getId());
         lpIrView.addRule(RelativeLayout.ALIGN_TOP, irLabel.getId());
         addView(ir, lpIrView);
 
-        RelativeLayout.LayoutParams lpStateLabel = new RelativeLayout.LayoutParams(
-                RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+        LayoutParams lpStateLabel = new LayoutParams(
+                LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
         lpStateLabel.addRule(RelativeLayout.BELOW, irLabel.getId());
         addView(stateLabel, lpStateLabel);
 
-        RelativeLayout.LayoutParams lpStateView = new RelativeLayout.LayoutParams(
-                RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-        lpStateView.addRule(RelativeLayout.RIGHT_OF, stateLabel.getId());
-        lpStateView.addRule(RelativeLayout.ALIGN_TOP, stateLabel.getId());
+        LayoutParams lpStateView = new LayoutParams(
+                LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+        lpStateView.addRule(RelativeLayout.BELOW, stateLabel.getId());
+        lpStateView.addRule(RelativeLayout.ALIGN_LEFT, stateLabel.getId());
         lpStateView.addRule(RelativeLayout.ALIGN_RIGHT, ir.getId());
         addView(stateView, lpStateView);
     }
@@ -132,21 +132,21 @@ public class ControlUnitView extends RelativeLayout implements Observer{
                 updateState();
             }
         }
-        else if(observable instanceof ObservableCuRegCore) {
-            boolean isUpdateFromFetch = o != null && o instanceof ObservableCuRegCore.FetchObject;
-            boolean isUpdateFromExpectedPC = o != null && o instanceof ObservableCuRegCore.ExpectedPcObject;
-            boolean isUpdateFromSetRegs = o != null && o instanceof ObservableCuRegCore.SetRegsObject;
+        else if(observable instanceof ObservableFetchCore) {
+            boolean isUpdateFromFetch = o != null && o instanceof ObservableFetchCore.FetchObject;
+            boolean isUpdateFromExpectedPC = o != null && o instanceof ObservableFetchCore.ExpectedPcObject;
+            boolean isUpdateFromSetRegs = o != null && o instanceof ObservableFetchCore.SetRegsObject;
 
             boolean isUpdateFromReset = irDefaultValueSourceCalled && isUpdateFromSetRegs;
             if(isUpdateFromReset) {
                 irDefaultValueSourceCalled = false; // clear indication that update was from reset
             }
 
-            CuRegCore regCore = ((ObservableCuRegCore) observable).getType();
-            pcText = regCore.getPCString();
-            irText = regCore.getIRString();
+            FetchUnit fetchUnit = ((ObservableFetchCore) observable).getType();
+            pcText = fetchUnit.getPCString();
+            irText = fetchUnit.getIRString();
 
-            boolean isControlUnitReset = isUpdateFromReset && !regCore.hasTempRegs();
+            boolean isControlUnitReset = isUpdateFromReset && !fetchUnit.hasTempRegs();
             if(updateImmediately || isControlUnitReset){
                 updateIR();
                 if(isControlUnitReset){
@@ -156,7 +156,7 @@ public class ControlUnitView extends RelativeLayout implements Observer{
 
             if(updateImmediately || isUpdateFromReset || isUpdateFromFetch || isUpdateFromExpectedPC){
                 if(isUpdateFromFetch){
-                    ObservableCuRegCore.FetchObject fetchObject = (ObservableCuRegCore.FetchObject) o;
+                    ObservableFetchCore.FetchObject fetchObject = (ObservableFetchCore.FetchObject) o;
                     pcText = fetchObject.getPC();
                 }
                 updatePC();
@@ -167,13 +167,14 @@ public class ControlUnitView extends RelativeLayout implements Observer{
         }
     }
 
-    public void initCU(CuFsmInterface fsm, ControlUnitRegCore regCore, ComputeCoreView coreView,
-                       ReadPortView instructionCache){
+    public void initCU(CuFsmInterface fsm, FetchCore fetchCore, final DecoderUnitView decoderView,
+                       ControlUnitInterfaceView cuInterfaceView, ReadPortView instructionCache,
+                       final boolean isPipelined){
         /** initialise variables **/
         updateStateText(fsm.currentState());
         updateState();
-        pc.setText(regCore.getPCString());
-        ir.setText(regCore.getIRString());
+        pc.setText(fetchCore.getPCString());
+        ir.setText(fetchCore.getIRString());
 
         /** setup callback behaviour **/
         instructionCache.setReadResponder(new ReadPortView.ReadResponder() {
@@ -189,23 +190,31 @@ public class ControlUnitView extends RelativeLayout implements Observer{
             }
         });
 
-        coreView.setUpdateResponder(new ComputeCoreView.UpdateResponder() {
+        decoderView.setNopResponder(new DecoderUnitView.PinsView.NopResponder() {
             @Override
-            public void onUpdatePcCompleted() {
-                updatePC();
-                actionResponder.onStepAnimationEnd();
-            }
-
-            @Override
-            public void onUpdateIrCompleted() {
+            public void onFetchNopCompleted() {
                 updateIR();
                 actionResponder.onResetAnimationEnd();  // PipelinedControlUnit case
             }
         });
 
-        coreView.setHaltCommandResponder(new ComputeCoreView.HaltResponder() {
+        cuInterfaceView.setUpdateResponder(new ControlUnitInterfaceView.UpdateResponder() {
             @Override
-            public void onHaltCompleted() {
+            public void onUpdateFetchUnitCompleted() {
+                updatePC();
+                updateIR();
+                if(isPipelined) {
+                    decoderView.sendInvalidateCommand();
+                }
+                else {
+                    actionResponder.onStepAnimationEnd();
+                }
+            }
+        });
+
+        cuInterfaceView.setCommandResponder(new ControlUnitInterfaceView.CommandOnlyResponder() {
+            @Override
+            public void onCommandCompleted() {
                 updateState();
                 actionResponder.onStepAnimationEnd();
             }
@@ -225,6 +234,9 @@ public class ControlUnitView extends RelativeLayout implements Observer{
         switch(Enum.valueOf(ControlUnitState.GenericCUState.class, text)) {
             case FETCH:
                 resId = R.string.control_unit_fetch_state;
+                break;
+            case DECODE:
+                resId = R.string.control_unit_decode_state;
                 break;
             case EXECUTE:
                 resId = R.string.control_unit_execute_state;

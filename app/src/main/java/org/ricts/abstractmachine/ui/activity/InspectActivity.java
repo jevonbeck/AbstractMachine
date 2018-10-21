@@ -12,14 +12,18 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import org.ricts.abstractmachine.R;
-import org.ricts.abstractmachine.components.compute.core.ComputeCore;
+import org.ricts.abstractmachine.components.compute.core.DecoderCore;
+import org.ricts.abstractmachine.components.interfaces.ComputeCore;
+import org.ricts.abstractmachine.components.observable.ObservableDecoderUnit;
 import org.ricts.abstractmachine.components.system.SystemArchitecture;
-import org.ricts.abstractmachine.devices.compute.core.BasicScalar;
+import org.ricts.abstractmachine.devices.compute.core.BasicScalarCore;
+import org.ricts.abstractmachine.devices.compute.core.BasicScalarDecoder;
 import org.ricts.abstractmachine.ui.fragment.InspectFragment;
 
 public abstract class InspectActivity<T extends ComputeCore> extends AppCompatActivity implements InspectFragment.InspectActionListener {
     private static final String TAG = "InspectActivity";
 
+    public static final String IS_PIPELINED = "isPipelined";
     public static final String ARCH_TYPE = "architectureType";
     public static final String CORE_NAME = "coreName";
     public static final String CORE_DATA_WIDTH = "coreDataWidth";
@@ -49,7 +53,7 @@ public abstract class InspectActivity<T extends ComputeCore> extends AppCompatAc
 
     protected abstract SystemArchitecture createSystemArchitecture(T core, Bundle options);
     protected abstract void initSystemArchitecture(SystemArchitecture architecture, Bundle options);
-    protected abstract PagerAdapter createAdapter(SystemArchitecture architecture);
+    protected abstract PagerAdapter createAdapter(SystemArchitecture architecture, ObservableDecoderUnit observableDecoderUnit);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,9 +62,11 @@ public abstract class InspectActivity<T extends ComputeCore> extends AppCompatAc
 
         /** Initialise main data **/
         final Bundle options = getIntent().getExtras();
-        architecture = createSystemArchitecture((T) getComputeCore(getResources(), options), options);
+        ObservableDecoderUnit observableDecoderUnit =
+                new ObservableDecoderUnit(getDecoderUnit(getResources(), options));
+        architecture = createSystemArchitecture((T) getComputeCore(observableDecoderUnit, options), options);
         initSystemArchitecture(architecture, options);
-        pagerAdapter = createAdapter(architecture);
+        pagerAdapter = createAdapter(architecture, observableDecoderUnit);
 
         /** Setup UI **/
         isRunning = false;
@@ -76,7 +82,7 @@ public abstract class InspectActivity<T extends ComputeCore> extends AppCompatAc
             public void onClick(View view) {
                 view.setEnabled(false);
                 runButton.setEnabled(false);
-                resetButton.setEnabled(false);
+                //resetButton.setEnabled(false);
 
                 advanceTime();
             }
@@ -87,7 +93,7 @@ public abstract class InspectActivity<T extends ComputeCore> extends AppCompatAc
             public void onClick(View view) {
                 view.setEnabled(false);
                 advanceButton.setEnabled(false);
-                resetButton.setEnabled(false);
+                //resetButton.setEnabled(false);
                 stopButton.setEnabled(true);
 
                 isRunning = true;
@@ -108,7 +114,7 @@ public abstract class InspectActivity<T extends ComputeCore> extends AppCompatAc
         resetButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                view.setEnabled(false);
+                //view.setEnabled(false);
                 advanceButton.setEnabled(false);
                 runButton.setEnabled(false);
                 stopButton.setEnabled(false);
@@ -194,16 +200,33 @@ public abstract class InspectActivity<T extends ComputeCore> extends AppCompatAc
     private void enableButtons() {
         advanceButton.setEnabled(true);
         runButton.setEnabled(true);
-        resetButton.setEnabled(true);
+        //resetButton.setEnabled(true);
     }
 
-    public static ComputeCore getComputeCore(Resources resources, Bundle options){
+    public static ComputeCore getComputeCore(ObservableDecoderUnit decoderUnit, Bundle options){
+        String coreName = options.getString(CORE_NAME);
+
+        // Create appropriate ComputeCore
+        CoreNames coreType = Enum.valueOf(CoreNames.class, coreName);
+        switch (coreType){
+            case TestName:
+            case AnotherTest:
+                // TODO: implement above cores
+            case BasicScalar:
+                return new BasicScalarCore(decoderUnit);
+            default:
+                return null;
+        }
+    }
+
+    public static DecoderCore getDecoderUnit(Resources resources, Bundle options){
         String coreName = options.getString(CORE_NAME);
         int coreDataWidth = options.getInt(CORE_DATA_WIDTH);
         int instrAddrWidth = options.getInt(INSTR_ADDR_WIDTH);
         int dataAddrWidth = options.getInt(DATA_ADDR_WIDTH);
+        boolean isPipelined = options.getBoolean(IS_PIPELINED);
 
-        // Create appropriate ComputeCore
+        // Create appropriate DecoderUnit
         CoreNames coreType = Enum.valueOf(CoreNames.class, coreName);
         switch (coreType){
             case TestName:
@@ -222,12 +245,13 @@ public abstract class InspectActivity<T extends ComputeCore> extends AppCompatAc
                 }
 
                 int stkAdWidth = 3;
-                int dRegAdWidth = 3;
+                int dRegAdWidth = 4;
                 int dAdrRegAdWidth = 1;
                 int iAdrRegAdWidth = 1;
 
-                return new BasicScalar(resources, byteMultiplierWidth, dataAddrWidth, instrAddrWidth,
-                        stkAdWidth,dRegAdWidth, dAdrRegAdWidth, iAdrRegAdWidth);
+                return new BasicScalarDecoder(resources, isPipelined,
+                        instrAddrWidth, dataAddrWidth, byteMultiplierWidth,
+                        dRegAdWidth, iAdrRegAdWidth, dAdrRegAdWidth, stkAdWidth);
             default:
                 return null;
         }

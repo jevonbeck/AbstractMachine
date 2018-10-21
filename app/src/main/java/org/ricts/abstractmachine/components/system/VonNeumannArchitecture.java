@@ -1,6 +1,6 @@
 package org.ricts.abstractmachine.components.system;
 
-import org.ricts.abstractmachine.components.compute.core.UniMemoryComputeCore;
+import org.ricts.abstractmachine.components.compute.core.AbstractUniMemoryComputeCore;
 import org.ricts.abstractmachine.components.compute.core.VonNeumannCore;
 import org.ricts.abstractmachine.components.compute.cu.ControlUnitCore;
 import org.ricts.abstractmachine.components.observable.ObservableComputeCore;
@@ -12,15 +12,15 @@ import org.ricts.abstractmachine.components.storage.RAM;
 
 import java.util.List;
 
-public class VonNeumannArchitecture extends SystemArchitecture<UniMemoryComputeCore> {
+public class VonNeumannArchitecture extends SystemArchitecture<AbstractUniMemoryComputeCore> {
     private ObservableMemoryPort mainMemory;
     private ControlUnitCore controlUnit;
     private ObservableMultiplexer multiplexer;
     private ObservableMultiMemoryPort multiplexerPorts;
 
-    public VonNeumannArchitecture(UniMemoryComputeCore core, int memAccessTime){
+    public VonNeumannArchitecture(AbstractUniMemoryComputeCore core, int memAccessTime){
         super(core);
-        mainMemory = new ObservableMemoryPort(new RAM(core.instrWidth(), core.iAddrWidth(), memAccessTime));
+        mainMemory = new ObservableMemoryPort(new RAM(decoderUnit.instrWidth(), decoderUnit.iAddrWidth(), memAccessTime));
 
         VonNeumannCore vCore = new VonNeumannCore((ObservableUniMemoryComputeCore) mainCore, mainMemory);
         controlUnit = vCore.getControlUnit();
@@ -52,7 +52,7 @@ public class VonNeumannArchitecture extends SystemArchitecture<UniMemoryComputeC
     }
 
     @Override
-    protected ObservableComputeCore<UniMemoryComputeCore> createObservableComputeCore(UniMemoryComputeCore core) {
+    protected ObservableComputeCore<AbstractUniMemoryComputeCore> createObservableComputeCore(AbstractUniMemoryComputeCore core) {
         return new ObservableUniMemoryComputeCore<>(core);
     }
 }

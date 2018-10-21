@@ -2,7 +2,7 @@ package org.ricts.abstractmachine.components.compute.core;
 
 import org.ricts.abstractmachine.components.interfaces.MemoryPort;
 import org.ricts.abstractmachine.components.interfaces.MultiMemoryPort;
-import org.ricts.abstractmachine.components.interfaces.UniMemoryComputeCoreInterface;
+import org.ricts.abstractmachine.components.interfaces.UniMemoryComputeCore;
 import org.ricts.abstractmachine.components.network.MultiPortSerializer;
 import org.ricts.abstractmachine.components.observable.ObservableMultiMemoryPort;
 
@@ -20,7 +20,7 @@ public abstract class UniMemoryCpuCore extends CpuCore {
     protected ObservableMultiMemoryPort multiMemoryPort;
     protected MultiPortSerializer<MemoryPort, MultiMemoryPort> serializer;
 
-    public UniMemoryCpuCore(UniMemoryComputeCoreInterface core, MemoryPort dataMemory){
+    public UniMemoryCpuCore(UniMemoryComputeCore core, MemoryPort dataMemory){
         serializer = createSerializer(dataMemory, SerializerInputId.values().length);
         multiMemoryPort = (ObservableMultiMemoryPort) serializer.getObservable();
 

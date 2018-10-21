@@ -6,23 +6,27 @@ package org.ricts.abstractmachine.components.compute.cu.fsm;
  */
 
 public class PipelinedCuState extends ControlUnitState{
-    private ControlUnitFSM fsm1, fsm2;
+    private ControlUnitFSM[] fsms;
 
-    public PipelinedCuState(GenericCUState sName, ControlUnitFSM sm1, ControlUnitFSM sm2) {
+    public PipelinedCuState(GenericCUState sName, ControlUnitFSM... sms) {
         super(sName);
-        fsm1 = sm1;
-        fsm2 = sm2;
+        fsms = sms;
     }
 
     @Override
     public void performAction() {
-        // advance both FSMs
-        fsm1.triggerStateChange();
-        fsm2.triggerStateChange();
+        // advance FSMs
+        for(ControlUnitFSM fsm : fsms) {
+            fsm.triggerStateChange();
+        }
     }
 
     @Override
     public int actionDuration() {
-        return Math.max(fsm1.nextActionDuration(), fsm2.nextActionDuration());
+        int max = 0;
+        for(ControlUnitFSM fsm : fsms) {
+            max = Math.max(max, fsm.nextActionDuration());
+        }
+        return max;
     }
 }

@@ -1,8 +1,8 @@
 package org.ricts.abstractmachine.components.compute.cu.fsm;
 
 import org.ricts.abstractmachine.components.fsm.State;
-import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
-import org.ricts.abstractmachine.components.interfaces.ControlUnitRegCore;
+import org.ricts.abstractmachine.components.interfaces.ComputeCore;
+import org.ricts.abstractmachine.components.interfaces.FetchCore;
 
 /**
  * Created by Jevon on 25/03/2017.
@@ -10,21 +10,23 @@ import org.ricts.abstractmachine.components.interfaces.ControlUnitRegCore;
 
 public class PipelinedControlUnitFSM extends CuFsmCore {
     private static final String FETCH_STATE = ControlUnitState.GenericCUState.FETCH.name();
+    private static final String DECODE_STATE = ControlUnitState.GenericCUState.DECODE.name();
     private static final String EXECUTE_STATE = ControlUnitState.GenericCUState.EXECUTE.name();
     private static final String HALT_STATE = ControlUnitState.GenericCUState.HALT.name();
     private static final String SLEEP_STATE = ControlUnitState.GenericCUState.SLEEP.name();
 
-    private ControlUnitFSM fsm1, fsm2;
+    private ControlUnitFSM fsm1, fsm2, fsm3;
     private ControlUnitState active;
 
-    public PipelinedControlUnitFSM(ControlUnitRegCore regCore, ComputeCoreInterface core){
+    public PipelinedControlUnitFSM(FetchCore regCore, ComputeCore core){
         fsm1 = new ControlUnitFSM(regCore, core);
         fsm2 = new ControlUnitFSM(regCore, core);
+        fsm3 = new ControlUnitFSM(regCore, core);
 
         // setup instruction cycle
-        active = new PipelinedCuState(ControlUnitState.GenericCUState.ACTIVE, fsm1, fsm2);
-        halt = new PipelinedCuState(ControlUnitState.GenericCUState.HALT, fsm1, fsm2);
-        sleep = new PipelinedCuState(ControlUnitState.GenericCUState.SLEEP, fsm1, fsm2);
+        active = new PipelinedCuState(ControlUnitState.GenericCUState.ACTIVE, fsm1, fsm2, fsm3);
+        halt = new PipelinedCuState(ControlUnitState.GenericCUState.HALT, fsm1, fsm2, fsm3);
+        sleep = new PipelinedCuState(ControlUnitState.GenericCUState.SLEEP, fsm1, fsm2, fsm3);
     }
 
     @Override
@@ -33,16 +35,13 @@ public class PipelinedControlUnitFSM extends CuFsmCore {
         State tempState = getNextState();
 
         if(tempState == sleep) {
-            fsm1.setNextState(HALT_STATE);
-            fsm2.setNextState(SLEEP_STATE);
+            setNextState(HALT_STATE, HALT_STATE, SLEEP_STATE);
         }
         else if(tempState == halt) {
-            fsm1.setNextState(HALT_STATE);
-            fsm2.setNextState(HALT_STATE);
+            setNextState(HALT_STATE, HALT_STATE, HALT_STATE);
         }
         else if(tempState == active) {
-            fsm1.setNextState(FETCH_STATE);
-            fsm2.setNextState(EXECUTE_STATE);
+            setNextState(FETCH_STATE, DECODE_STATE, EXECUTE_STATE);
         }
     }
 
@@ -52,16 +51,19 @@ public class PipelinedControlUnitFSM extends CuFsmCore {
         State tempState = getCurrentState();
 
         if(tempState == active) {
-            setToActiveState();
+            setCurrentState(FETCH_STATE, DECODE_STATE, EXECUTE_STATE);
         }
         else if(tempState == sleep) {
-            fsm1.setCurrentState(HALT_STATE);
-            fsm2.setCurrentState(SLEEP_STATE);
+            setCurrentState(HALT_STATE, HALT_STATE, SLEEP_STATE);
         }
         else if(tempState == halt) {
-            fsm1.setCurrentState(HALT_STATE);
-            fsm2.setCurrentState(HALT_STATE);
+            setCurrentState(HALT_STATE, HALT_STATE, HALT_STATE);
         }
+    }
+
+    @Override
+    public int parallelStageCount() {
+        return 3;
     }
 
     @Override
@@ -88,14 +90,6 @@ public class PipelinedControlUnitFSM extends CuFsmCore {
         return active.getName();
     }
 
-    public void setToActiveState() {
-        /* N.B. : Both FSMs are connected to the same instructionCache and dataMemory!
-           During normal operation, one performs a fetch while the other executes... ALWAYS! */
-        setCurrentState(active);
-        fsm1.setCurrentState(FETCH_STATE);
-        fsm2.setCurrentState(EXECUTE_STATE);
-    }
-
     public boolean isInActiveState(){
         return getCurrentState() == active;
     }
@@ -106,5 +100,21 @@ public class PipelinedControlUnitFSM extends CuFsmCore {
 
     public ControlUnitFSM getFsm2(){
         return fsm2;
+    }
+
+    public ControlUnitFSM getFsm3(){
+        return fsm3;
+    }
+
+    private void setCurrentState(String fsmState1, String fsmState2, String fsmState3) {
+        fsm1.setCurrentState(fsmState1);
+        fsm2.setCurrentState(fsmState2);
+        fsm3.setCurrentState(fsmState3);
+    }
+
+    private void setNextState(String fsmState1, String fsmState2, String fsmState3) {
+        fsm1.setNextState(fsmState1);
+        fsm2.setNextState(fsmState2);
+        fsm3.setNextState(fsmState3);
     }
 }

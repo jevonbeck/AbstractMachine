@@ -9,8 +9,8 @@ import android.widget.EditText;
 import android.widget.SearchView;
 
 import org.ricts.abstractmachine.R;
-import org.ricts.abstractmachine.components.compute.core.ComputeCore;
 import org.ricts.abstractmachine.components.compute.isa.OperandInfo;
+import org.ricts.abstractmachine.components.interfaces.DecoderUnit;
 import org.ricts.abstractmachine.ui.fragment.MemFragment;
 
 /**
@@ -27,7 +27,7 @@ public class DataMemoryDialogActivity extends MemoryContentsDialogActivity {
 
         /** Setup main data variables **/
         Bundle dataBundle = getIntent().getExtras();
-        final ComputeCore mainCore = InspectActivity.getComputeCore(getResources(), dataBundle);
+        final DecoderUnit decoderUnit = InspectActivity.getDecoderUnit(getResources(), dataBundle);
         final MemFragment.AssemblyMemoryData memoryData = dataBundle.getParcelable(MEM_DATA_KEY);
         final int memoryAddress = dataBundle.getInt(MEM_ADDR_KEY);
         final String memoryType = dataBundle.getString(MEM_TYPE_KEY);
@@ -47,15 +47,15 @@ public class DataMemoryDialogActivity extends MemoryContentsDialogActivity {
             @Override
             public void onClick(View view) {
                 /** save memoryContents data for location in adapter **/
-                int dataValue = getSafeInt(operandOneSearchView, mainCore.getDataOperandInfo());
+                int dataValue = getSafeInt(operandOneSearchView, decoderUnit.getDataOperandInfo());
 
-                String dataValueText = mainCore.dataValueString(dataValue);
+                String dataValueText = decoderUnit.dataValueString(dataValue);
                 String dataText = DATA_MNEUMONIC + " " + dataValueText;
                 int [] operands = new int[1];
                 operands[0] = dataValue;
 
                 // update data address mapping, if any
-                OperandInfo dataAddrOpInfo = mainCore.getDataAddrOperandInfo();
+                OperandInfo dataAddrOpInfo = decoderUnit.getDataAddrOperandInfo();
                 String labelText = labelEditText.getText().toString();
                 if(!labelText.equals("")){
                     dataAddrOpInfo.addMapping(labelText, memoryAddress);

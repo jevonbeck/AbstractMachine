@@ -7,8 +7,9 @@ import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.compute.cu.ControlUnitCore;
 import org.ricts.abstractmachine.components.observable.ObservableComputeCore;
 import org.ricts.abstractmachine.components.observable.ObservableCuFSM;
-import org.ricts.abstractmachine.components.observable.ObservableCuRegCore;
+import org.ricts.abstractmachine.components.observable.ObservableDecoderUnit;
 import org.ricts.abstractmachine.components.observable.ObservableDefaultValueSource;
+import org.ricts.abstractmachine.components.observable.ObservableFetchCore;
 import org.ricts.abstractmachine.components.observable.ObservableMemoryPort;
 import org.ricts.abstractmachine.components.storage.RAM;
 import org.ricts.abstractmachine.ui.compute.CpuCoreView;
@@ -48,7 +49,7 @@ public class VonNeumannSystemFragment extends VonNeumannActivityFragment {
     @Override
     protected void bindObservablesToViews(){
         ObservableCuFSM fsm = controlUnit.getMainFSM();
-        ObservableCuRegCore regCore = controlUnit.getRegCore();
+        ObservableFetchCore regCore = controlUnit.getRegCore();
         ObservableDefaultValueSource irDefaultValueSource = controlUnit.getIrDefaultValueSource();
 
         /** Initialise Views **/
@@ -61,12 +62,13 @@ public class VonNeumannSystemFragment extends VonNeumannActivityFragment {
         regCore.addObserver(cpu);
         irDefaultValueSource.addObserver(cpu);
         mainCore.addObserver(cpu);
+        decoderUnit.addObserver(cpu);
     }
 
     @Override
     protected void handleUserVisibility(boolean visible) {
         memory.setAnimatePins(visible);
-        cpu.setUpdateIrImmediately(!visible);
+        cpu.setViewVisibility(visible);
     }
 
     @Override
@@ -87,10 +89,10 @@ public class VonNeumannSystemFragment extends VonNeumannActivityFragment {
      * @param cu Control Unit
      * @return A new instance of fragment VonNeumannSystemFragment.
      */
-    public static VonNeumannSystemFragment newInstance(ObservableComputeCore core, ObservableMemoryPort memData,
-                                                       ControlUnitCore cu) {
+    public static VonNeumannSystemFragment newInstance(ObservableComputeCore core, ObservableDecoderUnit decoderUnit,
+                                                       ObservableMemoryPort memData, ControlUnitCore cu) {
         VonNeumannSystemFragment fragment = new VonNeumannSystemFragment();
-        fragment.setObservables(core, memData, cu);
+        fragment.setObservables(core, decoderUnit, memData, cu);
         return fragment;
     }
 }

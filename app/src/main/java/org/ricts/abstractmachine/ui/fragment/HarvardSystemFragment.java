@@ -6,8 +6,9 @@ import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.compute.cu.ControlUnitCore;
 import org.ricts.abstractmachine.components.observable.ObservableComputeCore;
 import org.ricts.abstractmachine.components.observable.ObservableCuFSM;
-import org.ricts.abstractmachine.components.observable.ObservableCuRegCore;
+import org.ricts.abstractmachine.components.observable.ObservableDecoderUnit;
 import org.ricts.abstractmachine.components.observable.ObservableDefaultValueSource;
+import org.ricts.abstractmachine.components.observable.ObservableFetchCore;
 import org.ricts.abstractmachine.components.observable.ObservableMemoryPort;
 import org.ricts.abstractmachine.components.observable.ObservableReadPort;
 import org.ricts.abstractmachine.components.storage.RAM;
@@ -27,6 +28,7 @@ public class HarvardSystemFragment extends HarvardActivityFragment {
 
     @Override
     protected void initViews(View mainView) {
+        super.initViews(mainView);
         instructionCacheView = (RomView) mainView.findViewById(R.id.instructionCache);
         dataMemoryView = (RamView) mainView.findViewById(R.id.dataMemory);
 
@@ -39,7 +41,7 @@ public class HarvardSystemFragment extends HarvardActivityFragment {
 
             @Override
             public void onResetAnimationEnd() {
-                mListener.onResetCompleted();
+                notifyResetActionListener();
             }
         });
     }
@@ -47,7 +49,7 @@ public class HarvardSystemFragment extends HarvardActivityFragment {
     @Override
     protected void bindObservablesToViews() {
         ObservableCuFSM fsm = controlUnit.getMainFSM();
-        ObservableCuRegCore regCore = controlUnit.getRegCore();
+        ObservableFetchCore regCore = controlUnit.getRegCore();
         ObservableDefaultValueSource irDefaultValueSource = controlUnit.getIrDefaultValueSource();
 
         /** Initialise Views **/
@@ -62,13 +64,14 @@ public class HarvardSystemFragment extends HarvardActivityFragment {
         regCore.addObserver(cpuView);
         irDefaultValueSource.addObserver(cpuView);
         mainCore.addObserver(cpuView);
+        decoderUnit.addObserver(cpuView);
     }
 
     @Override
     protected void handleUserVisibility(boolean visible) {
         instructionCacheView.setAnimatePins(visible);
         dataMemoryView.setAnimatePins(visible);
-        cpuView.setUpdateIrImmediately(!visible);
+        cpuView.setViewVisibility(visible);
     }
 
     @Override
@@ -85,16 +88,17 @@ public class HarvardSystemFragment extends HarvardActivityFragment {
      * this fragment using the provided parameters.
      *
      * @param mainCore Processing core architecture
+     * @param decoderUnit decoder
      * @param instructionCache instruction memory
      * @param dataMemory data memory
      * @param cu Control Unit
      * @return A new instance of fragment HarvardSystemFragment.
      */
-    public static HarvardSystemFragment newInstance(ObservableComputeCore mainCore,
+    public static HarvardSystemFragment newInstance(ObservableComputeCore mainCore, ObservableDecoderUnit decoderUnit,
                                                     ObservableReadPort<ROM> instructionCache,
                                                     ObservableMemoryPort dataMemory, ControlUnitCore cu) {
         HarvardSystemFragment fragment = new HarvardSystemFragment();
-        fragment.setObservables(mainCore, instructionCache, dataMemory, cu);
+        fragment.setObservables(mainCore, decoderUnit, instructionCache, dataMemory, cu);
         return fragment;
     }
 }

@@ -4,6 +4,7 @@
     <string name="basic_scalar_pop_format">POP</string>
     <string name="basic_scalar_nop_format">NOP</string>
     <string name="basic_scalar_halt_format">HALT</string>
+    <string name="basic_scalar_retfie_format">RETFIE</string>
     <string name="basic_scalar_jump_format">JUMP IAREG</string>
     <string name="basic_scalar_push_format">PUSH IAREG</string>
     <string name="basic_scalar_storepc_format">STOREPC IAREG</string>
@@ -67,6 +68,7 @@
     <string name="basic_scalar_pop_desc">Pop the call stack and update Program Counter</string>
     <string name="basic_scalar_nop_desc">No Operation</string>
     <string name="basic_scalar_halt_desc">Stop program execution</string>
+    <string name="basic_scalar_retfie_desc">Return from interrupt</string>
     <string name="basic_scalar_jump_desc">Unconditional branch to instruction address register value</string>
     <string name="basic_scalar_push_desc">Push the instruction address register value onto the call stack</string>
     <string name="basic_scalar_storepc_desc">Store the current Program Counter in the instruction address register</string>
@@ -110,8 +112,13 @@
     <string name="basic_scalar_xorwidth_desc">Perform logical XOR of \'byteMultiplier\' Lowest Significant Bytes of \'A\' and \'B\' and store in \'RES\' LSB</string>
 
     <!-- Register Names -->
+    <string name="basic_scalar_pc_reg">PC</string>
     <string name="basic_scalar_status_reg">STATUS</string>
     <string name="basic_scalar_intenable_reg">INTENABLE</string>
     <string name="basic_scalar_intflags_reg">INTFLAGS</string>
+    <string name="basic_scalar_intsrcenable_reg">INTSRCEN</string>
+    <string name="basic_scalar_control_reg">CONTROL</string>
+    <string name="basic_scalar_tmr0_reg">TMR0</string>
+    <string name="basic_scalar_options_reg">OPTIONS</string>
 
 </resources>

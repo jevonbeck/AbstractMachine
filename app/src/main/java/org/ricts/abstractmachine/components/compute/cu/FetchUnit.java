@@ -1,32 +1,36 @@
 package org.ricts.abstractmachine.components.compute.cu;
 
-import org.ricts.abstractmachine.components.interfaces.ControlUnitRegCore;
+import org.ricts.abstractmachine.components.interfaces.FetchCore;
 import org.ricts.abstractmachine.components.interfaces.ReadPort;
-import org.ricts.abstractmachine.components.storage.Register;
+import org.ricts.abstractmachine.components.interfaces.Register;
+import org.ricts.abstractmachine.components.storage.RegisterImpl;
 
 /**
  * Created by Jevon on 11/03/2017.
  */
 
-public class CuRegCore implements ControlUnitRegCore {
+public class FetchUnit implements FetchCore {
     private Register pc, tempPC; // Program Counter
+    private Register instrPC, tempInstrPC; // Instruction Program Counter value
     private Register ir, tempIR; // Instruction Register
     private ReadPort instructionCache;
     private boolean useTempRegs;
 
-    public CuRegCore(ReadPort iCache, int pcWidth, int irWidth) {
+    public FetchUnit(ReadPort iCache, int pcWidth, int irWidth) {
         this(iCache, pcWidth, irWidth, false);
     }
 
-    public CuRegCore(ReadPort iCache, int pcWidth, int irWidth, boolean stageStorage) {
+    public FetchUnit(ReadPort iCache, int pcWidth, int irWidth, boolean stageStorage) {
         instructionCache = iCache;
-        pc = new Register(pcWidth);
-        ir = new Register(irWidth);
+        pc = new RegisterImpl(pcWidth);
+        instrPC = new RegisterImpl(pcWidth);
+        ir = new RegisterImpl(irWidth);
         useTempRegs = stageStorage;
 
         if(useTempRegs) {
-            tempPC = new Register(pcWidth);
-            tempIR = new Register(irWidth);
+            tempPC = new RegisterImpl(pcWidth);
+            tempInstrPC = new RegisterImpl(pcWidth);
+            tempIR = new RegisterImpl(irWidth);
         }
     }
 
@@ -37,11 +41,14 @@ public class CuRegCore implements ControlUnitRegCore {
         int irValue = instructionCache.read(pcValue); // PC += 1
 
         if(useTempRegs){
+            tempInstrPC.write(pcValue);
             tempPC.write(pcIncrementedValue);
             tempIR.write(irValue);
         }
         else {
-            setPcAndIr(pcIncrementedValue, irValue);
+            instrPC.write(pcValue);
+            pc.write(pcIncrementedValue);
+            ir.write(irValue);
         }
     }
 
@@ -59,7 +66,9 @@ public class CuRegCore implements ControlUnitRegCore {
     @Override
     public void updatePcWithExpectedValues() {
         if(useTempRegs){
-            setPcAndIr(tempPC.read(), tempIR.read());
+            instrPC.write(tempInstrPC.read());
+            pc.write(tempPC.read());
+            ir.write(tempIR.read());
         }
     }
 
@@ -74,6 +83,11 @@ public class CuRegCore implements ControlUnitRegCore {
     }
 
     @Override
+    public int getInstructionPC() {
+        return instrPC.read();
+    }
+
+    @Override
     public int getIR() {
         return ir.read();
     }
@@ -81,6 +95,11 @@ public class CuRegCore implements ControlUnitRegCore {
     @Override
     public String getPCString() {
         return pc.dataString();
+    }
+
+    @Override
+    public String getInstructionPCString() {
+        return instrPC.dataString();
     }
 
     @Override

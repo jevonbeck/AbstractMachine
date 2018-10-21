@@ -7,15 +7,17 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import org.ricts.abstractmachine.R;
-import org.ricts.abstractmachine.components.compute.core.ComputeCore;
+import org.ricts.abstractmachine.components.compute.cu.FetchUnit;
 import org.ricts.abstractmachine.components.compute.cu.fsm.ControlUnitState;
-import org.ricts.abstractmachine.components.compute.cu.CuRegCore;
-import org.ricts.abstractmachine.components.interfaces.ControlUnitRegCore;
+import org.ricts.abstractmachine.components.interfaces.ComputeCore;
 import org.ricts.abstractmachine.components.interfaces.CuFsmInterface;
+import org.ricts.abstractmachine.components.interfaces.DecoderUnit;
+import org.ricts.abstractmachine.components.interfaces.FetchCore;
 import org.ricts.abstractmachine.components.observable.ObservableComputeCore;
 import org.ricts.abstractmachine.components.observable.ObservableCuFSM;
-import org.ricts.abstractmachine.components.observable.ObservableCuRegCore;
+import org.ricts.abstractmachine.components.observable.ObservableDecoderUnit;
 import org.ricts.abstractmachine.components.observable.ObservableDefaultValueSource;
+import org.ricts.abstractmachine.components.observable.ObservableFetchCore;
 import org.ricts.abstractmachine.ui.storage.MemoryPortView;
 import org.ricts.abstractmachine.ui.storage.RamView;
 import org.ricts.abstractmachine.ui.storage.ReadPortView;
@@ -28,14 +30,14 @@ import java.util.Observer;
  * Created by Jevon on 18/01/15.
  */
 public class CpuCoreView extends RelativeLayout implements Observer {
-    private static final String TAG = "CpuCoreView";
+    private static final String TAG = "CpuAltCoreView";
 
     private InspectActionResponder responder;
 
     private TextView pc, ir;
     private TextView stateView, instructionView;
     private String irText;
-    private boolean updateIrImmediately, irDefaultValueSourceCalled;
+    private boolean isVisible, irDefaultValueSourceCalled;
 
 
     /** Standard Constructors **/
@@ -98,7 +100,6 @@ public class CpuCoreView extends RelativeLayout implements Observer {
         instructionView.setTextColor(context.getResources().getColor(android.R.color.white));
         instructionView.setBackgroundColor(context.getResources().getColor(R.color.test_color2));
 
-
         /*** determine children layouts and positions ***/
         int viewWidth = (int) (110 * scaleFactor);
 
@@ -149,10 +150,11 @@ public class CpuCoreView extends RelativeLayout implements Observer {
         addView(instructionView, lpInstructionView);
 
         /*** Initialise other vars ***/
-        updateIrImmediately = false;
+        isVisible = false;
     }
 
-    public void initCpu(CuFsmInterface fsm, ControlUnitRegCore regCore, RomView instructionCache, RamView dataMemory){
+    public void initCpu(CuFsmInterface fsm, FetchCore regCore,
+                        RomView instructionCache, RamView dataMemory){
         /** initialise variables **/
         updateState(fsm.currentState());
         pc.setText(regCore.getPCString());
@@ -205,59 +207,78 @@ public class CpuCoreView extends RelativeLayout implements Observer {
             CuFsmInterface fsm = ((ObservableCuFSM) observable).getType();
             updateState(fsm.currentState());
         }
-        else if(observable instanceof ObservableCuRegCore) {
-            CuRegCore regCore = ((ObservableCuRegCore) observable).getType();
-            pc.setText(regCore.getPCString());
-            irText = regCore.getIRString();
+        else if(observable instanceof ObservableFetchCore) {
+            FetchUnit fetchUnit = ((ObservableFetchCore) observable).getType();
+            pc.setText(fetchUnit.getPCString());
+            irText = fetchUnit.getIRString();
 
-            boolean isUpdateFromSetRegs = o != null && o instanceof ObservableCuRegCore.SetRegsObject;
+            boolean isUpdateFromSetRegs = o != null && o instanceof ObservableFetchCore.SetRegsObject;
             boolean isUpdateFromReset = irDefaultValueSourceCalled && isUpdateFromSetRegs;
             if(isUpdateFromReset) {
                 irDefaultValueSourceCalled = false; // clear indication that update was from reset
             }
 
-            if(updateIrImmediately || isUpdateFromReset){
+            if(!isVisible || isUpdateFromReset){
                 updateIrText();
             }
         }
         else if(observable instanceof ObservableDefaultValueSource) {
             irDefaultValueSourceCalled = true; // indicate to reg core that update is from reset
         }
-        else if(observable instanceof ObservableComputeCore){
-            if(o instanceof ObservableComputeCore.ExecuteParams) {
-                ObservableComputeCore.ExecuteParams params = (ObservableComputeCore.ExecuteParams) o;
-                ComputeCore core = (ComputeCore) ((ObservableComputeCore) observable).getType();
+        else if(observable instanceof ObservableDecoderUnit){
+            if(o instanceof ObservableDecoderUnit.DecodeParams) {
+                ObservableDecoderUnit.DecodeParams decodeParams = (ObservableDecoderUnit.DecodeParams) o;
+                instructionView.setText(decodeParams.getInstructionString());
 
-                int instruction = params.getInstruction();
-                instructionView.setText(core.instrString(instruction));
-
-                if(!updateIrImmediately && !core.isDataMemoryInstruction(instruction)) {
-                    // Launch thread to ensure that responder.onAnimationEnd() is called after
-                    // InspectActivity.advanceTime() completes
-                    (new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            postDelayed(new Runnable() {
-                                @Override
-                                public void run() {
-                                    responder.onStepAnimationEnd();
-                                }
-                            }, 1);
-                        }
-                    })).start();
+                if(isVisible) {
+                    launchAsynchronousOnStepCompleted();
                 }
+            }
+            else if(o instanceof ObservableDecoderUnit.InvalidateParams) {
+                instructionView.setText(null);
             }
             else if(o instanceof Boolean){ // update is from a reset
                 instructionView.setText(null);
-                if(!updateIrImmediately) {
+                if(isVisible) {
                     responder.onResetAnimationEnd();
+                }
+            }
+        }
+        else if(observable instanceof ObservableComputeCore){
+            if(o instanceof ObservableComputeCore.ExecuteParams) {
+                ComputeCore core = ((ObservableComputeCore) observable);
+
+                DecoderUnit decoderUnit = core.getDecoderUnit();
+                if(isVisible && !decoderUnit.isDataMemoryInstruction()) {
+                    launchAsynchronousOnStepCompleted();
+                }
+            }
+            else if(o instanceof ObservableComputeCore.InterruptParams) {
+                if(isVisible) {
+                    launchAsynchronousOnStepCompleted();
                 }
             }
         }
     }
 
-    public void setUpdateIrImmediately(boolean immediately){
-        updateIrImmediately = immediately;
+    public void launchAsynchronousOnStepCompleted() {
+        // Launch thread to ensure that responder.onStepAnimationEnd() is called after
+        // InspectActivity.advanceTime() completes
+        (new Thread(new Runnable() {
+            @Override
+            public void run() {
+                postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        responder.onStepAnimationEnd();
+                    }
+                }, 1);
+            }
+        })).start();
+    }
+
+    public void setViewVisibility(boolean visible){
+        isVisible = visible;
     }
 
     public void setActionResponder(InspectActionResponder resp){
@@ -269,6 +290,9 @@ public class CpuCoreView extends RelativeLayout implements Observer {
         switch(Enum.valueOf(ControlUnitState.GenericCUState.class, text)) {
             case FETCH:
                 resId = R.string.control_unit_fetch_state;
+                break;
+            case DECODE:
+                resId = R.string.control_unit_decode_state;
                 break;
             case EXECUTE:
                 resId = R.string.control_unit_execute_state;

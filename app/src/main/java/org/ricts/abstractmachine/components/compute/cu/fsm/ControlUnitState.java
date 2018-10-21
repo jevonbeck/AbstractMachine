@@ -5,7 +5,7 @@ import org.ricts.abstractmachine.components.fsm.State;
 
 public abstract class ControlUnitState extends State {
     public enum GenericCUState {
-        FETCH, EXECUTE, SLEEP, HALT, ACTIVE
+        FETCH, DECODE, EXECUTE, SLEEP, HALT, ACTIVE
     }
 
     public abstract int actionDuration();

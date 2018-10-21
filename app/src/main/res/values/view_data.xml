@@ -10,6 +10,9 @@
     <item name="ControlUnitView_fsm_view" type="id"/>
     <item name="ControlUnitView_state_label" type="id"/>
     <item name="ComputeCoreView_instruction_label" type="id"/>
+    <item name="ComputeCoreView_alu_state_label" type="id"/>
+    <item name="ComputeAltCoreView_status_label" type="id"/>
+    <item name="DecoderUnitView_instruction_label" type="id"/>
     <item name="CpuCoreView_pc_view" type="id"/>
     <item name="CpuCoreView_ir_view" type="id"/>
     <item name="CpuCoreView_fsm_view" type="id"/>

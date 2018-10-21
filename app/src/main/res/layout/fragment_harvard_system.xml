@@ -31,4 +31,11 @@
         android:layout_alignTop="@id/dataMemory"
         android:layout_alignBottom="@id/dataMemory"
         />
+
+    <TextView
+        android:id="@+id/remainderText"
+        android:layout_below="@id/dataMemory"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"/>
 </RelativeLayout>

@@ -1,14 +1,14 @@
 package org.ricts.abstractmachine.components.compute.cu.fsm;
 
-import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
+import org.ricts.abstractmachine.components.interfaces.ComputeCore;
 
 /**
  * Created by Jevon on 08/08/2016.
  */
 public class ControlUnitSleepState extends ControlUnitState {
-    private ComputeCoreInterface core;
+    private ComputeCore core;
 
-    public ControlUnitSleepState(ComputeCoreInterface proc) {
+    public ControlUnitSleepState(ComputeCore proc) {
         super(GenericCUState.SLEEP);
         core = proc;
     }

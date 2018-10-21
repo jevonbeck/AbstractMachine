@@ -13,10 +13,11 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.SearchView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.ricts.abstractmachine.R;
-import org.ricts.abstractmachine.components.compute.core.ComputeCore;
 import org.ricts.abstractmachine.components.compute.isa.OperandInfo;
+import org.ricts.abstractmachine.components.interfaces.DecoderUnit;
 import org.ricts.abstractmachine.ui.fragment.MemFragment;
 
 /**
@@ -26,6 +27,8 @@ import org.ricts.abstractmachine.ui.fragment.MemFragment;
 public class InstrMemoryDialogActivity extends MemoryContentsDialogActivity {
     private int lastSelectedSearchView = -1;
     private SearchView [] operandSearchViewArr;
+    private DecoderUnit decoderUnit;
+    private MemFragment.AssemblyMemoryData memoryData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,8 +37,8 @@ public class InstrMemoryDialogActivity extends MemoryContentsDialogActivity {
 
         /** Setup main data variables **/
         Bundle dataBundle = getIntent().getExtras();
-        final ComputeCore mainCore = InspectActivity.getComputeCore(getResources(), dataBundle);
-        final MemFragment.AssemblyMemoryData memoryData = dataBundle.getParcelable(MEM_DATA_KEY);
+        decoderUnit = InspectActivity.getDecoderUnit(getResources(), dataBundle);
+        memoryData = dataBundle.getParcelable(MEM_DATA_KEY);
         final int memoryAddress = dataBundle.getInt(MEM_ADDR_KEY);
         final String memoryType = dataBundle.getString(MEM_TYPE_KEY);
 
@@ -49,7 +52,6 @@ public class InstrMemoryDialogActivity extends MemoryContentsDialogActivity {
         for(int x=0; x < operandSearchViewArr.length; ++x) {
             operandSearchViewArr[x] = (SearchView) findViewById(searchViewIdArr[x]);
         }
-        final SearchView operandOneSearchView = operandSearchViewArr[0];
 
         SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
         SearchableInfo searchableInfo = searchManager.getSearchableInfo(getComponentName());
@@ -75,36 +77,29 @@ public class InstrMemoryDialogActivity extends MemoryContentsDialogActivity {
                 RadioButton button = (RadioButton) radioGroup.findViewById(checkedId);
 
                 String mneumonic = button.getText().toString();
+                decoderUnit.setMneumonic(mneumonic);
                 OperandInfo [] operandInfoArr = mneumonic.equals(DATA_MNEUMONIC) ?
-                        new OperandInfo [] {mainCore.getDataOperandInfo()} :
-                        mainCore.getOperandInfoArray(mneumonic);
+                        new OperandInfo [] {decoderUnit.getDataOperandInfo()} :
+                        decoderUnit.getOperandInfoArray();
 
                 // update mneumonic usage and meaning details
                 String format = mneumonic.equals(DATA_MNEUMONIC) ?
                         resources.getString(R.string.compute_core_data_memory_format) :
-                        mainCore.getInstructionFormat(mneumonic);
+                        decoderUnit.getInstructionFormat();
                 String description = mneumonic.equals(DATA_MNEUMONIC) ?
                         resources.getString(R.string.compute_core_data_memory_desc) :
-                        mainCore.getDescription(mneumonic);
+                        decoderUnit.getDescription();
                 String [] operandHints = mneumonic.equals(DATA_MNEUMONIC) ?
                         new String [] {resources.getString(R.string.compute_core_data_memory_label)} :
-                        mainCore.getOperandLabels(mneumonic);
+                        decoderUnit.getOperandLabels();
 
                 formatTextView.setText(format);
                 descriptionTextView.setText(description);
 
                 // update visibility of SearchViews to only enter appropriate number of operands
                 int operandCount = operandInfoArr.length;
-                operandOneSearchView.setEnabled(operandCount > 0);
-                for(int x=1; x < operandSearchViewArr.length; ++x) {
+                for(int x=0; x < operandSearchViewArr.length; ++x) {
                     operandSearchViewArr[x].setVisibility((x < operandCount) ? View.VISIBLE : View.GONE);
-                }
-
-                // update SearchView query text
-                int [] operands = memoryData.getOperands();
-                for(int x=0; x < operands.length; ++x){
-                    String text = operandInfoArr[x].getPrettyValue(operands[x]);
-                    operandSearchViewArr[x].setQuery(text, true);
                 }
 
                 // update SearchView query hint
@@ -116,7 +111,7 @@ public class InstrMemoryDialogActivity extends MemoryContentsDialogActivity {
 
         // Populate RadioGroup with instruction set
         String comparisonMneumonic = memoryData.getMneumonic();
-        for(String mneumonic : mainCore.getMneumonicList()){
+        for(String mneumonic : decoderUnit.getMneumonicList()){
             addRadioButtonWithText(mneumonic, instrGroup, comparisonMneumonic);
         }
 
@@ -128,53 +123,62 @@ public class InstrMemoryDialogActivity extends MemoryContentsDialogActivity {
             @Override
             public void onClick(View view) {
                 /** save instruction data for location in adapter **/
-                RadioButton button = (RadioButton) instrGroup.findViewById(
-                        instrGroup.getCheckedRadioButtonId());
-                String mneumonic = button.getText().toString();
+                try {
+                    RadioButton button = (RadioButton) instrGroup.findViewById(
+                            instrGroup.getCheckedRadioButtonId());
+                    String mneumonic = button.getText().toString();
 
-                int [] operands;
-                int encodedInstruction;
-                String instructionText;
-                if(mneumonic.equals(DATA_MNEUMONIC)){
-                    encodedInstruction = getSafeInt(operandOneSearchView, mainCore.getDataOperandInfo());
-                    instructionText = DATA_MNEUMONIC + " " +
-                            mainCore.instrValueString(encodedInstruction);
-                    operands = new int[1];
-                    operands[0] = encodedInstruction;
-                }
-                else{
-                    OperandInfo[] operandInfoArray = mainCore.getOperandInfoArray(mneumonic);
-                    int operandCount = operandInfoArray.length;
-                    operands = new int[operandCount];
-                    for(int x=0; x < operandCount; ++x){
-                        OperandInfo operandInfo = operandInfoArray[x];
-                        operands[x] = getSafeInt(operandSearchViewArr[x], operandInfo);
+                    int [] operands;
+                    int encodedInstruction;
+                    String instructionText;
+                    if(mneumonic.equals(DATA_MNEUMONIC)){
+                        encodedInstruction = getSafeInt(operandSearchViewArr[0], decoderUnit.getDataOperandInfo());
+                        instructionText = DATA_MNEUMONIC + " " +
+                                decoderUnit.instrValueString(encodedInstruction);
+                        operands = new int[1];
+                        operands[0] = encodedInstruction;
+                    }
+                    else{
+                        OperandInfo[] operandInfoArray = decoderUnit.getOperandInfoArray();
+                        int operandCount = operandInfoArray.length;
+                        operands = new int[operandCount];
+                        for(int x=0; x < operandCount; ++x){
+                            OperandInfo operandInfo = operandInfoArray[x];
+                            operands[x] = getSafeInt(operandSearchViewArr[x], operandInfo);
+                        }
+
+                        encodedInstruction = decoderUnit.encodeInstruction(mneumonic, operands);
+                        decoderUnit.decode(0, encodedInstruction);
+                        decoderUnit.updateValues();
+                        instructionText = decoderUnit.instrString();
                     }
 
-                    encodedInstruction = mainCore.encodeInstruction(mneumonic, operands);
-                    instructionText = mainCore.instrString(encodedInstruction);
-                }
+                    // update instruction address mapping, if any
+                    OperandInfo instrOpInfo = decoderUnit.getInstrAddrOperandInfo();
+                    String labelText = labelEditText.getText().toString();
+                    if(!labelText.equals("")){
+                        instrOpInfo.addMapping(labelText, memoryAddress);
+                    }
+                    else {
+                        instrOpInfo.removeMapping(memoryAddress);
+                    }
 
-                // update instruction address mapping, if any
-                OperandInfo instrOpInfo = mainCore.getInstrAddrOperandInfo();
-                String labelText = labelEditText.getText().toString();
-                if(!labelText.equals("")){
-                    instrOpInfo.addMapping(labelText, memoryAddress);
-                }
-                else {
-                    instrOpInfo.removeMapping(memoryAddress);
-                }
+                    // update instruction data in list
+                    memoryData.setMneumonic(mneumonic);
+                    memoryData.setOperands(operands);
+                    memoryData.setMemoryContents(instructionText);
+                    memoryData.setNumericValue(decoderUnit.instrValueString(encodedInstruction));
+                    memoryData.setLabel(labelText);
+                    memoryData.setComment(commentEditText.getText().toString());
 
-                // update instruction data in list
-                memoryData.setMneumonic(mneumonic);
-                memoryData.setOperands(operands);
-                memoryData.setMemoryContents(instructionText);
-                memoryData.setNumericValue(mainCore.instrValueString(encodedInstruction));
-                memoryData.setLabel(labelText);
-                memoryData.setComment(commentEditText.getText().toString());
-
-                sendMemoryData(view.getContext(), memoryAddress, memoryData, memoryType);
-                finish();
+                    sendMemoryData(view.getContext(), memoryAddress, memoryData, memoryType);
+                }
+                catch (NumberFormatException e) { // could not parse a given operand
+                    Toast.makeText(getApplicationContext(), R.string.invalid_op_msg, Toast.LENGTH_SHORT).show();
+                }
+                finally {
+                    finish();
+                }
             }
         });
 
@@ -193,7 +197,7 @@ public class InstrMemoryDialogActivity extends MemoryContentsDialogActivity {
                 @Override
                 public void onFocusChange(View view, boolean hasFocus) {
                     if(hasFocus){
-                        provider.setOpInfo(getOperandInfo(instrGroup, mainCore, index));
+                        provider.setOpInfo(getOperandInfo(instrGroup, index));
                         lastSelectedSearchView = index;
                     }
                 }
@@ -221,21 +225,34 @@ public class InstrMemoryDialogActivity extends MemoryContentsDialogActivity {
 
         // ... then, check/select button with current mneumonic
         if(mneumonic.equals(comparisonMneumonic)){
+            decoderUnit.setMneumonic(mneumonic);
             button.setChecked(true); // this triggers visibility of EditTexts
+
+            // update SearchView query text
+            OperandInfo [] operandInfoArr = mneumonic.equals(DATA_MNEUMONIC) ?
+                    new OperandInfo [] {decoderUnit.getDataOperandInfo()} :
+                    decoderUnit.getOperandInfoArray();
+
+            int [] operands = memoryData.getOperands();
+            for (int x = 0; x < operands.length; ++x) {
+                String text = operandInfoArr[x].getPrettyValue(operands[x]);
+                operandSearchViewArr[x].setQuery(text, true);
+            }
         }
     }
 
-    private OperandInfo getOperandInfo(RadioGroup instrGroup, ComputeCore mainCore, int index) {
+    private OperandInfo getOperandInfo(RadioGroup instrGroup, int index) {
         RadioButton button = (RadioButton) instrGroup.findViewById(
                 instrGroup.getCheckedRadioButtonId());
         String mneumonic = button.getText().toString();
 
         if(mneumonic.equals(DATA_MNEUMONIC)){
-            return mainCore.getDataOperandInfo();
+            return decoderUnit.getDataOperandInfo();
         }
         else {
-            OperandInfo[] operandInfoArray = mainCore.getOperandInfoArray(mneumonic);
-            return operandInfoArray[index];
+            decoderUnit.setMneumonic(mneumonic);
+            OperandInfo[] operandInfoArray = decoderUnit.getOperandInfoArray();
+            return (index < operandInfoArray.length) ? operandInfoArray[index] : null;
         }
     }
 }

@@ -9,13 +9,16 @@ import org.ricts.abstractmachine.components.compute.core.UniMemoryCpuCore;
 import org.ricts.abstractmachine.components.compute.cu.ControlUnitCore;
 import org.ricts.abstractmachine.components.observable.ObservableComputeCore;
 import org.ricts.abstractmachine.components.observable.ObservableCuFSM;
-import org.ricts.abstractmachine.components.observable.ObservableCuRegCore;
+import org.ricts.abstractmachine.components.observable.ObservableDecoderUnit;
 import org.ricts.abstractmachine.components.observable.ObservableDefaultValueSource;
+import org.ricts.abstractmachine.components.observable.ObservableFetchCore;
 import org.ricts.abstractmachine.components.observable.ObservableMemoryPort;
 import org.ricts.abstractmachine.components.observable.ObservableMultiMemoryPort;
 import org.ricts.abstractmachine.components.observable.ObservableMultiplexer;
 import org.ricts.abstractmachine.ui.compute.ComputeCoreView;
 import org.ricts.abstractmachine.ui.compute.ControlUnitView;
+import org.ricts.abstractmachine.ui.compute.ControlUnitInterfaceView;
+import org.ricts.abstractmachine.ui.compute.DecoderUnitView;
 import org.ricts.abstractmachine.ui.compute.InspectActionResponder;
 import org.ricts.abstractmachine.ui.network.MemoryPortMultiplexerView;
 import org.ricts.abstractmachine.ui.storage.MemoryPortView;
@@ -33,12 +36,16 @@ import java.util.Observer;
  * create an instance of this fragment.
  */
 public class VonNeumannCoreFragment extends VonNeumannActivityFragment {
+    private static final String TAG = "VonNeumannCoreFragment";
+
     private static final int DATA_MEM_ID = UniMemoryCpuCore.SerializerInputId.DATA_MEM.ordinal();
     private static final int INS_MEM_ID = UniMemoryCpuCore.SerializerInputId.INSTRUCTION_MEM.ordinal();
 
     private MemoryPortMultiplexerView muxView;
     private ControlUnitView cuView;
     private ComputeCoreView coreView;
+    private DecoderUnitView decoderView;
+    private ControlUnitInterfaceView cuInterfaceView;
     private TextView muxSelectView;
 
     @Override
@@ -50,19 +57,38 @@ public class VonNeumannCoreFragment extends VonNeumannActivityFragment {
         muxView.setSelectWidth(1);
         muxView.setTargetMemoryPort(mainMemory.getType());
 
+        cuView = (ControlUnitView) mainView.findViewById(R.id.control_unit);
+        cuView.setActionResponder(new InspectActionResponder() {
+            @Override
+            public void onStepAnimationEnd() {
+                mListener.onStepActionCompleted();
+            }
+
+            @Override
+            public void onResetAnimationEnd() {
+                mListener.onResetCompleted();
+            }
+        });
+
+        decoderView = (DecoderUnitView) mainView.findViewById(R.id.decoder);
+        decoderView.setActionResponder(new DecoderUnitView.StepActionResponder() {
+            @Override
+            public void onAnimationEnd() {
+                mListener.onStepActionCompleted();
+            }
+        });
+
+        cuInterfaceView = (ControlUnitInterfaceView) mainView.findViewById(R.id.cuInterface);
+
         coreView = (ComputeCoreView) mainView.findViewById(R.id.core);
+        coreView.setControlUnitCommandInterface(cuInterfaceView);
         coreView.setMemoryCommandResponder(new ComputeCoreView.MemoryCommandResponder() {
             @Override
             public void onMemoryCommandIssued() {
                 muxView.animatePins();
             }
         });
-        coreView.setActionResponder(new ComputeCoreView.StepActionResponder() {
-            @Override
-            public void onAnimationEnd() {
-                mListener.onStepActionCompleted();
-            }
-        });
+        coreView.setNopInstructionString(decoderUnit.instrValueString(decoderUnit.getType().getNopInstruction()));
 
         MemoryPortView dataMemory = (MemoryPortView) (muxView.getInputs())[DATA_MEM_ID];
         dataMemory.setReadResponder(new ReadPortView.ReadResponder() {
@@ -88,33 +114,21 @@ public class VonNeumannCoreFragment extends VonNeumannActivityFragment {
 
             }
         });
-
-        cuView = (ControlUnitView) mainView.findViewById(R.id.control_unit);
-        cuView.setActionResponder(new InspectActionResponder() {
-            @Override
-            public void onStepAnimationEnd() {
-                mListener.onStepActionCompleted();
-            }
-
-            @Override
-            public void onResetAnimationEnd() {
-                mListener.onResetCompleted();
-            }
-        });
     }
 
     @Override
     protected void bindObservablesToViews(){
         ObservableCuFSM fsm = controlUnit.getMainFSM();
-        ObservableCuRegCore regCore = controlUnit.getRegCore();
+        ObservableFetchCore regCore = controlUnit.getRegCore();
         ObservableDefaultValueSource irDefaultValueSource = controlUnit.getIrDefaultValueSource();
 
         /** Initialise Views **/
         MemoryPortView instructionCache = (MemoryPortView) (muxView.getInputs())[INS_MEM_ID];
-        cuView.initCU(fsm, regCore, coreView, instructionCache);
+        cuView.initCU(fsm, regCore, decoderView, cuInterfaceView, instructionCache, controlUnit.isPipelined());
 
         /** Add observers to observables **/
         mainCore.addObserver(coreView);
+        decoderUnit.addObserver(decoderView);
         fsm.addObserver(cuView);
         regCore.addObserver(cuView);
         irDefaultValueSource.addObserver(cuView);
@@ -137,6 +151,7 @@ public class VonNeumannCoreFragment extends VonNeumannActivityFragment {
 
         muxView.showPinAnimations(visible);
         cuView.setUpdateImmediately(fragmentNotVisible);
+        decoderView.setUpdateImmediately(fragmentNotVisible);
         coreView.setUpdateImmediately(fragmentNotVisible);
     }
 
@@ -157,11 +172,11 @@ public class VonNeumannCoreFragment extends VonNeumannActivityFragment {
      * @param memData System memory
      * @return A new instance of fragment VonNeumannCoreFragment.
      */
-    public static VonNeumannCoreFragment newInstance(ObservableComputeCore core, ObservableMemoryPort memData,
-                                                     ControlUnitCore controlUnit, ObservableMultiplexer muxSelect,
-                                                     ObservableMultiMemoryPort muxPorts) {
+    public static VonNeumannCoreFragment newInstance(ObservableComputeCore core, ObservableDecoderUnit decoderUnit,
+                                                     ObservableMemoryPort memData, ControlUnitCore controlUnit,
+                                                     ObservableMultiplexer muxSelect, ObservableMultiMemoryPort muxPorts) {
         VonNeumannCoreFragment fragment = new VonNeumannCoreFragment();
-        fragment.setObservables(core, memData, controlUnit, muxSelect, muxPorts);
+        fragment.setObservables(core, decoderUnit, memData, controlUnit, muxSelect, muxPorts);
         return fragment;
     }
 }

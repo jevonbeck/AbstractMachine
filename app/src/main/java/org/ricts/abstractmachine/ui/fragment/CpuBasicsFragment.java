@@ -200,7 +200,10 @@ public class CpuBasicsFragment extends WizardFragment {
     public void savePageData(Bundle bundle) {
         bundle.putCharSequence(CORE_TYPE, getSelectedButtonText(coreTypeRadioGroup));
 
-        bundle.putCharSequence(InspectActivity.ARCH_TYPE, getSelectedButtonText(archRadiGroup));
+        CharSequence archType = getSelectedButtonText(archRadiGroup);
+        bundle.putCharSequence(InspectActivity.ARCH_TYPE, archType);
+        bundle.putBoolean(InspectActivity.IS_PIPELINED, !archType.equals(getString(R.string.architecture_type_von_neumann)));
+
         bundle.putString(InspectActivity.CORE_NAME, getComputeCoreName());
         bundle.putInt(InspectActivity.CORE_DATA_WIDTH, Integer.valueOf(
                 getSelectedButtonText(bitWidthRadioGroup).toString() ));

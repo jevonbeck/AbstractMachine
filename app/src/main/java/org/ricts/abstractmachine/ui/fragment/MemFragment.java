@@ -25,8 +25,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import org.ricts.abstractmachine.R;
-import org.ricts.abstractmachine.components.compute.core.ComputeCore;
 import org.ricts.abstractmachine.components.devicetype.Device;
+import org.ricts.abstractmachine.components.interfaces.DecoderUnit;
 import org.ricts.abstractmachine.ui.activity.InspectActivity;
 import org.ricts.abstractmachine.ui.activity.MemoryContentsDialogActivity;
 import org.ricts.abstractmachine.ui.utils.wizard.WizardFragment;
@@ -60,10 +60,11 @@ public abstract class MemFragment extends WizardFragment {
     private static final String INS_SEPERATOR = ",";
     private static final String INS_DATA_SEPERATOR = ";";
 
-    private ComputeCore mainCore;
+    private String mainCoreName;
+    private DecoderUnit decoderUnit;
     private ArrayList<AssemblyMemoryData> adapterData;
     private ListView memoryContentsListView;
-    private Button mappingButton, saveButton, loadButton, newButton;
+    private Button saveButton, loadButton, newButton;
     private String currentFile;
 
     private BroadcastReceiver receiver;
@@ -107,7 +108,6 @@ public abstract class MemFragment extends WizardFragment {
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_memory, container, false);
         memoryContentsListView = (ListView) rootView.findViewById(R.id.listView);
-        mappingButton = (Button) rootView.findViewById(R.id.mappingButton);
         saveButton = (Button) rootView.findViewById(R.id.saveButton);
         loadButton = (Button) rootView.findViewById(R.id.loadButton);
         newButton = (Button) rootView.findViewById(R.id.newButton);
@@ -166,8 +166,9 @@ public abstract class MemFragment extends WizardFragment {
     private void initialiseViews(final Bundle dataBundle, boolean initFromFile){
         final Context context = getContext();
 
-        // Create appropriate ComputeCore
-        mainCore = InspectActivity.getComputeCore(getResources(), dataBundle);
+        // Create appropriate DecoderUnit
+        mainCoreName = dataBundle.getString(InspectActivity.CORE_NAME);
+        decoderUnit = InspectActivity.getDecoderUnit(getResources(), dataBundle);
 
         /** Configure ListView **/
         if(initFromFile){
@@ -197,10 +198,10 @@ public abstract class MemFragment extends WizardFragment {
                 String zeroString = null;
                 switch (memoryType()){
                     case INSTRUCTION:
-                        zeroString = mainCore.instrValueString(0);
+                        zeroString = decoderUnit.instrValueString(0);
                         break;
                     case DATA:
-                        zeroString = mainCore.dataValueString(0);
+                        zeroString = decoderUnit.dataValueString(0);
                         break;
                 }
 
@@ -210,16 +211,18 @@ public abstract class MemFragment extends WizardFragment {
             }
         };
 
+        /*
         mappingButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 DialogFragment fragment = MappingDialogFragment.newInstance(
-                        new MappingDialogFragment.MneumonicTypeMapping(mainCore.getDataOperandInfo()),
+                        new MappingDialogFragment.MneumonicTypeMapping(decoderUnit.getDataOperandInfo()),
                         new MappingDialogFragment.MneumonicTypeMapping(mainCore.getDataRegOperandInfo()));
                 fragment.show(MemFragment.this.getActivity().getSupportFragmentManager(),
                         MAPPING_DIALOG_TAG);
             }
         });
+        */
 
         saveButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -269,7 +272,7 @@ public abstract class MemFragment extends WizardFragment {
 
         File coreRootDir = getComputeCorePath(dataBundle, context);
         int maxWidth = memoryType() == MemoryType.DATA ?
-                mainCore.dAddrWidth() : mainCore.iAddrWidth();
+                decoderUnit.dAddrWidth() : decoderUnit.iAddrWidth();
         adapterData = loadListFromFile(new File(coreRootDir, currentFile),
                 1 << maxWidth, context); // max lines = 2^maxWidth
 
@@ -283,7 +286,7 @@ public abstract class MemFragment extends WizardFragment {
 
     public void populateListView(){
         final AssemblyCodeAdapter adapter = new AssemblyCodeAdapter(getContext(), R.layout.listitem_instruction,
-                mainCore, adapterData, memoryType());
+                decoderUnit, adapterData, memoryType());
 
         unregisterReceiver();
         receiver = new BroadcastReceiver() {
@@ -321,7 +324,7 @@ public abstract class MemFragment extends WizardFragment {
                 Intent intent = getDialogActivityIntent();
                 populateActivityIntent(intent, position,
                         (AssemblyMemoryData) adapterView.getItemAtPosition(position),
-                        mainCore);
+                        decoderUnit, mainCoreName);
                 startActivity(intent);
             }
         });
@@ -329,15 +332,16 @@ public abstract class MemFragment extends WizardFragment {
     }
 
     protected void populateActivityIntent(Intent intent, int position,
-                                          AssemblyMemoryData data, ComputeCore core){
+                                          AssemblyMemoryData data, DecoderUnit decoderUnit, String coreName){
         intent.putExtra(MemoryContentsDialogActivity.MEM_TYPE_KEY, memoryType().name());
         intent.putExtra(MemoryContentsDialogActivity.MEM_ADDR_KEY, position);
         intent.putExtra(MemoryContentsDialogActivity.MEM_DATA_KEY, data);
 
-        intent.putExtra(InspectActivity.CORE_NAME, core.getClass().getSimpleName());
-        intent.putExtra(InspectActivity.CORE_DATA_WIDTH, core.dataWidth());
-        intent.putExtra(InspectActivity.INSTR_ADDR_WIDTH, core.iAddrWidth());
-        intent.putExtra(InspectActivity.DATA_ADDR_WIDTH, core.dAddrWidth());
+        intent.putExtra(InspectActivity.CORE_NAME, coreName);
+
+        intent.putExtra(InspectActivity.CORE_DATA_WIDTH, decoderUnit.dataWidth());
+        intent.putExtra(InspectActivity.INSTR_ADDR_WIDTH, decoderUnit.iAddrWidth());
+        intent.putExtra(InspectActivity.DATA_ADDR_WIDTH, decoderUnit.dAddrWidth());
     }
 
     private ArrayList<AssemblyMemoryData> loadListFromFile(File file, int maxLines, Context context){
@@ -361,7 +365,7 @@ public abstract class MemFragment extends WizardFragment {
 
                 String label = splits[1];
                 String comment = splits[2];
-                result.add(new AssemblyMemoryData(mainCore, memoryType(),
+                result.add(new AssemblyMemoryData(decoderUnit, memoryType(),
                         mneumonic, operands, label, comment));
 
                 // limit list size to maxLines
@@ -495,22 +499,22 @@ public abstract class MemFragment extends WizardFragment {
     }
 
     private static class AssemblyCodeAdapter extends ArrayAdapter<AssemblyMemoryData> {
-        private ComputeCore mainCore;
+        private DecoderUnit decoderUnit;
         private MemoryType memoryType;
 
-        public AssemblyCodeAdapter(Context context, int resource, ComputeCore core,
+        public AssemblyCodeAdapter(Context context, int resource, DecoderUnit decoder,
                                    List<AssemblyMemoryData> objects, MemoryType type) {
             super(context, resource);
-            mainCore = core;
+            decoderUnit = decoder;
             memoryType = type;
 
             int memoryWidth = 0;
             switch (memoryType){
                 case INSTRUCTION:
-                    memoryWidth = mainCore.iAddrWidth();
+                    memoryWidth = decoderUnit.iAddrWidth();
                     break;
                 case DATA:
-                    memoryWidth = mainCore.dAddrWidth();
+                    memoryWidth = decoderUnit.dAddrWidth();
                     break;
             }
 
@@ -523,7 +527,7 @@ public abstract class MemFragment extends WizardFragment {
                 else{
                     // add newly created data element to list and adapter
                     // (for easier reference when saving page data)
-                    AssemblyMemoryData data = new AssemblyMemoryData(core, memoryType);
+                    AssemblyMemoryData data = new AssemblyMemoryData(decoderUnit, memoryType);
                     objects.add(data);
                     add(data);
                 }
@@ -544,10 +548,10 @@ public abstract class MemFragment extends WizardFragment {
             String addressValue = null;
             switch (memoryType){
                 case INSTRUCTION:
-                    addressValue = mainCore.instrAddrValueString(position);
+                    addressValue = decoderUnit.instrAddrValueString(position);
                     break;
                 case DATA:
-                    addressValue = mainCore.dataAddrValueString(position);
+                    addressValue = decoderUnit.dataAddrValueString(position);
                     break;
             }
             indexTextView.setText(addressValue);
@@ -577,7 +581,7 @@ public abstract class MemFragment extends WizardFragment {
         private int [] operands;
         private MemoryType memType;
 
-        public AssemblyMemoryData(ComputeCore core, MemoryType type){
+        public AssemblyMemoryData(DecoderUnit decoderUnit, MemoryType type){
             mneumonic = DATA_MNEUMONIC;
             operands = new int[1];
             operands[0] = 0;
@@ -587,15 +591,15 @@ public abstract class MemFragment extends WizardFragment {
 
             switch (memType){
                 case INSTRUCTION:
-                    initAsPureData(core.instrValueString(operands[0]));
+                    initAsPureData(decoderUnit.instrValueString(operands[0]));
                     break;
                 case DATA:
-                    initAsPureData(core.dataValueString(operands[0]));
+                    initAsPureData(decoderUnit.dataValueString(operands[0]));
                     break;
             }
         }
 
-        public AssemblyMemoryData(ComputeCore core, MemoryType type,
+        public AssemblyMemoryData(DecoderUnit decoderUnit, MemoryType type,
                                   String m, int []ops, String l, String c){
             mneumonic = m;
             operands = ops;
@@ -606,16 +610,20 @@ public abstract class MemFragment extends WizardFragment {
             switch (memType){
                 case INSTRUCTION:
                     if(mneumonic.equals(DATA_MNEUMONIC)){
-                        initAsPureData(core.instrValueString(operands[0]));
+                        initAsPureData(decoderUnit.instrValueString(operands[0]));
                     }
                     else{
-                        int instr = core.encodeInstruction(mneumonic, operands);
-                        memoryContents = core.instrString(instr);
-                        numericValue = core.instrValueString(instr);
+                        int instr = decoderUnit.encodeInstruction(mneumonic, operands);
+                        decoderUnit.decode(0, instr);
+                        if(decoderUnit.hasTempStorage()) {
+                            decoderUnit.updateValues();
+                        }
+                        memoryContents = decoderUnit.instrString();
+                        numericValue = decoderUnit.instrValueString(instr);
                     }
                     break;
                 case DATA:
-                    initAsPureData(core.dataValueString(operands[0]));
+                    initAsPureData(decoderUnit.dataValueString(operands[0]));
                     break;
             }
         }

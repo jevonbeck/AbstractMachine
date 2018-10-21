@@ -11,14 +11,14 @@ import android.widget.SearchView;
 
 import org.ricts.abstractmachine.components.compute.isa.OperandInfo;
 import org.ricts.abstractmachine.components.devicetype.Device;
-import org.ricts.abstractmachine.ui.fragment.MemFragment;
 import org.ricts.abstractmachine.ui.contentprovider.OperandContentProvider;
+import org.ricts.abstractmachine.ui.fragment.MemFragment;
 
 /**
  * Created by Jevon on 05/01/2017.
  */
 
-public class MemoryContentsDialogActivity extends AppCompatActivity {
+public abstract class MemoryContentsDialogActivity extends AppCompatActivity {
     protected static final String DATA_MNEUMONIC = "DATA";
     protected static final String SEARCH_AUTHORITY = "org.ricts.abstractmachine.provider";
 
@@ -27,7 +27,6 @@ public class MemoryContentsDialogActivity extends AppCompatActivity {
     public static final String MEM_TYPE_KEY = "memoryType";
 
     public static final String SUGGESTION_ACTION = "org.ricts.abstractmachine.action.OPERAND_SUGGESTION";
-
 
     private ContentProviderClient providerClient;
     protected OperandContentProvider provider;

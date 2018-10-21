@@ -8,9 +8,10 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.PagerAdapter;
 
 import org.ricts.abstractmachine.R;
-import org.ricts.abstractmachine.components.compute.core.UniMemoryComputeCore;
+import org.ricts.abstractmachine.components.compute.core.AbstractUniMemoryComputeCore;
 import org.ricts.abstractmachine.components.compute.cu.ControlUnitCore;
 import org.ricts.abstractmachine.components.observable.ObservableComputeCore;
+import org.ricts.abstractmachine.components.observable.ObservableDecoderUnit;
 import org.ricts.abstractmachine.components.observable.ObservableMemoryPort;
 import org.ricts.abstractmachine.components.observable.ObservableReadPort;
 import org.ricts.abstractmachine.components.storage.ROM;
@@ -22,9 +23,9 @@ import org.ricts.abstractmachine.ui.fragment.HarvardSystemFragment;
 /**
  * Created by Jevon on 13/08/2016.
  */
-public class HarvardActivity extends InspectActivity<UniMemoryComputeCore> {
+public class HarvardActivity extends InspectActivity<AbstractUniMemoryComputeCore> {
     @Override
-    protected SystemArchitecture createSystemArchitecture(UniMemoryComputeCore core, Bundle options) {
+    protected SystemArchitecture createSystemArchitecture(AbstractUniMemoryComputeCore core, Bundle options) {
         return new HarvardArchitecture(core, 10, 5); // TODO: change me
     }
 
@@ -37,8 +38,9 @@ public class HarvardActivity extends InspectActivity<UniMemoryComputeCore> {
     }
 
     @Override
-    protected PagerAdapter createAdapter(SystemArchitecture architecture) {
-        return new SystemViewAdapter(getSupportFragmentManager(), this, (HarvardArchitecture) architecture);
+    protected PagerAdapter createAdapter(SystemArchitecture architecture, ObservableDecoderUnit observableDecoderUnit) {
+        return new SystemViewAdapter(getSupportFragmentManager(), this,
+                (HarvardArchitecture) architecture, observableDecoderUnit);
     }
 
     private static class SystemViewAdapter extends FragmentPagerAdapter {
@@ -47,16 +49,19 @@ public class HarvardActivity extends InspectActivity<UniMemoryComputeCore> {
         private ObservableComputeCore mainCore;
         private ObservableReadPort<ROM> instructionCache;
         private ObservableMemoryPort dataMemory;
+        private ObservableDecoderUnit decoderUnit;
         private ControlUnitCore cu;
 
         private String systemString, coreString;
 
-        public SystemViewAdapter(FragmentManager fm, Context context, HarvardArchitecture architecture) {
+        public SystemViewAdapter(FragmentManager fm, Context context,
+                                 HarvardArchitecture architecture, ObservableDecoderUnit observableDecoderUnit) {
             super(fm);
             mainCore = architecture.getComputeCore();
             instructionCache = architecture.getInstructionCache();
             dataMemory = architecture.getDataMemory();
             cu = architecture.getControlUnit();
+            decoderUnit = observableDecoderUnit;
 
             systemString = context.getString(R.string.architecture_activity_system_label);
             coreString = context.getString(R.string.architecture_activity_core_label);
@@ -66,9 +71,9 @@ public class HarvardActivity extends InspectActivity<UniMemoryComputeCore> {
         public Fragment getItem(int position) {
             switch (position){
                 case 0:
-                    return HarvardSystemFragment.newInstance(mainCore, instructionCache, dataMemory, cu);
+                    return HarvardSystemFragment.newInstance(mainCore, decoderUnit, instructionCache, dataMemory, cu);
                 case 1:
-                    return HarvardCoreFragment.newInstance(mainCore, instructionCache, dataMemory, cu);
+                    return HarvardCoreFragment.newInstance(mainCore, decoderUnit, instructionCache, dataMemory, cu);
                 default:
                     return null;
             }

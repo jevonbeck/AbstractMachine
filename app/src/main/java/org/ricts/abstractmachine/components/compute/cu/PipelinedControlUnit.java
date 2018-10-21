@@ -2,11 +2,12 @@ package org.ricts.abstractmachine.components.compute.cu;
 
 import org.ricts.abstractmachine.components.compute.cu.fsm.ControlUnitFSM;
 import org.ricts.abstractmachine.components.compute.cu.fsm.PipelinedControlUnitFSM;
-import org.ricts.abstractmachine.components.interfaces.ComputeCoreInterface;
-import org.ricts.abstractmachine.components.interfaces.ControlUnitRegCore;
+import org.ricts.abstractmachine.components.interfaces.ComputeCore;
 import org.ricts.abstractmachine.components.interfaces.CuFsmInterface;
+import org.ricts.abstractmachine.components.interfaces.FetchCore;
 import org.ricts.abstractmachine.components.interfaces.ReadPort;
-import org.ricts.abstractmachine.components.storage.Register;
+import org.ricts.abstractmachine.components.interfaces.Register;
+import org.ricts.abstractmachine.components.storage.RegisterImpl;
 
 /**
  * Created by Jevon on 09/07/2016.
@@ -14,20 +15,17 @@ import org.ricts.abstractmachine.components.storage.Register;
 public class PipelinedControlUnit extends ControlUnitCore {
     private boolean branched;
 
-    private ComputeCoreInterface mainCore;
+    private Register branchPC, branchIR;
     private PipelinedControlUnitFSM pipelinedCuFSM;
 
-    private Register branchPC, branchIR;
-
-    public PipelinedControlUnit(ComputeCoreInterface core, ReadPort instructionCache){
+    public PipelinedControlUnit(ComputeCore core, ReadPort instructionCache){
         super(core, instructionCache);
-        mainCore = core;
 
-        int iAddrWidth = mainCore.iAddrWidth();
-        int instrWidth = mainCore.instrWidth();
+        int iAddrWidth = decoderUnit.iAddrWidth();
+        int instrWidth = decoderUnit.instrWidth();
 
-        branchPC = new Register(iAddrWidth);
-        branchIR = new Register(instrWidth);
+        branchPC = new RegisterImpl(iAddrWidth);
+        branchIR = new RegisterImpl(instrWidth);
 
         // initialise FSMs
         reset();
@@ -46,8 +44,9 @@ public class PipelinedControlUnit extends ControlUnitCore {
             branchPC.write(instructionAddress);
             branchIR.write(nopInstruction);
         }
-        else { // ... we need to explicitly set each FSM state
+        else { // ... it's a reset, so we need to explicitly set each FSM state
             regCore.setPcAndIr(instructionAddress, nopInstruction);
+            decoderUnit.invalidateValues();
             mainFSM.setNextState(ACTIVE_STATE);
         }
     }
@@ -59,7 +58,7 @@ public class PipelinedControlUnit extends ControlUnitCore {
 
     @Override
     public void performNextAction() {
-        // advance both FSMs
+        // advance FSMs
         mainFSM.triggerStateChange();
 
         if(isNormalExecution()){
@@ -72,10 +71,12 @@ public class PipelinedControlUnit extends ControlUnitCore {
             if(branched){ // if branch has occurred ...
                 // ... don't execute instruction that was just fetched!
                 regCore.setPcAndIr(branchPC.read(), branchIR.read());
+                decoderUnit.invalidateValues();
                 branched = false;
             }
             else {
                 regCore.updatePcWithExpectedValues();
+                decoderUnit.updateValues();
             }
         }
     }
@@ -86,12 +87,12 @@ public class PipelinedControlUnit extends ControlUnitCore {
     }
 
     @Override
-    protected CuRegCore createRegCore(ReadPort instructionCache, int pcWidth, int irWidth) {
-        return new CuRegCore(instructionCache, pcWidth, irWidth, true);
+    protected FetchUnit createRegCore(ReadPort instructionCache, int pcWidth, int irWidth) {
+        return new FetchUnit(instructionCache, pcWidth, irWidth, true);
     }
 
     @Override
-    protected CuFsmInterface createMainFSM(ControlUnitRegCore regCore, ComputeCoreInterface core) {
+    protected CuFsmInterface createMainFSM(FetchCore regCore, ComputeCore core) {
         pipelinedCuFSM = new PipelinedControlUnitFSM(regCore, core);
         return pipelinedCuFSM;
     }
@@ -101,7 +102,7 @@ public class PipelinedControlUnit extends ControlUnitCore {
         return new DefaultValueSource() {
             @Override
             public int defaultValue() {
-                return mainCore.getNopInstruction();
+                return decoderUnit.getNopInstruction();
             }
         };
     }
@@ -117,6 +118,10 @@ public class PipelinedControlUnit extends ControlUnitCore {
 
     public ControlUnitFSM getFsm2(){
         return pipelinedCuFSM.getFsm2();
+    }
+
+    public ControlUnitFSM getFsm3(){
+        return pipelinedCuFSM.getFsm3();
     }
 
     private boolean isNormalExecution(){

@@ -1,14 +1,14 @@
 package org.ricts.abstractmachine.components.observable;
 
-import org.ricts.abstractmachine.components.compute.cu.CuRegCore;
-import org.ricts.abstractmachine.components.interfaces.ControlUnitRegCore;
+import org.ricts.abstractmachine.components.compute.cu.FetchUnit;
+import org.ricts.abstractmachine.components.interfaces.FetchCore;
 
 /**
  * Created by Jevon on 11/03/2017.
  */
 
-public class ObservableCuRegCore extends ObservableType<CuRegCore> implements ControlUnitRegCore {
-    public ObservableCuRegCore(CuRegCore type) {
+public class ObservableFetchCore extends ObservableType<FetchUnit> implements FetchCore {
+    public ObservableFetchCore(FetchUnit type) {
         super(type);
     }
 
@@ -59,11 +59,6 @@ public class ObservableCuRegCore extends ObservableType<CuRegCore> implements Co
     }
 
     @Override
-    public boolean hasTempRegs() {
-        return observable_data.hasTempRegs();
-    }
-
-    @Override
     public int fetchTime() {
         return observable_data.fetchTime();
     }
@@ -74,6 +69,11 @@ public class ObservableCuRegCore extends ObservableType<CuRegCore> implements Co
     }
 
     @Override
+    public int getInstructionPC() {
+        return observable_data.getInstructionPC();
+    }
+
+    @Override
     public int getIR() {
         return observable_data.getIR();
     }
@@ -81,6 +81,11 @@ public class ObservableCuRegCore extends ObservableType<CuRegCore> implements Co
     @Override
     public String getPCString() {
         return observable_data.getPCString();
+    }
+
+    @Override
+    public String getInstructionPCString() {
+        return observable_data.getInstructionPCString();
     }
 
     @Override

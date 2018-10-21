@@ -1,52 +1,179 @@
 package org.ricts.abstractmachine.components.compute.core;
 
 
+import org.ricts.abstractmachine.components.devicetype.DataDevice;
 import org.ricts.abstractmachine.components.devicetype.Device;
+import org.ricts.abstractmachine.components.interfaces.ALU;
+import org.ricts.abstractmachine.components.interfaces.Bit;
 
-public class AluCore extends Device {
-    public enum Flag{
-        CARRY, // CarryIn/BorrowIn
-        OVERFLOW, // CarryOut/ActiveLowBorrowOut
-        ZERO, // indicates when result is zero
-        SIGN // sign of result
-    }
+public class AluCore extends Device implements DataDevice, ALU {
+
+    private Bit carryBit; // CarryIn/BorrowIn
+    private Bit overflowBit; // CarryOut/ActiveLowBorrowOut
+    private Bit zeroBit; // indicates when result is zero
+    private Bit signBit; // sign of result
 
     private int dataBitMask;
     private int dataWidth;
-    private boolean[] statusBits; // internal array to update status bits appropriately
 
-    public AluCore(int dWidth){
-        super();
-        statusBits = new boolean[Flag.values().length];
+    public AluCore(int dWidth, Bit carry, Bit sign, Bit zero, Bit overflow){
+        carryBit = carry;
+        signBit = sign;
+        zeroBit = zero;
+        overflowBit = overflow;
 
         updateDataWidth(dWidth);
     }
 
-    protected void updateDataWidth(int dWidth){
-        dataWidth = dWidth;
-        dataBitMask = bitMaskOfWidth(dWidth);
+    @Override
+    public void updateDataWidth(int width){
+        dataWidth = width;
+        dataBitMask = bitMaskOfWidth(width);
     }
 
     /* DataDevice interface implementation */
+    @Override
     public int dataWidth(){
         return dataWidth;
     }
 
-    /* ALU Flags */
-    public boolean zeroFlag(){
-        return statusBits[Flag.ZERO.ordinal()];
+    @Override
+    public String statusString() {
+        return  "Ci = " + booleanValueString(carryFlag().read()) + ", " +
+                "Co = " + booleanValueString(overflowFlag().read()) + ", " +
+                "S = "  + booleanValueString(signFlag().read()) + ", " +
+                "Z = "  + booleanValueString(zeroFlag().read());
     }
 
-    public boolean signFlag(){
-        return statusBits[Flag.SIGN.ordinal()];
+    /* ALU Arithmetic Operations */
+    @Override
+    public int add(int A, int B){
+        clearCarryFlag(); // default carryIn value
+        return addWithCarry(A,B);
     }
 
-    public boolean carryFlag(){
-        return statusBits[Flag.CARRY.ordinal()];
+    @Override
+    public int sub(int A, int B){
+        clearCarryFlag(); // default borrowIn value
+        return subWithBorrow(A,B);
     }
 
-    public boolean overflowFlag(){
-        return statusBits[Flag.OVERFLOW.ordinal()];
+    @Override
+    public int increment(int A) {
+        return add(A, 1);
+    }
+
+    @Override
+    public int decrement(int A) {
+        return sub(A, 1);
+    }
+
+    @Override
+    public int negate(int A) {
+        return sub(0, A);
+    }
+
+    @Override
+    public int addWithCarry(int A, int B){
+        boolean carryIn = carryBit.read();
+        int result = addwc(carryIn, A, B);
+        updateSignAndZeroFlags(result);
+        updateOverflowFlag(carryOut(carryIn, A, B));
+        return result;
+    }
+
+    @Override
+    public int subWithBorrow(int A, int B){
+        boolean borrowIn = carryBit.read();
+        int result = subwb(borrowIn, A, B);
+        updateSignAndZeroFlags(result);
+        updateOverflowFlag( not(borrowOut(borrowIn, A, B)) );
+        return result;
+    }
+
+    /* ALU Bitwise Logic Operations */
+    @Override
+    public int onesComplement(int A){
+        int result = ~A & dataBitMask;
+        updateZeroFlag(result != 0);
+        return result;
+    }
+
+    @Override
+    public int and(int A, int B){
+        int result = (A & B) & dataBitMask;
+        updateZeroFlag(result != 0);
+        return result;
+    }
+
+    @Override
+    public int or(int A, int B){
+        int result = (A | B) & dataBitMask;
+        updateZeroFlag(result != 0);
+        return result;
+    }
+
+    @Override
+    public int xor(int A, int B){
+        int result = (A ^ B) & dataBitMask; // (A+B).not(A.B)
+        updateZeroFlag(result != 0);
+        return result;
+    }
+
+    /* ALU Bit Shift Operations */
+    @Override
+    public int rotateLeftWithCarry(int A){
+        int result = shiftLeftWithCarry(carryBit.read(), A);
+        updateCarryFlag(shiftLeftOut(A));
+        return result;
+    }
+
+    @Override
+    public int rotateRightWithCarry(int A){
+        int result = shiftRightWithCarry(carryBit.read(), A);
+        updateCarryFlag(shiftRightOut(A));
+        return result;
+    }
+
+    @Override
+    public int logicalShiftLeft(int A, int amount){
+        return (A << amount) & dataBitMask;
+    }
+
+    @Override
+    public int logicalShiftRight(int A, int amount){
+        return (A >> amount) & dataBitMask;
+    }
+
+    /* ALU Flag Manipulation */
+    @Override
+    public void setCarryFlag(){
+        carryBit.set();
+    }
+
+    @Override
+    public void clearCarryFlag(){
+        carryBit.clear();
+    }
+
+    @Override
+    public Bit zeroFlag(){
+        return zeroBit;
+    }
+
+    @Override
+    public Bit signFlag(){
+        return signBit;
+    }
+
+    @Override
+    public Bit carryFlag(){
+        return carryBit;
+    }
+
+    @Override
+    public Bit overflowFlag(){
+        return overflowBit;
     }
 
     // Alternative implementation of overflow
@@ -54,89 +181,20 @@ public class AluCore extends Device {
         return xor(carryIn, resultSign);
     }
 
-    /* ALU Arithmetic Operations */
-    protected int add(int A, int B){
-        int result = addWithCarry(statusBits[Flag.CARRY.ordinal()], A, B);
-        updateSignAndZeroFlags(result);
-        updateOverflowFlag(carryOut(statusBits[Flag.CARRY.ordinal()], A, B));
-        return result;
+    private void updateZeroFlag(boolean value){
+        zeroBit.write(value);
     }
 
-    protected int sub(int A, int B){
-        int result = subWithBorrow(statusBits[Flag.CARRY.ordinal()], A, B);
-        updateSignAndZeroFlags(result);
-        updateOverflowFlag( not(borrowOut(statusBits[Flag.CARRY.ordinal()], A, B)) );
-        return result;
-    }
-
-    protected int rotateLeftWithCarry(int A){
-        int result = shiftLeftWithCarry(statusBits[Flag.CARRY.ordinal()], A);
-        updateCarryFlag(shiftLeftOut(A));
-        return result;
-    }
-
-    protected int rotateRigthWithCarry(int A){
-        int result = shiftRightWithCarry(statusBits[Flag.CARRY.ordinal()], A);
-        updateCarryFlag(shiftRightOut(A));
-        return result;
-    }
-
-    /* ALU Bitwise Logic Operations */
-    protected int logicalShiftLeft(int A, int amount){
-        return (A << amount) & dataBitMask;
-    }
-
-    protected int logicalShiftRight(int A, int amount){
-        return (A >> amount) & dataBitMask;
-    }
-
-    protected int not(int A){
-        int result = ~A & dataBitMask;
-        updateZeroFlag(result != 0);
-        return result;
-    }
-
-    protected int and(int A, int B){
-        int result = (A & B) & dataBitMask;
-        updateZeroFlag(result != 0);
-        return result;
-    }
-
-    protected int or(int A, int B){
-        int result = (A | B) & dataBitMask;
-        updateZeroFlag(result != 0);
-        return result;
-    }
-
-    protected int xor(int A, int B){
-        int result = (A ^ B) & dataBitMask; // (A+B).not(A.B)
-        updateZeroFlag(result != 0);
-        return result;
-    }
-
-    /* ALU Flag Manipulation */
-    protected void setCarryFlag(){
-        statusBits[Flag.CARRY.ordinal()] = true; // 1
-    }
-
-    protected void clearCarryFlag(){
-        statusBits[Flag.CARRY.ordinal()] = false; // 0
-    }
-
-    protected void updateZeroFlag(boolean value){
-        statusBits[Flag.ZERO.ordinal()] = value;
-    }
-
-    protected void updateSignFlag(boolean value){
-        statusBits[Flag.SIGN.ordinal()] = value;
+    private void updateSignFlag(boolean value){
+        signBit.write(value);
     }
 
     private void updateCarryFlag(boolean value){
-        statusBits[Flag.CARRY.ordinal()] = value;
+        carryBit.write(value);
     }
 
     private void updateOverflowFlag(boolean value){
-        statusBits[Flag.OVERFLOW.ordinal()] = value;
+        overflowBit.write(value);
     }
 
     /* Convenience Functions */
@@ -176,7 +234,7 @@ public class AluCore extends Device {
     }
 
     /* Arithmetic Operations */
-    private int addWithCarry(boolean carryIn, int A, int B){
+    private int addwc(boolean carryIn, int A, int B){
         int carry = (carryIn)? 1: 0;
         return ((A + B) + carry) & dataBitMask;
     }
@@ -186,7 +244,7 @@ public class AluCore extends Device {
         return (carryIn)? not(tempResult) : tempResult;
     }
 
-    private int subWithBorrow(boolean borrowIn, int A, int B){
+    private int subwb(boolean borrowIn, int A, int B){
         int borrow = (borrowIn)? 1: 0;
         return ((A - B) - borrow) & dataBitMask;
     }
@@ -205,10 +263,14 @@ public class AluCore extends Device {
     }
 
     private int shiftRightWithCarry(boolean carryIn, int A){
-        return setBitValueAtIndex(dataWidth-1, (A>>1), carryIn) & dataBitMask;
+        return setBitValueAtIndex(dataWidth - 1, (A>>1), carryIn) & dataBitMask;
     }
 
     private boolean shiftRightOut(int A){
         return getBitAtIndex(0, A);
+    }
+
+    private String booleanValueString(boolean value) {
+        return value ? "1" : "0";
     }
 }

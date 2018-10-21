@@ -1,7 +1,7 @@
 package org.ricts.abstractmachine.components.system;
 
 import org.ricts.abstractmachine.components.compute.core.HarvardCore;
-import org.ricts.abstractmachine.components.compute.core.UniMemoryComputeCore;
+import org.ricts.abstractmachine.components.compute.core.AbstractUniMemoryComputeCore;
 import org.ricts.abstractmachine.components.compute.cu.ControlUnitCore;
 import org.ricts.abstractmachine.components.observable.ObservableComputeCore;
 import org.ricts.abstractmachine.components.observable.ObservableMemoryPort;
@@ -12,16 +12,15 @@ import org.ricts.abstractmachine.components.storage.ROM;
 
 import java.util.List;
 
-public class HarvardArchitecture extends SystemArchitecture<UniMemoryComputeCore> {
+public class HarvardArchitecture extends SystemArchitecture<AbstractUniMemoryComputeCore> {
     private ObservableReadPort<ROM> instructionCache;
     private ObservableMemoryPort dataRAM;
     private ControlUnitCore controlUnit;
 
-    public HarvardArchitecture(UniMemoryComputeCore core, int iMemAccessTime, int dMemAccessTime) {
+    public HarvardArchitecture(AbstractUniMemoryComputeCore core, int iMemAccessTime, int dMemAccessTime) {
         super(core);
-
-        instructionCache = new ObservableReadPort<ROM>(new ROM(core.instrWidth(), core.iAddrWidth(), iMemAccessTime));
-        dataRAM = new ObservableMemoryPort(new RAM(core.dataWidth(), core.dAddrWidth(), dMemAccessTime));
+        instructionCache = new ObservableReadPort<ROM>(new ROM(decoderUnit.instrWidth(), decoderUnit.iAddrWidth(), iMemAccessTime));
+        dataRAM = new ObservableMemoryPort(new RAM(decoderUnit.dataWidth(), decoderUnit.dAddrWidth(), dMemAccessTime));
         core.setDataMemory(dataRAM);
 
         HarvardCore hCore = new HarvardCore(mainCore, instructionCache);
@@ -51,7 +50,7 @@ public class HarvardArchitecture extends SystemArchitecture<UniMemoryComputeCore
     }
 
     @Override
-    protected ObservableComputeCore<UniMemoryComputeCore> createObservableComputeCore(UniMemoryComputeCore core) {
+    protected ObservableComputeCore<AbstractUniMemoryComputeCore> createObservableComputeCore(AbstractUniMemoryComputeCore core) {
         return new ObservableUniMemoryComputeCore<>(core);
     }
 }

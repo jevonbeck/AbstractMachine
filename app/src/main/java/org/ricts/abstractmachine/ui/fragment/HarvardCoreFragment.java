@@ -6,13 +6,16 @@ import org.ricts.abstractmachine.R;
 import org.ricts.abstractmachine.components.compute.cu.ControlUnitCore;
 import org.ricts.abstractmachine.components.observable.ObservableComputeCore;
 import org.ricts.abstractmachine.components.observable.ObservableCuFSM;
-import org.ricts.abstractmachine.components.observable.ObservableCuRegCore;
+import org.ricts.abstractmachine.components.observable.ObservableDecoderUnit;
 import org.ricts.abstractmachine.components.observable.ObservableDefaultValueSource;
+import org.ricts.abstractmachine.components.observable.ObservableFetchCore;
 import org.ricts.abstractmachine.components.observable.ObservableMemoryPort;
 import org.ricts.abstractmachine.components.observable.ObservableReadPort;
 import org.ricts.abstractmachine.components.storage.ROM;
 import org.ricts.abstractmachine.ui.compute.ComputeCoreView;
 import org.ricts.abstractmachine.ui.compute.ControlUnitView;
+import org.ricts.abstractmachine.ui.compute.ControlUnitInterfaceView;
+import org.ricts.abstractmachine.ui.compute.DecoderUnitView;
 import org.ricts.abstractmachine.ui.compute.InspectActionResponder;
 import org.ricts.abstractmachine.ui.storage.MemoryPortView;
 import org.ricts.abstractmachine.ui.storage.ReadPortView;
@@ -25,7 +28,9 @@ import java.util.Observer;
  */
 public class HarvardCoreFragment extends HarvardActivityFragment implements Observer {
     private ControlUnitView cuView;
+    private ControlUnitInterfaceView cuInterfaceView;
     private ComputeCoreView coreView;
+    private DecoderUnitView decoderView;
 
     private ReadPortView instructionCacheView;
     private MemoryPortView dataMemoryView;
@@ -35,24 +40,30 @@ public class HarvardCoreFragment extends HarvardActivityFragment implements Obse
 
     @Override
     protected void initViews(View mainView) {
-        coreView = (ComputeCoreView) mainView.findViewById(R.id.core);
-        dataMemoryView = (MemoryPortView) mainView.findViewById(R.id.dataMemory);
-
+        super.initViews(mainView);
         instructionCacheView = (ReadPortView) mainView.findViewById(R.id.instructionCache);
         instructionCacheView.setReadDelayByMultiple(2);
 
+        decoderView = (DecoderUnitView) mainView.findViewById(R.id.decoder);
+        decoderView.setActionResponder(new DecoderUnitView.StepActionResponder() {
+            @Override
+            public void onAnimationEnd() {
+                notifyStepActionListener();
+            }
+        });
+
+        cuInterfaceView = (ControlUnitInterfaceView) mainView.findViewById(R.id.cuInterface);
+
+        dataMemoryView = (MemoryPortView) mainView.findViewById(R.id.dataMemory);
+
+        coreView = (ComputeCoreView) mainView.findViewById(R.id.core);
+        coreView.setControlUnitCommandInterface(cuInterfaceView);
         coreView.setMemoryCommandResponder(new ComputeCoreView.MemoryCommandResponder() {
             @Override
             public void onMemoryCommandIssued() {
                 if(animatePins) {
                     dataMemoryView.update(dataMemObservable, dataMemObservableObject);
                 }
-            }
-        });
-        coreView.setActionResponder(new ComputeCoreView.StepActionResponder() {
-            @Override
-            public void onAnimationEnd() {
-                notifyStepActionListener();
             }
         });
 
@@ -88,7 +99,7 @@ public class HarvardCoreFragment extends HarvardActivityFragment implements Obse
 
             @Override
             public void onResetAnimationEnd() {
-                mListener.onResetCompleted();
+                notifyResetActionListener();
             }
         });
     }
@@ -96,14 +107,15 @@ public class HarvardCoreFragment extends HarvardActivityFragment implements Obse
     @Override
     protected void bindObservablesToViews() {
         ObservableCuFSM fsm = controlUnit.getMainFSM();
-        ObservableCuRegCore regCore = controlUnit.getRegCore();
+        ObservableFetchCore regCore = controlUnit.getRegCore();
         ObservableDefaultValueSource irDefaultValueSource = controlUnit.getIrDefaultValueSource();
 
         /** Initialise Views **/
-        cuView.initCU(fsm, regCore, coreView, instructionCacheView);
+        cuView.initCU(fsm, regCore, decoderView, cuInterfaceView, instructionCacheView, controlUnit.isPipelined());
 
         /** Add observers to observables **/
         mainCore.addObserver(coreView);
+        decoderUnit.addObserver(decoderView);
         fsm.addObserver(cuView);
         regCore.addObserver(cuView);
         irDefaultValueSource.addObserver(cuView);
@@ -117,6 +129,7 @@ public class HarvardCoreFragment extends HarvardActivityFragment implements Obse
 
         animatePins = visible;
         cuView.setUpdateImmediately(fragmentNotVisible);
+        decoderView.setUpdateImmediately(fragmentNotVisible);
         coreView.setUpdateImmediately(fragmentNotVisible);
     }
 
@@ -152,11 +165,11 @@ public class HarvardCoreFragment extends HarvardActivityFragment implements Obse
      * @param cu Control Unit
      * @return A new instance of fragment HarvardCoreFragment.
      */
-    public static HarvardCoreFragment newInstance(ObservableComputeCore mainCore,
+    public static HarvardCoreFragment newInstance(ObservableComputeCore mainCore, ObservableDecoderUnit decoderUnit,
                                                   ObservableReadPort<ROM> instructionCache,
                                                   ObservableMemoryPort dataMemory, ControlUnitCore cu) {
         HarvardCoreFragment fragment = new HarvardCoreFragment();
-        fragment.setObservables(mainCore, instructionCache, dataMemory, cu);
+        fragment.setObservables(mainCore, decoderUnit, instructionCache, dataMemory, cu);
         return fragment;
     }
 }
