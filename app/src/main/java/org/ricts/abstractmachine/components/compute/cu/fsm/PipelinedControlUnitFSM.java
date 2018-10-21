@@ -35,13 +35,13 @@ public class PipelinedControlUnitFSM extends CuFsmCore {
         State tempState = getNextState();
 
         if(tempState == sleep) {
-            setFSMSleepNextState();
+            setNextState(HALT_STATE, HALT_STATE, SLEEP_STATE);
         }
         else if(tempState == halt) {
-            setFSMHaltNextState();
+            setNextState(HALT_STATE, HALT_STATE, HALT_STATE);
         }
         else if(tempState == active) {
-            setFSMActiveNextState();
+            setNextState(FETCH_STATE, DECODE_STATE, EXECUTE_STATE);
         }
     }
 
@@ -51,13 +51,13 @@ public class PipelinedControlUnitFSM extends CuFsmCore {
         State tempState = getCurrentState();
 
         if(tempState == active) {
-            setToActiveState();
+            setCurrentState(FETCH_STATE, DECODE_STATE, EXECUTE_STATE);
         }
         else if(tempState == sleep) {
-            setToSleepState();
+            setCurrentState(HALT_STATE, HALT_STATE, SLEEP_STATE);
         }
         else if(tempState == halt) {
-            setToHaltState();
+            setCurrentState(HALT_STATE, HALT_STATE, HALT_STATE);
         }
     }
 
@@ -106,41 +106,15 @@ public class PipelinedControlUnitFSM extends CuFsmCore {
         return fsm3;
     }
 
-    private void setFSMSleepNextState() {
-        fsm1.setNextState(HALT_STATE);
-        fsm2.setNextState(HALT_STATE);
-        fsm3.setNextState(SLEEP_STATE);
+    private void setCurrentState(String fsmState1, String fsmState2, String fsmState3) {
+        fsm1.setCurrentState(fsmState1);
+        fsm2.setCurrentState(fsmState2);
+        fsm3.setCurrentState(fsmState3);
     }
 
-    private void setFSMHaltNextState() {
-        fsm1.setNextState(HALT_STATE);
-        fsm2.setNextState(HALT_STATE);
-        fsm3.setNextState(HALT_STATE);
-    }
-
-    private void setFSMActiveNextState() {
-        fsm1.setNextState(FETCH_STATE);
-        fsm2.setNextState(DECODE_STATE);
-        fsm3.setNextState(EXECUTE_STATE);
-    }
-
-    private void setToActiveState() {
-        /* N.B. : All FSMs are connected to the same instructionCache and dataMemory!
-           During normal operation, each performs a different execution state... ALWAYS! */
-        fsm1.setCurrentState(FETCH_STATE);
-        fsm2.setCurrentState(DECODE_STATE);
-        fsm3.setCurrentState(EXECUTE_STATE);
-    }
-
-    private void setToSleepState() {
-        fsm1.setCurrentState(HALT_STATE);
-        fsm2.setCurrentState(HALT_STATE);
-        fsm3.setCurrentState(SLEEP_STATE);
-    }
-
-    private void setToHaltState() {
-        fsm1.setCurrentState(HALT_STATE);
-        fsm2.setCurrentState(HALT_STATE);
-        fsm3.setCurrentState(HALT_STATE);
+    private void setNextState(String fsmState1, String fsmState2, String fsmState3) {
+        fsm1.setNextState(fsmState1);
+        fsm2.setNextState(fsmState2);
+        fsm3.setNextState(fsmState3);
     }
 }
